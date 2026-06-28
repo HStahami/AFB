@@ -1,8 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { BookOpen, Globe2, Sparkles, ArrowRight, Send, Users, Star, Mail, Phone, MapPin, ChevronDown, ChevronLeft, ChevronRight, Menu, X } from 'lucide-react';
+import { BookOpen, Globe2, Sparkles, ArrowRight, Send, Users, Star, Mail, Phone, MapPin, ChevronDown, ChevronLeft, ChevronRight, Menu, X, Plus, Trash2, Check, XCircle, LogOut, Lock } from 'lucide-react';
 import './index.css';
+
+const API_BASE = "http://localhost:8000/api";
 
 // --- Shared Components ---
 
@@ -247,9 +249,27 @@ function About() {
 }
 
 function Contact() {
-  const handleSubmit = (e) => {
+  const [formData, setFormData] = useState({ first_name: '', last_name: '', email: '', message: '' });
+  const [success, setSuccess] = useState(false);
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    alert('Message sent successfully! We will get back to you soon.');
+    try {
+      const res = await fetch(`${API_BASE}/contact/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+      if (res.ok) {
+        setSuccess(true);
+      }
+    } catch (e) {
+      alert("Failed to send message. Please try again.");
+    }
   };
 
   return (
@@ -285,17 +305,23 @@ function Contact() {
         </div>
 
         <div className="glass-panel" style={{ flex: '2', minWidth: '350px', padding: '3rem' }}>
-          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-            <div style={{ display: 'flex', gap: '1.5rem' }}>
-              <input type="text" placeholder="First Name" required style={{ flex: 1, padding: '16px', borderRadius: '8px', border: '1px solid rgba(197, 229, 232, 0.2)', background: 'rgba(0,0,0,0.2)', color: 'var(--color-white)', outline: 'none' }} />
-              <input type="text" placeholder="Last Name" required style={{ flex: 1, padding: '16px', borderRadius: '8px', border: '1px solid rgba(197, 229, 232, 0.2)', background: 'rgba(0,0,0,0.2)', color: 'var(--color-white)', outline: 'none' }} />
+          {success ? (
+            <div style={{ color: '#2ecc71', fontSize: '1.2rem', textAlign: 'center', padding: '2rem' }}>
+              🎉 Your message has been sent successfully! We will get back to you soon.
             </div>
-            <input type="email" placeholder="Email Address" required style={{ padding: '16px', borderRadius: '8px', border: '1px solid rgba(197, 229, 232, 0.2)', background: 'rgba(0,0,0,0.2)', color: 'var(--color-white)', outline: 'none' }} />
-            <textarea placeholder="Your Message" rows="5" required style={{ padding: '16px', borderRadius: '8px', border: '1px solid rgba(197, 229, 232, 0.2)', background: 'rgba(0,0,0,0.2)', color: 'var(--color-white)', outline: 'none', resize: 'vertical' }}></textarea>
-            <button type="submit" className="btn-primary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginTop: '1rem' }}>
-              Send Message <Send size={18} />
-            </button>
-          </form>
+          ) : (
+            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              <div style={{ display: 'flex', gap: '1.5rem' }}>
+                <input type="text" name="first_name" placeholder="First Name" required value={formData.first_name} onChange={handleChange} style={{ flex: 1, padding: '16px', borderRadius: '8px', border: '1px solid rgba(197, 229, 232, 0.2)', background: 'rgba(0,0,0,0.2)', color: 'var(--color-white)', outline: 'none' }} />
+                <input type="text" name="last_name" placeholder="Last Name" required value={formData.last_name} onChange={handleChange} style={{ flex: 1, padding: '16px', borderRadius: '8px', border: '1px solid rgba(197, 229, 232, 0.2)', background: 'rgba(0,0,0,0.2)', color: 'var(--color-white)', outline: 'none' }} />
+              </div>
+              <input type="email" name="email" placeholder="Email Address" required value={formData.email} onChange={handleChange} style={{ padding: '16px', borderRadius: '8px', border: '1px solid rgba(197, 229, 232, 0.2)', background: 'rgba(0,0,0,0.2)', color: 'var(--color-white)', outline: 'none' }} />
+              <textarea name="message" placeholder="Your Message" rows="5" required value={formData.message} onChange={handleChange} style={{ padding: '16px', borderRadius: '8px', border: '1px solid rgba(197, 229, 232, 0.2)', background: 'rgba(0,0,0,0.2)', color: 'var(--color-white)', outline: 'none', resize: 'vertical' }}></textarea>
+              <button type="submit" className="btn-primary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginTop: '1rem' }}>
+                Send Message <Send size={18} />
+              </button>
+            </form>
+          )}
         </div>
       </div>
     </motion.div>
@@ -380,17 +406,28 @@ function CustomSelect({ options, placeholder }) {
 }
 
 function Admission() {
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    alert('Thank you for applying! Our team will contact you soon regarding your admission.');
+  const [formData, setFormData] = useState({ first_name: '', last_name: '', email: '', phone: '' });
+  const [success, setSuccess] = useState(false);
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const courseOptions = [
-    { value: 'grammar', label: 'Grammar & Morphology' },
-    { value: 'conversational', label: 'Conversational Arabic' },
-    { value: 'quranic', label: 'Quranic Arabic' },
-    { value: 'advanced', label: 'Advanced Literature' }
-  ];
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await fetch(`${API_BASE}/admissions/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+      if (res.ok) {
+        setSuccess(true);
+      }
+    } catch (e) {
+      alert("Something went wrong. Please try again.");
+    }
+  };
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
@@ -400,20 +437,464 @@ function Admission() {
         <p style={{ color: '#b0c4c6', marginBottom: '2.5rem', fontSize: '1.1rem' }}>
           Take the first step towards mastering Arabic. Fill out the form below to apply for our courses.
         </p>
-        <form onSubmit={handleSubmit} style={{ display: 'flex', gap: '1.5rem', flexDirection: 'column' }}>
-          <div style={{ display: 'flex', gap: '1rem' }}>
-            <input type="text" placeholder="First Name" required style={inputStyle} />
-            <input type="text" placeholder="Last Name" required style={inputStyle} />
+        {success ? (
+          <div style={{ color: '#2ecc71', fontSize: '1.2rem', padding: '2rem' }}>
+            🎉 Application submitted successfully! Our team will contact you soon.
           </div>
-          <input type="email" placeholder="Email Address" required style={inputStyle} />
-          <input type="tel" placeholder="Phone Number" required style={inputStyle} />
-          {/* <CustomSelect options={courseOptions} placeholder="Select a Course of Interest" /> */}
-          <button type="submit" className="btn-primary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', padding: '16px', fontSize: '1.1rem', marginTop: '1rem' }}>
-            Submit Application <Send size={20} />
+        ) : (
+          <form onSubmit={handleSubmit} style={{ display: 'flex', gap: '1.5rem', flexDirection: 'column' }}>
+            <div style={{ display: 'flex', gap: '1rem' }}>
+              <input type="text" name="first_name" placeholder="First Name" required value={formData.first_name} onChange={handleChange} style={inputStyle} />
+              <input type="text" name="last_name" placeholder="Last Name" required value={formData.last_name} onChange={handleChange} style={inputStyle} />
+            </div>
+            <input type="email" name="email" placeholder="Email Address" required value={formData.email} onChange={handleChange} style={inputStyle} />
+            <input type="tel" name="phone" placeholder="Phone Number" required value={formData.phone} onChange={handleChange} style={inputStyle} />
+            <button type="submit" className="btn-primary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', padding: '16px', fontSize: '1.1rem', marginTop: '1rem' }}>
+              Submit Application <Send size={20} />
+            </button>
+          </form>
+        )}
+      </div>
+    </motion.div>
+  );
+}
+
+// --- Admin Components ---
+
+function AdminLogin({ onLogin }) {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    try {
+      const res = await fetch(`${API_BASE}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+      if (!res.ok) throw new Error('Invalid credentials');
+      const data = await res.json();
+      localStorage.setItem('adminToken', data.access_token);
+      onLogin();
+    } catch (err) {
+      setError(err.message || 'Login failed');
+    }
+  };
+
+  return (
+    <div style={{ minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
+      <div className="glass-panel" style={{ padding: '3rem', maxWidth: '400px', width: '100%', textAlign: 'center' }}>
+        <Lock size={48} color="var(--color-primary)" style={{ margin: '0 auto 1.5rem' }} />
+        <h2 style={{ fontSize: '2rem', fontWeight: '700', marginBottom: '1.5rem' }} className="gradient-text">Admin Portal</h2>
+        {error && <p style={{ color: '#ff6b6b', marginBottom: '1rem' }}>{error}</p>}
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          <input 
+            type="text" 
+            placeholder="Username" 
+            value={username} 
+            onChange={(e) => setUsername(e.target.value)} 
+            required 
+            style={inputStyle} 
+          />
+          <input 
+            type="password" 
+            placeholder="Password" 
+            value={password} 
+            onChange={(e) => setPassword(e.target.value)} 
+            required 
+            style={inputStyle} 
+          />
+          <button type="submit" className="btn-primary" style={{ padding: '16px', fontSize: '1.1rem' }}>
+            Login
           </button>
         </form>
       </div>
-    </motion.div>
+    </div>
+  );
+}
+
+function AdminDashboard({ onLogout }) {
+  const [activeTab, setActiveTab] = useState('overview');
+  const [stats, setStats] = useState({ total: 0, pending: 0, approved: 0, canceled: 0, total_students: 0, total_instructors: 0 });
+  const [admissions, setAdmissions] = useState([]);
+  const [students, setStudents] = useState([]);
+  const [instructors, setInstructors] = useState([]);
+  const [contacts, setContacts] = useState([]);
+  
+  // Instructor Add Form
+  const [newInstName, setNewInstName] = useState('');
+  const [newInstSpec, setNewInstSpec] = useState('');
+
+  // Assign modal state
+  const [selectedStudent, setSelectedStudent] = useState(null);
+  const [assignSlot, setAssignSlot] = useState('');
+  const [assignInst, setAssignInst] = useState('');
+
+  const token = localStorage.getItem('adminToken');
+  const headers = {
+    'Authorization': `Bearer ${token}`,
+    'Content-Type': 'application/json'
+  };
+
+  const fetchStats = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/dashboard/stats`, { headers });
+      const data = await res.json();
+      setStats(data);
+    } catch (e) { console.error(e); }
+  };
+
+  const fetchAdmissions = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/admissions/`, { headers });
+      const data = await res.json();
+      setAdmissions(data);
+    } catch (e) { console.error(e); }
+  };
+
+  const fetchStudents = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/students/`, { headers });
+      const data = await res.json();
+      setStudents(data);
+    } catch (e) { console.error(e); }
+  };
+
+  const fetchInstructors = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/instructors/`, { headers });
+      const data = await res.json();
+      setInstructors(data);
+    } catch (e) { console.error(e); }
+  };
+
+  const fetchContacts = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/contact/`, { headers });
+      const data = await res.json();
+      setContacts(data);
+    } catch (e) { console.error(e); }
+  };
+
+  useEffect(() => {
+    fetchStats();
+    if (activeTab === 'admissions') fetchAdmissions();
+    if (activeTab === 'students') { fetchStudents(); fetchInstructors(); }
+    if (activeTab === 'instructors') fetchInstructors();
+    if (activeTab === 'contacts') fetchContacts();
+  }, [activeTab]);
+
+  const handleSendFeeEmail = async (id) => {
+    try {
+      const res = await fetch(`${API_BASE}/admissions/${id}/send-fee-email`, { method: 'PATCH', headers });
+      if (!res.ok) throw new Error();
+      alert("Fee email queued!");
+      fetchAdmissions();
+    } catch (e) { alert("Failed to send fee email"); }
+  };
+
+  const handleApprove = async (id) => {
+    try {
+      const res = await fetch(`${API_BASE}/admissions/${id}/approve`, { method: 'PATCH', headers });
+      if (!res.ok) throw new Error();
+      alert("Admission Approved! Student record created.");
+      fetchAdmissions();
+      fetchStats();
+    } catch (e) { alert("Failed to approve"); }
+  };
+
+  const handleCancel = async (id) => {
+    try {
+      const res = await fetch(`${API_BASE}/admissions/${id}/cancel`, { method: 'PATCH', headers });
+      if (!res.ok) throw new Error();
+      alert("Admission Canceled.");
+      fetchAdmissions();
+      fetchStats();
+    } catch (e) { alert("Failed to cancel"); }
+  };
+
+  const handleAddInstructor = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await fetch(`${API_BASE}/instructors/?name=${encodeURIComponent(newInstName)}&specialty=${encodeURIComponent(newInstSpec)}`, {
+        method: 'POST',
+        headers
+      });
+      if (!res.ok) throw new Error();
+      alert("Instructor Added!");
+      setNewInstName('');
+      setNewInstSpec('');
+      fetchInstructors();
+      fetchStats();
+    } catch (e) { alert("Failed to add instructor"); }
+  };
+
+  const handleDeleteInstructor = async (id) => {
+    if (!confirm("Are you sure?")) return;
+    try {
+      const res = await fetch(`${API_BASE}/instructors/${id}`, { method: 'DELETE', headers });
+      if (!res.ok) throw new Error();
+      fetchInstructors();
+      fetchStats();
+    } catch (e) { alert("Failed to delete instructor"); }
+  };
+
+  const handleAssignSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await fetch(`${API_BASE}/students/${selectedStudent._id}/assign?slot=${encodeURIComponent(assignSlot)}&instructor=${encodeURIComponent(assignInst)}`, {
+        method: 'PATCH',
+        headers
+      });
+      if (!res.ok) throw new Error();
+      alert("Slot & Instructor assigned! Email sent to student.");
+      setSelectedStudent(null);
+      fetchStudents();
+    } catch (e) { alert("Failed to assign"); }
+  };
+
+  const tableHeaderStyle = { padding: '12px', borderBottom: '1px solid rgba(255,255,255,0.1)', color: 'var(--color-primary)', textAlign: 'left' };
+  const tableCellStyle = { padding: '12px', borderBottom: '1px solid rgba(255,255,255,0.05)', color: '#e0e0e0' };
+
+  return (
+    <div style={{ display: 'flex', minHeight: '90vh', background: 'rgba(0,0,0,0.1)', borderRadius: '12px', overflow: 'hidden' }}>
+      {/* Sidebar */}
+      <div style={{ width: '220px', background: 'rgba(7, 34, 36, 0.4)', backdropFilter: 'blur(10px)', borderRight: '1px solid rgba(197, 229, 232, 0.1)', padding: '2rem 1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <h3 style={{ color: 'var(--color-white)', fontWeight: 'bold', marginBottom: '1.5rem', textAlign: 'center' }} className="gradient-text">LMS Panel</h3>
+        <button className={activeTab === 'overview' ? 'btn-primary' : 'glass-panel'} style={{ width: '100%', textAlign: 'left', padding: '10px 15px', border: 'none' }} onClick={() => setActiveTab('overview')}>Overview</button>
+        <button className={activeTab === 'admissions' ? 'btn-primary' : 'glass-panel'} style={{ width: '100%', textAlign: 'left', padding: '10px 15px', border: 'none' }} onClick={() => setActiveTab('admissions')}>Admissions</button>
+        <button className={activeTab === 'students' ? 'btn-primary' : 'glass-panel'} style={{ width: '100%', textAlign: 'left', padding: '10px 15px', border: 'none' }} onClick={() => setActiveTab('students')}>Students</button>
+        <button className={activeTab === 'instructors' ? 'btn-primary' : 'glass-panel'} style={{ width: '100%', textAlign: 'left', padding: '10px 15px', border: 'none' }} onClick={() => setActiveTab('instructors')}>Instructors</button>
+        <button className={activeTab === 'contacts' ? 'btn-primary' : 'glass-panel'} style={{ width: '100%', textAlign: 'left', padding: '10px 15px', border: 'none' }} onClick={() => setActiveTab('contacts')}>Messages</button>
+        
+        <button className="glass-panel" style={{ width: '100%', textAlign: 'left', padding: '10px 15px', border: 'none', marginTop: 'auto', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#ff6b6b' }} onClick={onLogout}>
+          <LogOut size={16} /> Logout
+        </button>
+      </div>
+
+      {/* Main Admin Area */}
+      <div style={{ flex: 1, padding: '2rem', overflowX: 'auto' }}>
+        {activeTab === 'overview' && (
+          <div>
+            <h2 style={{ color: 'var(--color-white)', marginBottom: '2rem' }}>Institute Overview</h2>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem', marginBottom: '3rem' }}>
+              <div className="glass-panel" style={{ padding: '1.5rem', textAlign: 'center' }}>
+                <h4 style={{ color: '#aaa', fontSize: '0.9rem', marginBottom: '0.5rem' }}>Total Forms</h4>
+                <p style={{ fontSize: '2.5rem', fontWeight: 'bold', color: 'var(--color-white)' }}>{stats.total}</p>
+              </div>
+              <div className="glass-panel" style={{ padding: '1.5rem', textAlign: 'center', borderLeft: '4px solid #f39c12' }}>
+                <h4 style={{ color: '#aaa', fontSize: '0.9rem', marginBottom: '0.5rem' }}>Pending</h4>
+                <p style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#f39c12' }}>{stats.pending}</p>
+              </div>
+              <div className="glass-panel" style={{ padding: '1.5rem', textAlign: 'center', borderLeft: '4px solid #2ecc71' }}>
+                <h4 style={{ color: '#aaa', fontSize: '0.9rem', marginBottom: '0.5rem' }}>Approved</h4>
+                <p style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#2ecc71' }}>{stats.approved}</p>
+              </div>
+              <div className="glass-panel" style={{ padding: '1.5rem', textAlign: 'center', borderLeft: '4px solid #e74c3c' }}>
+                <h4 style={{ color: '#aaa', fontSize: '0.9rem', marginBottom: '0.5rem' }}>Canceled</h4>
+                <p style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#e74c3c' }}>{stats.canceled}</p>
+              </div>
+              <div className="glass-panel" style={{ padding: '1.5rem', textAlign: 'center', borderLeft: '4px solid var(--color-primary)' }}>
+                <h4 style={{ color: '#aaa', fontSize: '0.9rem', marginBottom: '0.5rem' }}>Active Students</h4>
+                <p style={{ fontSize: '2.5rem', fontWeight: 'bold', color: 'var(--color-primary)' }}>{stats.total_students}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'admissions' && (
+          <div>
+            <h2 style={{ color: 'var(--color-white)', marginBottom: '1.5rem' }}>Admission Forms</h2>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr>
+                  <th style={tableHeaderStyle}>Name</th>
+                  <th style={tableHeaderStyle}>Email</th>
+                  <th style={tableHeaderStyle}>Phone</th>
+                  <th style={tableHeaderStyle}>Status</th>
+                  <th style={tableHeaderStyle}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {admissions.map(adm => (
+                  <tr key={adm._id}>
+                    <td style={tableCellStyle}>{adm.first_name} {adm.last_name}</td>
+                    <td style={tableCellStyle}>{adm.email}</td>
+                    <td style={tableCellStyle}>{adm.phone}</td>
+                    <td style={tableCellStyle}>
+                      <span style={{ 
+                        padding: '4px 8px', 
+                        borderRadius: '4px', 
+                        fontSize: '0.85rem',
+                        background: adm.status === 'Approved' ? 'rgba(46, 204, 113, 0.2)' : adm.status === 'Canceled' ? 'rgba(231, 76, 60, 0.2)' : 'rgba(243, 156, 18, 0.2)',
+                        color: adm.status === 'Approved' ? '#2ecc71' : adm.status === 'Canceled' ? '#e74c3c' : '#f39c12'
+                      }}>{adm.status}</span>
+                    </td>
+                    <td style={tableCellStyle}>
+                      {adm.status === 'Pending' && (
+                        <button onClick={() => handleSendFeeEmail(adm._id)} className="btn-primary" style={{ padding: '6px 12px', fontSize: '0.85rem', marginRight: '8px' }}>Send Fee Info</button>
+                      )}
+                      {adm.status === 'Fee Email Sent' && (
+                        <button onClick={() => handleApprove(adm._id)} className="btn-primary" style={{ padding: '6px 12px', fontSize: '0.85rem', marginRight: '8px', background: '#2e7d32' }}>Approve (Paid)</button>
+                      )}
+                      {adm.status !== 'Approved' && adm.status !== 'Canceled' && (
+                        <button onClick={() => handleCancel(adm._id)} className="glass-panel" style={{ padding: '6px 12px', fontSize: '0.85rem', color: '#e74c3c', border: '1px solid #e74c3c' }}>Cancel</button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {activeTab === 'students' && (
+          <div>
+            <h2 style={{ color: 'var(--color-white)', marginBottom: '1.5rem' }}>Active Students</h2>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr>
+                  <th style={tableHeaderStyle}>Name</th>
+                  <th style={tableHeaderStyle}>Email</th>
+                  <th style={tableHeaderStyle}>Phone</th>
+                  <th style={tableHeaderStyle}>Slot</th>
+                  <th style={tableHeaderStyle}>Instructor</th>
+                  <th style={tableHeaderStyle}>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {students.map(std => (
+                  <tr key={std._id}>
+                    <td style={tableCellStyle}>{std.first_name} {std.last_name}</td>
+                    <td style={tableCellStyle}>{std.email}</td>
+                    <td style={tableCellStyle}>{std.phone}</td>
+                    <td style={tableCellStyle}>{std.slot || <span style={{ color: '#777' }}>Not Assigned</span>}</td>
+                    <td style={tableCellStyle}>{std.instructor || <span style={{ color: '#777' }}>Not Assigned</span>}</td>
+                    <td style={tableCellStyle}>
+                      <button onClick={() => setSelectedStudent(std)} className="btn-primary" style={{ padding: '6px 12px', fontSize: '0.85rem' }}>Assign/Edit</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+            {/* Assign Modal Overlay */}
+            {selectedStudent && (
+              <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 200 }}>
+                <div className="glass-panel" style={{ padding: '2.5rem', maxWidth: '400px', width: '90%' }}>
+                  <h3 style={{ color: 'var(--color-white)', marginBottom: '1.5rem' }}>Assign Class Details</h3>
+                  <p style={{ color: '#aaa', marginBottom: '1.5rem' }}>Student: {selectedStudent.first_name} {selectedStudent.last_name}</p>
+                  <form onSubmit={handleAssignSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                    <div>
+                      <label style={{ display: 'block', color: 'var(--color-primary)', marginBottom: '0.5rem' }}>Select Slot/Time</label>
+                      <select required value={assignSlot} onChange={e => setAssignSlot(e.target.value)} style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.4)', color: 'white' }}>
+                        <option value="" disabled>Choose Slot...</option>
+                        <option value="Mon/Wed 6:00 PM">Mon/Wed 6:00 PM</option>
+                        <option value="Mon/Wed 8:00 PM">Mon/Wed 8:00 PM</option>
+                        <option value="Tue/Thu 5:00 PM">Tue/Thu 5:00 PM</option>
+                        <option value="Sat/Sun 11:00 AM">Sat/Sun 11:00 AM</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', color: 'var(--color-primary)', marginBottom: '0.5rem' }}>Select Instructor</label>
+                      <select required value={assignInst} onChange={e => setAssignInst(e.target.value)} style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.4)', color: 'white' }}>
+                        <option value="" disabled>Choose Instructor...</option>
+                        {instructors.map(inst => (
+                          <option key={inst._id} value={inst.name}>{inst.name} ({inst.specialty})</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+                      <button type="submit" className="btn-primary" style={{ flex: 1, padding: '12px' }}>Confirm</button>
+                      <button type="button" onClick={() => setSelectedStudent(null)} className="glass-panel" style={{ flex: 1, padding: '12px', border: 'none' }}>Cancel</button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'instructors' && (
+          <div>
+            <h2 style={{ color: 'var(--color-white)', marginBottom: '1.5rem' }}>Instructors Management</h2>
+            
+            {/* Add Instructor Form */}
+            <form onSubmit={handleAddInstructor} style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', flexWrap: 'wrap' }}>
+              <input type="text" placeholder="Instructor Name" value={newInstName} onChange={e => setNewInstName(e.target.value)} required style={inputStyle} />
+              <input type="text" placeholder="Specialty" value={newInstSpec} onChange={e => setNewInstSpec(e.target.value)} required style={inputStyle} />
+              <button type="submit" className="btn-primary" style={{ padding: '0 24px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Plus size={18} /> Add</button>
+            </form>
+
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr>
+                  <th style={tableHeaderStyle}>Name</th>
+                  <th style={tableHeaderStyle}>Specialty</th>
+                  <th style={tableHeaderStyle}>Active Slots / Students</th>
+                  <th style={tableHeaderStyle}>Total Students</th>
+                  <th style={tableHeaderStyle}>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {instructors.map(inst => (
+                  <tr key={inst._id}>
+                    <td style={tableCellStyle}>{inst.name}</td>
+                    <td style={tableCellStyle}>{inst.specialty}</td>
+                    <td style={tableCellStyle}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '0.85rem' }}>
+                        {inst.students && inst.students.length > 0 ? (
+                          inst.students.map((s, idx) => (
+                            <span key={idx} style={{ color: '#b0c4c6' }}>
+                              • {s.slot}: {s.name}
+                            </span>
+                          ))
+                        ) : (
+                          <span style={{ color: '#666' }}>No active assignments</span>
+                        )}
+                      </div>
+                    </td>
+                    <td style={tableCellStyle}>{inst.total_students || 0}</td>
+                    <td style={tableCellStyle}>
+                      <button onClick={() => handleDeleteInstructor(inst._id)} className="glass-panel" style={{ padding: '6px 12px', fontSize: '0.85rem', color: '#e74c3c', border: '1px solid #e74c3c' }}><Trash2 size={14} /></button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {activeTab === 'contacts' && (
+          <div>
+            <h2 style={{ color: 'var(--color-white)', marginBottom: '1.5rem' }}>Contact Messages</h2>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr>
+                  <th style={tableHeaderStyle}>Sender Name</th>
+                  <th style={tableHeaderStyle}>Email</th>
+                  <th style={tableHeaderStyle}>Message</th>
+                  <th style={tableHeaderStyle}>Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {contacts.map(c => (
+                  <tr key={c._id}>
+                    <td style={tableCellStyle}>{c.first_name} {c.last_name}</td>
+                    <td style={tableCellStyle}>{c.email}</td>
+                    <td style={tableCellStyle}>{c.message}</td>
+                    <td style={tableCellStyle}>{new Date(c.created_at).toLocaleDateString()}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
 
@@ -431,29 +912,46 @@ const inputStyle = {
 };
 
 function App() {
+  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(!!localStorage.getItem('adminToken'));
+  const isAdminRoute = window.location.pathname.startsWith('/admin');
+
+  const handleAdminLogin = () => setIsAdminLoggedIn(true);
+  const handleAdminLogout = () => {
+    localStorage.removeItem('adminToken');
+    setIsAdminLoggedIn(false);
+  };
+
   return (
     <Router>
       <div className="app-container">
-        <div style={{ position: 'fixed', top: '1rem', left: '0', right: '0', zIndex: 100, display: 'flex', justifyContent: 'center' }}>
-          <div style={{ width: '90%', maxWidth: '1200px' }}>
-            <Navbar />
+        {!isAdminRoute && (
+          <div style={{ position: 'fixed', top: '1rem', left: '0', right: '0', zIndex: 100, display: 'flex', justifyContent: 'center' }}>
+            <div style={{ width: '90%', maxWidth: '1200px' }}>
+              <Navbar />
+            </div>
           </div>
-        </div>
+        )}
         
-        <main style={{ flex: 1, display: 'flex', flexDirection: 'column', paddingTop: '8rem' }}>
+        <main style={{ flex: 1, display: 'flex', flexDirection: 'column', paddingTop: isAdminRoute ? '2rem' : '8rem', paddingLeft: isAdminRoute ? '2rem' : '0', paddingRight: isAdminRoute ? '2rem' : '0' }}>
           <AnimatePresence mode="wait">
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/about" element={<About />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/admission" element={<Admission />} />
+              <Route 
+                path="/admin" 
+                element={isAdminLoggedIn ? <AdminDashboard onLogout={handleAdminLogout} /> : <AdminLogin onLogin={handleAdminLogin} />} 
+              />
             </Routes>
           </AnimatePresence>
         </main>
 
-        <footer style={{ borderTop: '1px solid rgba(255,255,255,0.05)', padding: '2rem', textAlign: 'center', color: '#888', marginTop: 'auto' }}>
-          <p>© 2026 AlArabia Fi Buyutikum. All rights reserved.</p>
-        </footer>
+        {!isAdminRoute && (
+          <footer style={{ borderTop: '1px solid rgba(255,255,255,0.05)', padding: '2rem', textAlign: 'center', color: '#888', marginTop: 'auto' }}>
+            <p>© 2026 AlArabia Fi Buyutikum. All rights reserved.</p>
+          </footer>
+        )}
       </div>
     </Router>
   );
