@@ -171,6 +171,7 @@ function Home() {
                   <div style={{ display: 'inline-block', padding: '4px', borderRadius: '50%', background: 'linear-gradient(135deg, var(--color-primary), var(--color-accent))', marginBottom: '1rem' }}>
                     <img src={instructor.avatar} alt={instructor.name} style={{ width: '80px', height: '80px', borderRadius: '50%', display: 'block', background: 'var(--color-bg-dark)' }} />
                   </div>
+
                   <h3 style={{ fontSize: '1.4rem', marginBottom: '0.5rem', color: 'var(--color-white)', fontWeight: '600' }}>{instructor.name}</h3>
                   <p style={{ color: 'var(--color-primary)', fontSize: '0.95rem' }}>{instructor.specialty}</p>
                 </motion.div>
@@ -406,7 +407,7 @@ function Admission() {
           </div>
           <input type="email" placeholder="Email Address" required style={inputStyle} />
           <input type="tel" placeholder="Phone Number" required style={inputStyle} />
-          <CustomSelect options={courseOptions} placeholder="Select a Course of Interest" />
+          {/* <CustomSelect options={courseOptions} placeholder="Select a Course of Interest" /> */}
           <button type="submit" className="btn-primary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', padding: '16px', fontSize: '1.1rem', marginTop: '1rem' }}>
             Submit Application <Send size={20} />
           </button>
