@@ -72,7 +72,7 @@ Please proceed with the fee payment using the following details:
 Once payment is made, your admission will be confirmed within 24 hours.
 
 JazakAllah Khair,
-AlArabia Fi Buyutikum Team
+Team AlArabia Fi Buyutikum
 """
         send_email(doc['email'], subject, body)
         await db.admissions.update_one({"_id": ObjectId(form_id)}, {"$set": {"status": "Fee Email Sent"}})

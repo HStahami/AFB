@@ -24,11 +24,11 @@ function Navbar() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
         <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
           <div style={{ minWidth: '36px', width: '36px', height: '36px', backgroundColor: 'var(--color-primary)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-             <span style={{ color: 'var(--color-bg-dark)', fontWeight: 'bold', fontFamily: 'var(--font-arabic)' }}>ع</span>
+            <a href=""></a>
           </div>
           <h1 style={{ fontSize: isMobile ? '1.1rem' : '1.5rem', fontWeight: '700', whiteSpace: 'nowrap' }} className="gradient-text">AlArabia Fi Buyutikum</h1>
         </Link>
-        
+
         {isMobile && (
           <button onClick={() => setIsOpen(!isOpen)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--color-white)', display: 'flex', alignItems: 'center', padding: 0 }}>
             {isOpen ? <X size={28} /> : <Menu size={28} />}
@@ -36,10 +36,10 @@ function Navbar() {
         )}
       </div>
 
-      <div style={{ 
-        display: isMobile ? (isOpen ? 'flex' : 'none') : 'flex', 
-        flexDirection: isMobile ? 'column' : 'row', 
-        gap: isMobile ? '1.5rem' : '2rem', 
+      <div style={{
+        display: isMobile ? (isOpen ? 'flex' : 'none') : 'flex',
+        flexDirection: isMobile ? 'column' : 'row',
+        gap: isMobile ? '1.5rem' : '2rem',
         alignItems: 'center',
         justifyContent: isMobile ? 'center' : 'flex-end',
         width: '100%',
@@ -106,9 +106,9 @@ function Home() {
       <section style={{ minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '2rem', position: 'relative' }}>
         <div style={{ position: 'absolute', top: '10%', left: '5%', width: '300px', height: '300px', background: 'var(--color-glow)', borderRadius: '50%', filter: 'blur(100px)', zIndex: 0 }} />
         <div style={{ position: 'absolute', bottom: '10%', right: '5%', width: '400px', height: '400px', background: 'var(--color-accent)', borderRadius: '50%', filter: 'blur(120px)', zIndex: 0 }} />
-        
+
         <div style={{ position: 'relative', zIndex: 1, maxWidth: '800px', width: '100%' }}>
-          <motion.h2 
+          <motion.h2
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
@@ -116,7 +116,7 @@ function Home() {
           >
             Master Arabic from the <br /> <span className="gradient-text glow-text">Comfort of Your Home</span>
           </motion.h2>
-          <motion.p 
+          <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
@@ -124,8 +124,8 @@ function Home() {
           >
             Join a next-generation learning platform designed to make Arabic accessible, engaging, and deeply fulfilling.
           </motion.p>
-          
-          <motion.div 
+
+          <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.8, delay: 0.4 }}
@@ -145,9 +145,9 @@ function Home() {
           <h2 style={{ fontSize: '2.5rem', fontWeight: '700', marginBottom: '1rem' }} className="gradient-text">Our Expert Instructors</h2>
           <p style={{ color: '#e0e0e0', maxWidth: '600px', margin: '0 auto' }}>Learn from the best. Our team is constantly growing to bring you diverse expertise.</p>
         </div>
-        
+
         <div style={{ position: 'relative', padding: '0 3rem' }}>
-          <button 
+          <button
             onClick={() => scroll('left')}
             disabled={startIndex === 0}
             className="glass-panel"
@@ -159,7 +159,7 @@ function Home() {
           <div style={{ display: 'grid', gridTemplateColumns: `repeat(${itemsToShow}, 1fr)`, gap: '2rem', paddingBottom: '2rem' }}>
             <AnimatePresence mode="popLayout">
               {visibleInstructors.map((instructor) => (
-                <motion.div 
+                <motion.div
                   key={instructor.id}
                   layout
                   initial={{ opacity: 0, scale: 0.8, x: 50 }}
@@ -181,7 +181,7 @@ function Home() {
             </AnimatePresence>
           </div>
 
-          <button 
+          <button
             onClick={() => scroll('right')}
             disabled={startIndex >= instructors.length - itemsToShow}
             className="glass-panel"
@@ -199,10 +199,10 @@ function Home() {
           <h2 style={{ fontSize: '2.5rem', fontWeight: '700', marginBottom: '1rem' }} className="gradient-text">Student Reviews</h2>
           <p style={{ color: '#e0e0e0', maxWidth: '600px', margin: '0 auto' }}>Don't just take our word for it. Here is what our students have to say.</p>
         </div>
-        
+
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
           {reviews.map((review) => (
-            <motion.div 
+            <motion.div
               key={review.id}
               whileHover={{ scale: 1.02 }}
               className="glass-panel"
@@ -231,17 +231,17 @@ function About() {
       <p style={{ fontSize: '1.2rem', color: '#e0e0e0', marginBottom: '4rem', lineHeight: '1.8' }}>
         Leveraging cutting-edge technology and a layered, comprehensive curriculum, we bring expert native instructors directly to your screen. Our platform is designed to be highly engaging, intuitive, and effective, ensuring that your journey to mastering Arabic is as beautiful as the language itself.
       </p>
-      
+
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '2rem', textAlign: 'left' }}>
         <div className="glass-panel" style={{ padding: '2rem' }}>
-           <BookOpen size={32} color="var(--color-primary)" style={{ marginBottom: '1rem' }} />
-           <h3 style={{ fontSize: '1.5rem', marginBottom: '1rem', color: 'var(--color-white)' }}>Our Mission</h3>
-           <p style={{ color: '#b0c4c6' }}>To empower global learners with the linguistic tools and cultural context needed to truly understand and appreciate Arabic.</p>
+          <BookOpen size={32} color="var(--color-primary)" style={{ marginBottom: '1rem' }} />
+          <h3 style={{ fontSize: '1.5rem', marginBottom: '1rem', color: 'var(--color-white)' }}>Our Mission</h3>
+          <p style={{ color: '#b0c4c6' }}>To empower global learners with the linguistic tools and cultural context needed to truly understand and appreciate Arabic.</p>
         </div>
         <div className="glass-panel" style={{ padding: '2rem' }}>
-           <Globe2 size={32} color="var(--color-primary)" style={{ marginBottom: '1rem' }} />
-           <h3 style={{ fontSize: '1.5rem', marginBottom: '1rem', color: 'var(--color-white)' }}>Our Vision</h3>
-           <p style={{ color: '#b0c4c6' }}>To become the world's leading digital institute for Arabic studies, pioneering the future of online language education.</p>
+          <Globe2 size={32} color="var(--color-primary)" style={{ marginBottom: '1rem' }} />
+          <h3 style={{ fontSize: '1.5rem', marginBottom: '1rem', color: 'var(--color-white)' }}>Our Vision</h3>
+          <p style={{ color: '#b0c4c6' }}>To become the world's leading digital institute for Arabic studies, pioneering the future of online language education.</p>
         </div>
       </div>
     </motion.div>
@@ -278,28 +278,28 @@ function Contact() {
         <h2 style={{ fontSize: '3rem', fontWeight: '800', marginBottom: '1rem' }} className="gradient-text">Contact Us</h2>
         <p style={{ color: '#e0e0e0', fontSize: '1.2rem' }}>We'd love to hear from you. Reach out with any questions.</p>
       </div>
-      
+
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4rem', justifyContent: 'center' }}>
         <div style={{ flex: '1', minWidth: '300px', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
           <div className="glass-panel" style={{ padding: '2rem', display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
             <Mail size={32} color="var(--color-primary)" />
             <div>
               <h4 style={{ color: 'var(--color-white)', fontSize: '1.2rem', marginBottom: '0.2rem' }}>Email</h4>
-              <p style={{ color: '#b0c4c6' }}>info@alarabiafibuyutikum.com</p>
+              <p style={{ color: '#b0c4c6' }}>alarabiafi@gmail.com</p>
             </div>
           </div>
           <div className="glass-panel" style={{ padding: '2rem', display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
             <Phone size={32} color="var(--color-primary)" />
             <div>
               <h4 style={{ color: 'var(--color-white)', fontSize: '1.2rem', marginBottom: '0.2rem' }}>Phone</h4>
-              <p style={{ color: '#b0c4c6' }}>+1 (555) 123-4567</p>
+              <p style={{ color: '#b0c4c6' }}>+92 331 8967534 </p>
             </div>
           </div>
           <div className="glass-panel" style={{ padding: '2rem', display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
             <MapPin size={32} color="var(--color-primary)" />
             <div>
               <h4 style={{ color: 'var(--color-white)', fontSize: '1.2rem', marginBottom: '0.2rem' }}>Location</h4>
-              <p style={{ color: '#b0c4c6' }}>Global Online Institute</p>
+              <p style={{ color: '#b0c4c6' }}>AlArabia Fi Buyutikum, Pakistan</p>
             </div>
           </div>
         </div>
@@ -345,7 +345,7 @@ function CustomSelect({ options, placeholder }) {
 
   return (
     <div ref={dropdownRef} style={{ position: 'relative', width: '100%', textAlign: 'left' }}>
-      <div 
+      <div
         onClick={() => setIsOpen(!isOpen)}
         style={{
           ...inputStyle,
@@ -359,7 +359,7 @@ function CustomSelect({ options, placeholder }) {
         {selected ? selected.label : placeholder}
         <ChevronDown size={20} style={{ transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.3s' }} />
       </div>
-      
+
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -491,21 +491,21 @@ function AdminLogin({ onLogin }) {
         <h2 style={{ fontSize: '2rem', fontWeight: '700', marginBottom: '1.5rem' }} className="gradient-text">Admin Portal</h2>
         {error && <p style={{ color: '#ff6b6b', marginBottom: '1rem' }}>{error}</p>}
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-          <input 
-            type="text" 
-            placeholder="Username" 
-            value={username} 
-            onChange={(e) => setUsername(e.target.value)} 
-            required 
-            style={inputStyle} 
+          <input
+            type="text"
+            placeholder="Username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            required
+            style={inputStyle}
           />
-          <input 
-            type="password" 
-            placeholder="Password" 
-            value={password} 
-            onChange={(e) => setPassword(e.target.value)} 
-            required 
-            style={inputStyle} 
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            style={inputStyle}
           />
           <button type="submit" className="btn-primary" style={{ padding: '16px', fontSize: '1.1rem' }}>
             Login
@@ -523,7 +523,7 @@ function AdminDashboard({ onLogout }) {
   const [students, setStudents] = useState([]);
   const [instructors, setInstructors] = useState([]);
   const [contacts, setContacts] = useState([]);
-  
+
   // Instructor Add Form
   const [newInstName, setNewInstName] = useState('');
   const [newInstSpec, setNewInstSpec] = useState('');
@@ -669,7 +669,7 @@ function AdminDashboard({ onLogout }) {
         <button className={activeTab === 'students' ? 'btn-primary' : 'glass-panel'} style={{ width: '100%', textAlign: 'left', padding: '10px 15px', border: 'none' }} onClick={() => setActiveTab('students')}>Students</button>
         <button className={activeTab === 'instructors' ? 'btn-primary' : 'glass-panel'} style={{ width: '100%', textAlign: 'left', padding: '10px 15px', border: 'none' }} onClick={() => setActiveTab('instructors')}>Instructors</button>
         <button className={activeTab === 'contacts' ? 'btn-primary' : 'glass-panel'} style={{ width: '100%', textAlign: 'left', padding: '10px 15px', border: 'none' }} onClick={() => setActiveTab('contacts')}>Messages</button>
-        
+
         <button className="glass-panel" style={{ width: '100%', textAlign: 'left', padding: '10px 15px', border: 'none', marginTop: 'auto', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#ff6b6b' }} onClick={onLogout}>
           <LogOut size={16} /> Logout
         </button>
@@ -725,9 +725,9 @@ function AdminDashboard({ onLogout }) {
                     <td style={tableCellStyle}>{adm.email}</td>
                     <td style={tableCellStyle}>{adm.phone}</td>
                     <td style={tableCellStyle}>
-                      <span style={{ 
-                        padding: '4px 8px', 
-                        borderRadius: '4px', 
+                      <span style={{
+                        padding: '4px 8px',
+                        borderRadius: '4px',
                         fontSize: '0.85rem',
                         background: adm.status === 'Approved' ? 'rgba(46, 204, 113, 0.2)' : adm.status === 'Canceled' ? 'rgba(231, 76, 60, 0.2)' : 'rgba(243, 156, 18, 0.2)',
                         color: adm.status === 'Approved' ? '#2ecc71' : adm.status === 'Canceled' ? '#e74c3c' : '#f39c12'
@@ -821,7 +821,7 @@ function AdminDashboard({ onLogout }) {
         {activeTab === 'instructors' && (
           <div>
             <h2 style={{ color: 'var(--color-white)', marginBottom: '1.5rem' }}>Instructors Management</h2>
-            
+
             {/* Add Instructor Form */}
             <form onSubmit={handleAddInstructor} style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', flexWrap: 'wrap' }}>
               <input type="text" placeholder="Instructor Name" value={newInstName} onChange={e => setNewInstName(e.target.value)} required style={inputStyle} />
@@ -931,7 +931,7 @@ function App() {
             </div>
           </div>
         )}
-        
+
         <main style={{ flex: 1, display: 'flex', flexDirection: 'column', paddingTop: isAdminRoute ? '2rem' : '8rem', paddingLeft: isAdminRoute ? '2rem' : '0', paddingRight: isAdminRoute ? '2rem' : '0' }}>
           <AnimatePresence mode="wait">
             <Routes>
@@ -939,9 +939,9 @@ function App() {
               <Route path="/about" element={<About />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/admission" element={<Admission />} />
-              <Route 
-                path="/admin" 
-                element={isAdminLoggedIn ? <AdminDashboard onLogout={handleAdminLogout} /> : <AdminLogin onLogin={handleAdminLogin} />} 
+              <Route
+                path="/admin"
+                element={isAdminLoggedIn ? <AdminDashboard onLogout={handleAdminLogout} /> : <AdminLogin onLogin={handleAdminLogin} />}
               />
             </Routes>
           </AnimatePresence>

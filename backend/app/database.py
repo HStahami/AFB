@@ -34,9 +34,9 @@ async def connect_to_mongo():
         # Ping the server to verify connection before proceeding
         await client.admin.command('ping')
         db = client[settings.MONGODB_DB_NAME]
-        print(f"✅ Connected to MongoDB database: '{settings.MONGODB_DB_NAME}'")
+        print(f"[SUCCESS] Connected to MongoDB database: '{settings.MONGODB_DB_NAME}'")
     except Exception as e:
-        print(f"⚠️  WARNING: Could not connect to MongoDB. Error: {e}")
+        print(f"[WARNING] Could not connect to MongoDB. Error: {e}")
         print("   Continuing without database connection. Forms will still work (mock mode).")
 
 async def close_mongo_connection():
