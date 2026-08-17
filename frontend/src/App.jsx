@@ -6,6 +6,17 @@ import './index.css';
 
 const API_BASE = "http://localhost:8000/api";
 
+const getAvatarUrl = (avatarUrl, name) => {
+  if (!avatarUrl) {
+    const encoded = encodeURIComponent(name || 'Instructor');
+    return `https://ui-avatars.com/api/?name=${encoded}&background=C5E5E8&color=072224&size=150&font-size=0.33&bold=true`;
+  }
+  if (avatarUrl.startsWith('/uploads')) {
+    return `http://localhost:8000${avatarUrl}`;
+  }
+  return avatarUrl;
+};
+
 // --- Shared Components ---
 
 function Navbar() {
@@ -23,9 +34,6 @@ function Navbar() {
     <nav style={{ padding: '1rem 1.5rem', display: 'flex', flexDirection: 'column', position: 'relative' }} className="glass-panel">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
         <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
-          <div style={{ minWidth: '36px', width: '36px', height: '36px', backgroundColor: 'var(--color-primary)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <a href=""></a>
-          </div>
           <h1 style={{ fontSize: isMobile ? '1.1rem' : '1.5rem', fontWeight: '700', whiteSpace: 'nowrap' }} className="gradient-text">AlArabia Fi Buyutikum</h1>
         </Link>
 
@@ -62,13 +70,28 @@ function Navbar() {
 // --- Pages ---
 
 function Home() {
-  const instructors = [
-    { id: 1, name: 'Ustadh Ahmed', specialty: 'Grammar & Morphology', avatar: 'https://ui-avatars.com/api/?name=Ustadh+Ahmed&background=C5E5E8&color=072224&size=150&font-size=0.33&bold=true' },
-    { id: 2, name: 'Ustadh Bilal', specialty: 'Conversational Arabic', avatar: 'https://ui-avatars.com/api/?name=Ustadh+Bilal&background=C5E5E8&color=072224&size=150&font-size=0.33&bold=true' },
-    { id: 3, name: 'Ustadha Fatima', specialty: 'Quranic Arabic', avatar: 'https://ui-avatars.com/api/?name=Ustadha+Fatima&background=C5E5E8&color=072224&size=150&font-size=0.33&bold=true' },
-    { id: 4, name: 'Ustadh Omar', specialty: 'Advanced Literature', avatar: 'https://ui-avatars.com/api/?name=Ustadh+Omar&background=C5E5E8&color=072224&size=150&font-size=0.33&bold=true' },
-    { id: 5, name: 'Ustadha Aisha', specialty: 'Tajweed', avatar: 'https://ui-avatars.com/api/?name=Ustadha+Aisha&background=C5E5E8&color=072224&size=150&font-size=0.33&bold=true' },
-  ];
+  const [instructors, setInstructors] = useState([]);
+  const [loadingInstructors, setLoadingInstructors] = useState(true);
+  const [instructorsError, setInstructorsError] = useState(null);
+
+  useEffect(() => {
+    const fetchInstructors = async () => {
+      setLoadingInstructors(true);
+      setInstructorsError(null);
+      try {
+        const res = await fetch(`${API_BASE}/instructors/`);
+        if (!res.ok) throw new Error("Failed to load instructors.");
+        const data = await res.json();
+        setInstructors(data);
+      } catch (err) {
+        console.error(err);
+        setInstructorsError("Unable to load instructors right now.");
+      } finally {
+        setLoadingInstructors(false);
+      }
+    };
+    fetchInstructors();
+  }, []);
 
   const reviews = [
     { id: 1, student: 'Yusuf K.', text: 'The methodology is incredible. I learned more in 3 months than I did in 2 years.', rating: 5 },
@@ -94,7 +117,7 @@ function Home() {
     if (direction === 'left') {
       setStartIndex(Math.max(0, startIndex - 1));
     } else {
-      setStartIndex(Math.min(instructors.length - itemsToShow, startIndex + 1));
+      setStartIndex(Math.min(Math.max(0, instructors.length - itemsToShow), startIndex + 1));
     }
   };
 
@@ -146,50 +169,67 @@ function Home() {
           <p style={{ color: '#e0e0e0', maxWidth: '600px', margin: '0 auto' }}>Learn from the best. Our team is constantly growing to bring you diverse expertise.</p>
         </div>
 
-        <div style={{ position: 'relative', padding: '0 3rem' }}>
-          <button
-            onClick={() => scroll('left')}
-            disabled={startIndex === 0}
-            className="glass-panel"
-            style={{ position: 'absolute', left: '0', top: '50%', transform: 'translateY(-50%)', zIndex: 10, width: '40px', height: '40px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: startIndex === 0 ? 'not-allowed' : 'pointer', border: '1px solid var(--color-primary)', background: 'var(--color-bg-dark)', opacity: startIndex === 0 ? 0.3 : 1 }}
-          >
-            <ChevronLeft color="var(--color-primary)" />
-          </button>
+        {loadingInstructors ? (
+          <p style={{ color: 'var(--color-primary)', textAlign: 'center', padding: '3rem', fontSize: '1.2rem' }}>Loading instructors...</p>
+        ) : instructorsError ? (
+          <p style={{ color: '#ff6b6b', textAlign: 'center', padding: '3rem', fontSize: '1.1rem' }}>{instructorsError}</p>
+        ) : instructors.length === 0 ? (
+          <p style={{ color: '#e0e0e0', textAlign: 'center', fontSize: '1.1rem', padding: '3rem' }}>No instructors available at the moment.</p>
+        ) : (
+          <div style={{ position: 'relative', padding: '0 3rem' }}>
+            <button
+              onClick={() => scroll('left')}
+              disabled={startIndex === 0}
+              className="glass-panel"
+              style={{ position: 'absolute', left: '0', top: '50%', transform: 'translateY(-50%)', zIndex: 10, width: '40px', height: '40px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: startIndex === 0 ? 'not-allowed' : 'pointer', border: '1px solid var(--color-primary)', background: 'var(--color-bg-dark)', opacity: startIndex === 0 ? 0.3 : 1 }}
+            >
+              <ChevronLeft color="var(--color-primary)" />
+            </button>
 
-          <div style={{ display: 'grid', gridTemplateColumns: `repeat(${itemsToShow}, 1fr)`, gap: '2rem', paddingBottom: '2rem' }}>
-            <AnimatePresence mode="popLayout">
-              {visibleInstructors.map((instructor) => (
-                <motion.div
-                  key={instructor.id}
-                  layout
-                  initial={{ opacity: 0, scale: 0.8, x: 50 }}
-                  animate={{ opacity: 1, scale: 1, x: 0 }}
-                  exit={{ opacity: 0, scale: 0.8, x: -50 }}
-                  transition={{ duration: 0.4, type: "spring", bounce: 0.3 }}
-                  whileHover={{ y: -10, boxShadow: '0 20px 40px rgba(0,0,0,0.6)' }}
-                  className="glass-panel"
-                  style={{ padding: '2rem', textAlign: 'center', border: '1px solid rgba(197, 229, 232, 0.15)', background: 'rgba(255,255,255,0.02)' }}
-                >
-                  <div style={{ display: 'inline-block', padding: '4px', borderRadius: '50%', background: 'linear-gradient(135deg, var(--color-primary), var(--color-accent))', marginBottom: '1rem' }}>
-                    <img src={instructor.avatar} alt={instructor.name} style={{ width: '80px', height: '80px', borderRadius: '50%', display: 'block', background: 'var(--color-bg-dark)' }} />
-                  </div>
+            <div style={{ display: 'grid', gridTemplateColumns: `repeat(${itemsToShow}, 1fr)`, gap: '2rem', paddingBottom: '2rem' }}>
+              <AnimatePresence mode="popLayout">
+                {visibleInstructors.map((instructor) => (
+                  <motion.div
+                    key={instructor._id || instructor.id || instructor.name}
+                    layout
+                    initial={{ opacity: 0, scale: 0.8, x: 50 }}
+                    animate={{ opacity: 1, scale: 1, x: 0 }}
+                    exit={{ opacity: 0, scale: 0.8, x: -50 }}
+                    transition={{ duration: 0.4, type: "spring", bounce: 0.3 }}
+                    whileHover={{ y: -10, boxShadow: '0 20px 40px rgba(0,0,0,0.6)' }}
+                    className="glass-panel"
+                    style={{ padding: '2rem', textAlign: 'center', border: '1px solid rgba(197, 229, 232, 0.15)', background: 'rgba(255,255,255,0.02)' }}
+                  >
+                    <div style={{ display: 'inline-block', padding: '4px', borderRadius: '50%', background: 'linear-gradient(135deg, var(--color-primary), var(--color-accent))', marginBottom: '1rem' }}>
+                      <img
+                        src={getAvatarUrl(instructor.avatar, instructor.name)}
+                        alt={instructor.name}
+                        style={{ width: '80px', height: '80px', borderRadius: '50%', display: 'block', background: 'var(--color-bg-dark)', objectFit: 'cover' }}
+                      />
+                    </div>
 
-                  <h3 style={{ fontSize: '1.4rem', marginBottom: '0.5rem', color: 'var(--color-white)', fontWeight: '600' }}>{instructor.name}</h3>
-                  <p style={{ color: 'var(--color-primary)', fontSize: '0.95rem' }}>{instructor.specialty}</p>
-                </motion.div>
-              ))}
-            </AnimatePresence>
+                    <h3 style={{ fontSize: '1.4rem', marginBottom: '0.5rem', color: 'var(--color-white)', fontWeight: '600' }}>{instructor.name}</h3>
+                    <p style={{ color: 'var(--color-primary)', fontSize: '0.95rem', marginBottom: instructor.about ? '0.5rem' : '0' }}>
+                      {instructor.specialty || 'Arabic Instructor'}
+                    </p>
+                    {instructor.about && (
+                      <p style={{ color: '#b0c4c6', fontSize: '0.85rem', lineHeight: '1.4' }}>{instructor.about}</p>
+                    )}
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            </div>
+
+            <button
+              onClick={() => scroll('right')}
+              disabled={startIndex >= Math.max(0, instructors.length - itemsToShow)}
+              className="glass-panel"
+              style={{ position: 'absolute', right: '0', top: '50%', transform: 'translateY(-50%)', zIndex: 10, width: '40px', height: '40px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: startIndex >= Math.max(0, instructors.length - itemsToShow) ? 'not-allowed' : 'pointer', border: '1px solid var(--color-primary)', background: 'var(--color-bg-dark)', opacity: startIndex >= Math.max(0, instructors.length - itemsToShow) ? 0.3 : 1 }}
+            >
+              <ChevronRight color="var(--color-primary)" />
+            </button>
           </div>
-
-          <button
-            onClick={() => scroll('right')}
-            disabled={startIndex >= instructors.length - itemsToShow}
-            className="glass-panel"
-            style={{ position: 'absolute', right: '0', top: '50%', transform: 'translateY(-50%)', zIndex: 10, width: '40px', height: '40px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: startIndex >= instructors.length - itemsToShow ? 'not-allowed' : 'pointer', border: '1px solid var(--color-primary)', background: 'var(--color-bg-dark)', opacity: startIndex >= instructors.length - itemsToShow ? 0.3 : 1 }}
-          >
-            <ChevronRight color="var(--color-primary)" />
-          </button>
-        </div>
+        )}
       </section>
 
       {/* Dynamic Reviews Section */}
@@ -524,9 +564,15 @@ function AdminDashboard({ onLogout }) {
   const [instructors, setInstructors] = useState([]);
   const [contacts, setContacts] = useState([]);
 
-  // Instructor Add Form
+  // Instructor Form State
   const [newInstName, setNewInstName] = useState('');
+  const [newInstAbout, setNewInstAbout] = useState('');
   const [newInstSpec, setNewInstSpec] = useState('');
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [editingInstId, setEditingInstId] = useState(null);
+  const [instFormSuccess, setInstFormSuccess] = useState('');
+  const [instFormError, setInstFormError] = useState('');
+  const fileInputRef = useRef(null);
 
   // Assign modal state
   const [selectedStudent, setSelectedStudent] = useState(null);
@@ -616,20 +662,66 @@ function AdminDashboard({ onLogout }) {
     } catch (e) { alert("Failed to cancel"); }
   };
 
-  const handleAddInstructor = async (e) => {
+  const handleAddOrUpdateInstructor = async (e) => {
     e.preventDefault();
+    setInstFormSuccess('');
+    setInstFormError('');
     try {
-      const res = await fetch(`${API_BASE}/instructors/?name=${encodeURIComponent(newInstName)}&specialty=${encodeURIComponent(newInstSpec)}`, {
-        method: 'POST',
-        headers
+      const formData = new FormData();
+      formData.append('name', newInstName);
+      formData.append('about', newInstAbout);
+      formData.append('specialty', newInstSpec || newInstAbout);
+      if (selectedFile) {
+        formData.append('avatar', selectedFile);
+      }
+
+      const url = editingInstId ? `${API_BASE}/instructors/${editingInstId}` : `${API_BASE}/instructors/`;
+      const method = editingInstId ? 'PUT' : 'POST';
+
+      const res = await fetch(url, {
+        method,
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: formData
       });
-      if (!res.ok) throw new Error();
-      alert("Instructor Added!");
+
+      if (!res.ok) throw new Error("Failed to save instructor.");
+
+      setInstFormSuccess(editingInstId ? "Instructor updated successfully!" : "Instructor added successfully!");
       setNewInstName('');
+      setNewInstAbout('');
       setNewInstSpec('');
+      setSelectedFile(null);
+      setEditingInstId(null);
+      if (fileInputRef.current) fileInputRef.current.value = "";
       fetchInstructors();
       fetchStats();
-    } catch (e) { alert("Failed to add instructor"); }
+    } catch (e) {
+      console.error(e);
+      setInstFormError("Failed to save instructor. Please try again.");
+    }
+  };
+
+  const handleEditInstructorClick = (inst) => {
+    setEditingInstId(inst._id || inst.id);
+    setNewInstName(inst.name || '');
+    setNewInstAbout(inst.about || inst.specialty || '');
+    setNewInstSpec(inst.specialty || inst.about || '');
+    setSelectedFile(null);
+    setInstFormSuccess('');
+    setInstFormError('');
+  };
+
+  const handleCancelEditInstructor = () => {
+    setEditingInstId(null);
+    setNewInstName('');
+    setNewInstAbout('');
+    setNewInstSpec('');
+    setSelectedFile(null);
+    setInstFormSuccess('');
+    setInstFormError('');
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const handleDeleteInstructor = async (id) => {
@@ -822,28 +914,73 @@ function AdminDashboard({ onLogout }) {
           <div>
             <h2 style={{ color: 'var(--color-white)', marginBottom: '1.5rem' }}>Instructors Management</h2>
 
-            {/* Add Instructor Form */}
-            <form onSubmit={handleAddInstructor} style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', flexWrap: 'wrap' }}>
-              <input type="text" placeholder="Instructor Name" value={newInstName} onChange={e => setNewInstName(e.target.value)} required style={inputStyle} />
-              <input type="text" placeholder="Specialty" value={newInstSpec} onChange={e => setNewInstSpec(e.target.value)} required style={inputStyle} />
-              <button type="submit" className="btn-primary" style={{ padding: '0 24px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Plus size={18} /> Add</button>
-            </form>
+            {/* Instructor Form */}
+            <div className="glass-panel" style={{ padding: '2rem', marginBottom: '2.5rem' }}>
+              <h3 style={{ color: 'var(--color-white)', marginBottom: '1.5rem', fontSize: '1.3rem' }}>
+                {editingInstId ? 'Edit Instructor' : 'Add New Instructor'}
+              </h3>
+              {instFormSuccess && <p style={{ color: '#2ecc71', marginBottom: '1rem' }}>{instFormSuccess}</p>}
+              {instFormError && <p style={{ color: '#ff6b6b', marginBottom: '1rem' }}>{instFormError}</p>}
+
+              <form onSubmit={handleAddOrUpdateInstructor} style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
+                <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                  <div style={{ flex: 1, minWidth: '220px' }}>
+                    <label style={{ display: 'block', color: 'var(--color-primary)', marginBottom: '0.4rem', fontSize: '0.9rem' }}>Instructor Name *</label>
+                    <input type="text" placeholder="e.g. Ustadh Ahmed" value={newInstName} onChange={e => setNewInstName(e.target.value)} required style={{ ...inputStyle, width: '100%' }} />
+                  </div>
+                  <div style={{ flex: 1, minWidth: '220px' }}>
+                    <label style={{ display: 'block', color: 'var(--color-primary)', marginBottom: '0.4rem', fontSize: '0.9rem' }}>Specialty / Role</label>
+                    <input type="text" placeholder="e.g. Grammar & Morphology" value={newInstSpec} onChange={e => setNewInstSpec(e.target.value)} style={{ ...inputStyle, width: '100%' }} />
+                  </div>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', color: 'var(--color-primary)', marginBottom: '0.4rem', fontSize: '0.9rem' }}>About / Description</label>
+                  <textarea placeholder="Experienced Arabic language instructor specializing in grammar and morphology." value={newInstAbout} onChange={e => setNewInstAbout(e.target.value)} rows="3" style={{ ...inputStyle, width: '100%', resize: 'vertical' }} />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', color: 'var(--color-primary)', marginBottom: '0.4rem', fontSize: '0.9rem' }}>Profile Picture (File Upload)</label>
+                  <input ref={fileInputRef} type="file" accept="image/*" onChange={e => setSelectedFile(e.target.files[0])} style={{ color: '#e0e0e0', padding: '8px 0' }} />
+                </div>
+
+                <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
+                  <button type="submit" className="btn-primary" style={{ padding: '12px 28px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <Plus size={18} /> {editingInstId ? 'Update Instructor' : 'Add Instructor'}
+                  </button>
+                  {editingInstId && (
+                    <button type="button" onClick={handleCancelEditInstructor} className="glass-panel" style={{ padding: '12px 20px', border: 'none', color: '#e0e0e0' }}>
+                      Cancel Edit
+                    </button>
+                  )}
+                </div>
+              </form>
+            </div>
 
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr>
+                  <th style={tableHeaderStyle}>Picture</th>
                   <th style={tableHeaderStyle}>Name</th>
-                  <th style={tableHeaderStyle}>Specialty</th>
+                  <th style={tableHeaderStyle}>About / Specialty</th>
                   <th style={tableHeaderStyle}>Active Slots / Students</th>
                   <th style={tableHeaderStyle}>Total Students</th>
-                  <th style={tableHeaderStyle}>Action</th>
+                  <th style={tableHeaderStyle}>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {instructors.map(inst => (
-                  <tr key={inst._id}>
-                    <td style={tableCellStyle}>{inst.name}</td>
-                    <td style={tableCellStyle}>{inst.specialty}</td>
+                  <tr key={inst._id || inst.id}>
+                    <td style={tableCellStyle}>
+                      <img src={getAvatarUrl(inst.avatar, inst.name)} alt={inst.name} style={{ width: '44px', height: '44px', borderRadius: '50%', objectFit: 'cover', background: 'var(--color-bg-dark)' }} />
+                    </td>
+                    <td style={tableCellStyle}><strong>{inst.name}</strong></td>
+                    <td style={tableCellStyle}>
+                      <div>{inst.about || inst.specialty || '-'}</div>
+                      {inst.specialty && inst.about && inst.specialty !== inst.about && (
+                        <div style={{ color: 'var(--color-primary)', fontSize: '0.8rem' }}>{inst.specialty}</div>
+                      )}
+                    </td>
                     <td style={tableCellStyle}>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '0.85rem' }}>
                         {inst.students && inst.students.length > 0 ? (
@@ -859,7 +996,10 @@ function AdminDashboard({ onLogout }) {
                     </td>
                     <td style={tableCellStyle}>{inst.total_students || 0}</td>
                     <td style={tableCellStyle}>
-                      <button onClick={() => handleDeleteInstructor(inst._id)} className="glass-panel" style={{ padding: '6px 12px', fontSize: '0.85rem', color: '#e74c3c', border: '1px solid #e74c3c' }}><Trash2 size={14} /></button>
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <button onClick={() => handleEditInstructorClick(inst)} className="glass-panel" style={{ padding: '6px 12px', fontSize: '0.85rem', color: 'var(--color-primary)', border: '1px solid var(--color-primary)' }}>Edit</button>
+                        <button onClick={() => handleDeleteInstructor(inst._id || inst.id)} className="glass-panel" style={{ padding: '6px 12px', fontSize: '0.85rem', color: '#e74c3c', border: '1px solid #e74c3c' }}><Trash2 size={14} /></button>
+                      </div>
                     </td>
                   </tr>
                 ))}
