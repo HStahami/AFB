@@ -34,8 +34,8 @@ function Navbar() {
     <nav style={{ padding: '1rem 1.5rem', display: 'flex', flexDirection: 'column', position: 'relative' }} className="glass-panel">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
         <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
-          <img src="/afb1.jpeg" alt="AFB Logo" style={{height:35, width:50}} />
-          <h1 style={{ fontSize: isMobile ? '1.1rem' : '1.5rem', fontWeight: '700', whiteSpace: 'nowrap' }} className="gradient-text">AlArabia Fi Buyutikum</h1>
+          <img src="/afb1.jpeg" alt="AFB Logo" style={{ height: 35, width: 50 }} />
+          <h1 style={{ fontSize: isMobile ? '1.1rem' : '1.5rem', fontWeight: '700', whiteSpace: 'nowrap' }} className="gradient-text">Alarabia Fi Buyutikum</h1>
         </Link>
 
         {isMobile && (
@@ -187,7 +187,7 @@ function Home() {
       {/* Dynamic Arabic Learning Modules Section */}
       <section style={{ padding: '5rem 2rem', maxWidth: '1200px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
         <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
-          <BookOpen size={40} color="var(--color-primary)" style={{ margin: '0 auto 1rem' }} />
+          {/* <BookOpen size={40} color="var(--color-primary)" style={{ margin: '0 auto 1rem' }} /> */}
           <h2 style={{ fontSize: '2.5rem', fontWeight: '700', marginBottom: '1rem' }} className="gradient-text">Arabic Learning Modules</h2>
           <p style={{ color: '#e0e0e0', maxWidth: '600px', margin: '0 auto' }}>Explore our structured levels designed to take you from foundational Arabic to complete fluency.</p>
         </div>
@@ -216,7 +216,7 @@ function Home() {
                     {mod.name}
                   </div>
                 )}
-                <h3 style={{ fontSize: '1.6rem', marginBottom: '0.8rem', color: 'var(--color-white)', fontWeight: '700' }}>{mod.name}</h3>
+                {/* <h3 style={{ fontSize: '1.6rem', marginBottom: '0.8rem', color: 'var(--color-white)', fontWeight: '700' }}>{mod.name}</h3> */}
                 <p style={{ color: '#b0c4c6', fontSize: '0.95rem', lineHeight: '1.5' }}>{mod.description}</p>
               </motion.div>
             ))}
@@ -626,6 +626,7 @@ function AdminDashboard({ onLogout }) {
   const [students, setStudents] = useState([]);
   const [instructors, setInstructors] = useState([]);
   const [modules, setModules] = useState([]);
+  const [slots, setSlots] = useState([]);
   const [contacts, setContacts] = useState([]);
 
   // Instructor Form State
@@ -647,6 +648,14 @@ function AdminDashboard({ onLogout }) {
   const [modFormSuccess, setModFormSuccess] = useState('');
   const [modFormError, setModFormError] = useState('');
   const modFileInputRef = useRef(null);
+
+  // Slot Form State
+  const [slotDays, setSlotDays] = useState('');
+  const [slotTime, setSlotTime] = useState('');
+  const [slotStatus, setSlotStatus] = useState('Active');
+  const [editingSlotId, setEditingSlotId] = useState(null);
+  const [slotFormSuccess, setSlotFormSuccess] = useState('');
+  const [slotFormError, setSlotFormError] = useState('');
 
   // Assign modal state
   const [selectedStudent, setSelectedStudent] = useState(null);
@@ -699,6 +708,14 @@ function AdminDashboard({ onLogout }) {
     } catch (e) { console.error(e); }
   };
 
+  const fetchSlots = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/slots/`);
+      const data = await res.json();
+      setSlots(data);
+    } catch (e) { console.error(e); }
+  };
+
   const fetchContacts = async () => {
     try {
       const res = await fetch(`${API_BASE}/contact/`, { headers });
@@ -709,10 +726,13 @@ function AdminDashboard({ onLogout }) {
 
   useEffect(() => {
     fetchStats();
+    fetchInstructors();
+    fetchSlots();
     if (activeTab === 'admissions') fetchAdmissions();
-    if (activeTab === 'students') { fetchStudents(); fetchInstructors(); }
+    if (activeTab === 'students') { fetchStudents(); fetchInstructors(); fetchSlots(); }
     if (activeTab === 'instructors') fetchInstructors();
     if (activeTab === 'modules') fetchModules();
+    if (activeTab === 'slots') fetchSlots();
     if (activeTab === 'contacts') fetchContacts();
   }, [activeTab]);
 
@@ -888,6 +908,69 @@ function AdminDashboard({ onLogout }) {
     } catch (e) { alert("Failed to delete module"); }
   };
 
+  // Slot Actions
+  const handleAddOrUpdateSlot = async (e) => {
+    e.preventDefault();
+    setSlotFormSuccess('');
+    setSlotFormError('');
+    try {
+      const formData = new FormData();
+      formData.append('days', slotDays);
+      formData.append('time', slotTime);
+      formData.append('status', slotStatus);
+
+      const url = editingSlotId ? `${API_BASE}/slots/${editingSlotId}` : `${API_BASE}/slots/`;
+      const method = editingSlotId ? 'PUT' : 'POST';
+
+      const res = await fetch(url, {
+        method,
+        headers: { 'Authorization': `Bearer ${token}` },
+        body: formData
+      });
+
+      if (!res.ok) throw new Error("Failed to save slot.");
+
+      setSlotFormSuccess(editingSlotId ? "Slot updated successfully!" : "Slot added successfully!");
+      setSlotDays('');
+      setSlotTime('');
+      setSlotStatus('Active');
+      setEditingSlotId(null);
+      fetchSlots();
+      fetchStats();
+    } catch (e) {
+      console.error(e);
+      setSlotFormError("Failed to save slot. Please try again.");
+    }
+  };
+
+  const handleEditSlotClick = (slotItem) => {
+    setEditingSlotId(slotItem._id || slotItem.id);
+    setSlotDays(slotItem.days || '');
+    setSlotTime(slotItem.time || '');
+    setSlotStatus(slotItem.status || 'Active');
+    setSlotFormSuccess('');
+    setSlotFormError('');
+  };
+
+  const handleCancelEditSlot = () => {
+    setEditingSlotId(null);
+    setSlotDays('');
+    setSlotTime('');
+    setSlotStatus('Active');
+    setSlotFormSuccess('');
+    setSlotFormError('');
+  };
+
+  const handleDeleteSlot = async (id) => {
+    if (!confirm("Are you sure you want to delete this slot?")) return;
+    try {
+      const res = await fetch(`${API_BASE}/slots/${id}`, { method: 'DELETE', headers });
+      if (!res.ok) throw new Error();
+      fetchSlots();
+      fetchStats();
+    } catch (e) { alert("Failed to delete slot"); }
+  };
+
   const handleAssignSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -915,6 +998,7 @@ function AdminDashboard({ onLogout }) {
         <button className={activeTab === 'students' ? 'btn-primary' : 'glass-panel'} style={{ width: '100%', textAlign: 'left', padding: '10px 15px', border: 'none' }} onClick={() => setActiveTab('students')}>Students</button>
         <button className={activeTab === 'instructors' ? 'btn-primary' : 'glass-panel'} style={{ width: '100%', textAlign: 'left', padding: '10px 15px', border: 'none' }} onClick={() => setActiveTab('instructors')}>Instructors</button>
         <button className={activeTab === 'modules' ? 'btn-primary' : 'glass-panel'} style={{ width: '100%', textAlign: 'left', padding: '10px 15px', border: 'none' }} onClick={() => setActiveTab('modules')}>Modules</button>
+        <button className={activeTab === 'slots' ? 'btn-primary' : 'glass-panel'} style={{ width: '100%', textAlign: 'left', padding: '10px 15px', border: 'none' }} onClick={() => setActiveTab('slots')}>Slots</button>
         <button className={activeTab === 'contacts' ? 'btn-primary' : 'glass-panel'} style={{ width: '100%', textAlign: 'left', padding: '10px 15px', border: 'none' }} onClick={() => setActiveTab('contacts')}>Messages</button>
 
         <button className="glass-panel" style={{ width: '100%', textAlign: 'left', padding: '10px 15px', border: 'none', marginTop: 'auto', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#ff6b6b' }} onClick={onLogout}>
@@ -927,7 +1011,7 @@ function AdminDashboard({ onLogout }) {
         {activeTab === 'overview' && (
           <div>
             <h2 style={{ color: 'var(--color-white)', marginBottom: '2rem' }}>Institute Overview</h2>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem', marginBottom: '3rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1.5rem', marginBottom: '3rem' }}>
               <div className="glass-panel" style={{ padding: '1.5rem', textAlign: 'center' }}>
                 <h4 style={{ color: '#aaa', fontSize: '0.9rem', marginBottom: '0.5rem' }}>Total Forms</h4>
                 <p style={{ fontSize: '2.5rem', fontWeight: 'bold', color: 'var(--color-white)' }}>{stats.total}</p>
@@ -948,10 +1032,89 @@ function AdminDashboard({ onLogout }) {
                 <h4 style={{ color: '#aaa', fontSize: '0.9rem', marginBottom: '0.5rem' }}>Active Students</h4>
                 <p style={{ fontSize: '2.5rem', fontWeight: 'bold', color: 'var(--color-primary)' }}>{stats.total_students}</p>
               </div>
+              <div className="glass-panel" style={{ padding: '1.5rem', textAlign: 'center', borderLeft: '4px solid var(--color-accent)' }}>
+                <h4 style={{ color: '#aaa', fontSize: '0.9rem', marginBottom: '0.5rem' }}>Active Instructors</h4>
+                <p style={{ fontSize: '2.5rem', fontWeight: 'bold', color: 'var(--color-accent)' }}>{instructors.length}</p>
+              </div>
+              <div className="glass-panel" style={{ padding: '1.5rem', textAlign: 'center', borderLeft: '4px solid #3498db' }}>
+                <h4 style={{ color: '#aaa', fontSize: '0.9rem', marginBottom: '0.5rem' }}>Class Slots</h4>
+                <p style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#3498db' }}>{stats.total_slots || slots.length || 0}</p>
+              </div>
               <div className="glass-panel" style={{ padding: '1.5rem', textAlign: 'center', borderLeft: '4px solid #9b59b6' }}>
                 <h4 style={{ color: '#aaa', fontSize: '0.9rem', marginBottom: '0.5rem' }}>Modules</h4>
                 <p style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#9b59b6' }}>{stats.total_modules || 0}</p>
               </div>
+            </div>
+
+            {/* Active Instructors & Assigned Classes Breakdown */}
+            <div style={{ marginTop: '2.5rem' }}>
+              <h3 style={{ color: 'var(--color-white)', marginBottom: '1.5rem', fontSize: '1.4rem' }}>
+                Active Instructors & Class Workload Breakdown
+              </h3>
+
+              {instructors.length === 0 ? (
+                <div className="glass-panel" style={{ padding: '2rem', textAlign: 'center', color: '#aaa' }}>
+                  No active instructors registered yet.
+                </div>
+              ) : (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem' }}>
+                  {instructors.map(inst => {
+                    const slotMap = {};
+                    if (inst.students && inst.students.length > 0) {
+                      inst.students.forEach(s => {
+                        const sSlot = s.slot || 'Unassigned Slot';
+                        if (!slotMap[sSlot]) slotMap[sSlot] = [];
+                        slotMap[sSlot].push(s.name);
+                      });
+                    }
+
+                    const assignedSlotsCount = Object.keys(slotMap).length;
+
+                    return (
+                      <div key={inst._id || inst.id} className="glass-panel" style={{ padding: '1.5rem', border: '1px solid rgba(197, 229, 232, 0.15)', background: 'rgba(255,255,255,0.02)' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
+                          <img
+                            src={getAvatarUrl(inst.avatar, inst.name)}
+                            alt={inst.name}
+                            style={{ width: '50px', height: '50px', borderRadius: '50%', objectFit: 'cover', background: 'var(--color-bg-dark)' }}
+                          />
+                          <div>
+                            <h4 style={{ color: 'var(--color-white)', fontSize: '1.1rem', fontWeight: '600' }}>{inst.name}</h4>
+                            <p style={{ color: 'var(--color-primary)', fontSize: '0.85rem' }}>{inst.specialty || inst.about || 'Arabic Instructor'}</p>
+                          </div>
+                          <div style={{ marginLeft: 'auto', textAlign: 'right' }}>
+                            <span style={{ fontSize: '1.2rem', fontWeight: 'bold', color: 'var(--color-primary)' }}>{inst.total_students || 0}</span>
+                            <div style={{ fontSize: '0.75rem', color: '#aaa' }}>Students</div>
+                          </div>
+                        </div>
+
+                        <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '0.8rem', marginTop: '0.8rem' }}>
+                          <div style={{ fontSize: '0.85rem', fontWeight: '600', color: '#e0e0e0', marginBottom: '0.5rem' }}>
+                            Assigned Classes ({assignedSlotsCount})
+                          </div>
+                          {assignedSlotsCount > 0 ? (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+                              {Object.entries(slotMap).map(([slotName, studentList], idx) => (
+                                <div key={idx} style={{ background: 'rgba(0,0,0,0.3)', padding: '0.6rem 0.8rem', borderRadius: '6px', fontSize: '0.85rem' }}>
+                                  <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--color-primary)', fontWeight: '500', marginBottom: '4px' }}>
+                                    <span>• {slotName}</span>
+                                    <span style={{ color: '#2ecc71', fontWeight: 'bold' }}>{studentList.length} Student{studentList.length > 1 ? 's' : ''}</span>
+                                  </div>
+                                  <div style={{ color: '#aaa', fontSize: '0.8rem', paddingLeft: '0.8rem' }}>
+                                    {studentList.join(', ')}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <span style={{ color: '#666', fontSize: '0.85rem', italic: 'true' }}>No active class assignments yet</span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -1043,10 +1206,13 @@ function AdminDashboard({ onLogout }) {
                       <label style={{ display: 'block', color: 'var(--color-primary)', marginBottom: '0.5rem' }}>Select Slot/Time</label>
                       <select required value={assignSlot} onChange={e => setAssignSlot(e.target.value)} style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.4)', color: 'white' }}>
                         <option value="" disabled>Choose Slot...</option>
-                        <option value="Mon/Wed 6:00 PM">Mon/Wed 6:00 PM</option>
-                        <option value="Mon/Wed 8:00 PM">Mon/Wed 8:00 PM</option>
-                        <option value="Tue/Thu 5:00 PM">Tue/Thu 5:00 PM</option>
-                        <option value="Sat/Sun 11:00 AM">Sat/Sun 11:00 AM</option>
+                        {slots.filter(s => s.status === 'Active' || (selectedStudent && selectedStudent.slot && (selectedStudent.slot === `${s.days} — ${s.time}` || selectedStudent.slot === `${s.days} ${s.time}`))).map(s => {
+                          const val = `${s.days} — ${s.time}`;
+                          return <option key={s._id || s.id} value={val}>{val}</option>;
+                        })}
+                        {selectedStudent && selectedStudent.slot && !slots.some(s => `${s.days} — ${s.time}` === selectedStudent.slot || `${s.days} ${s.time}` === selectedStudent.slot) && (
+                          <option value={selectedStudent.slot}>{selectedStudent.slot} (Current)</option>
+                        )}
                       </select>
                     </div>
                     <div>
@@ -1243,6 +1409,89 @@ function AdminDashboard({ onLogout }) {
                       <div style={{ display: 'flex', gap: '8px' }}>
                         <button onClick={() => handleEditModuleClick(mod)} className="glass-panel" style={{ padding: '6px 12px', fontSize: '0.85rem', color: 'var(--color-primary)', border: '1px solid var(--color-primary)' }}>Edit</button>
                         <button onClick={() => handleDeleteModule(mod._id || mod.id)} className="glass-panel" style={{ padding: '6px 12px', fontSize: '0.85rem', color: '#e74c3c', border: '1px solid #e74c3c' }}><Trash2 size={14} /></button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {activeTab === 'slots' && (
+          <div>
+            <h2 style={{ color: 'var(--color-white)', marginBottom: '1.5rem' }}>Class Slots Management</h2>
+
+            {/* Slot Form */}
+            <div className="glass-panel" style={{ padding: '2rem', marginBottom: '2.5rem' }}>
+              <h3 style={{ color: 'var(--color-white)', marginBottom: '1.5rem', fontSize: '1.3rem' }}>
+                {editingSlotId ? 'Edit Class Slot' : 'Add New Class Slot'}
+              </h3>
+              {slotFormSuccess && <p style={{ color: '#2ecc71', marginBottom: '1rem' }}>{slotFormSuccess}</p>}
+              {slotFormError && <p style={{ color: '#ff6b6b', marginBottom: '1rem' }}>{slotFormError}</p>}
+
+              <form onSubmit={handleAddOrUpdateSlot} style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
+                <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                  <div style={{ flex: 1, minWidth: '200px' }}>
+                    <label style={{ display: 'block', color: 'var(--color-primary)', marginBottom: '0.4rem', fontSize: '0.9rem' }}>Day(s) *</label>
+                    <input type="text" placeholder="e.g. Monday & Wednesday" value={slotDays} onChange={e => setSlotDays(e.target.value)} required style={{ ...inputStyle, width: '100%' }} />
+                  </div>
+                  <div style={{ flex: 1, minWidth: '200px' }}>
+                    <label style={{ display: 'block', color: 'var(--color-primary)', marginBottom: '0.4rem', fontSize: '0.9rem' }}>Time *</label>
+                    <input type="text" placeholder="e.g. 6:00 PM" value={slotTime} onChange={e => setSlotTime(e.target.value)} required style={{ ...inputStyle, width: '100%' }} />
+                  </div>
+                  <div style={{ flex: 1, minWidth: '150px' }}>
+                    <label style={{ display: 'block', color: 'var(--color-primary)', marginBottom: '0.4rem', fontSize: '0.9rem' }}>Status *</label>
+                    <select value={slotStatus} onChange={e => setSlotStatus(e.target.value)} style={{ ...inputStyle, width: '100%', background: 'rgba(0,0,0,0.4)', color: 'white' }}>
+                      <option value="Active">Active</option>
+                      <option value="Inactive">Inactive</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
+                  <button type="submit" className="btn-primary" style={{ padding: '12px 28px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <Plus size={18} /> {editingSlotId ? 'Update Slot' : 'Add Slot'}
+                  </button>
+                  {editingSlotId && (
+                    <button type="button" onClick={handleCancelEditSlot} className="glass-panel" style={{ padding: '12px 20px', border: 'none', color: '#e0e0e0' }}>
+                      Cancel Edit
+                    </button>
+                  )}
+                </div>
+              </form>
+            </div>
+
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr>
+                  <th style={tableHeaderStyle}>Days</th>
+                  <th style={tableHeaderStyle}>Time</th>
+                  <th style={tableHeaderStyle}>Full Slot String</th>
+                  <th style={tableHeaderStyle}>Status</th>
+                  <th style={tableHeaderStyle}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {slots.map(s => (
+                  <tr key={s._id || s.id}>
+                    <td style={tableCellStyle}><strong>{s.days}</strong></td>
+                    <td style={tableCellStyle}>{s.time}</td>
+                    <td style={tableCellStyle}><span style={{ color: 'var(--color-primary)' }}>{s.days} — {s.time}</span></td>
+                    <td style={tableCellStyle}>
+                      <span style={{
+                        padding: '4px 10px',
+                        borderRadius: '4px',
+                        fontSize: '0.85rem',
+                        fontWeight: '500',
+                        background: s.status === 'Active' ? 'rgba(46, 204, 113, 0.2)' : 'rgba(231, 76, 60, 0.2)',
+                        color: s.status === 'Active' ? '#2ecc71' : '#e74c3c'
+                      }}>{s.status || 'Active'}</span>
+                    </td>
+                    <td style={tableCellStyle}>
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <button onClick={() => handleEditSlotClick(s)} className="glass-panel" style={{ padding: '6px 12px', fontSize: '0.85rem', color: 'var(--color-primary)', border: '1px solid var(--color-primary)' }}>Edit</button>
+                        <button onClick={() => handleDeleteSlot(s._id || s.id)} className="glass-panel" style={{ padding: '6px 12px', fontSize: '0.85rem', color: '#e74c3c', border: '1px solid #e74c3c' }}><Trash2 size={14} /></button>
                       </div>
                     </td>
                   </tr>
