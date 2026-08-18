@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 import os
 from app.database import connect_to_mongo, close_mongo_connection
-from app.routers import admissions, students, instructors, contact, auth, dashboard
+from app.routers import admissions, students, instructors, modules, contact, auth, dashboard
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -15,7 +15,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="AlArabia Fi Buyutikum LMS API",
-    description="Backend API for managing admissions, students, instructors, and the admin dashboard.",
+    description="Backend API for managing admissions, students, instructors, modules, and the admin dashboard.",
     version="1.0.0",
     lifespan=lifespan
 )
@@ -37,6 +37,7 @@ app.include_router(dashboard.router)
 app.include_router(admissions.router)
 app.include_router(students.router)
 app.include_router(instructors.router)
+app.include_router(modules.router)
 app.include_router(contact.router)
 
 @app.get("/", tags=["Health"])

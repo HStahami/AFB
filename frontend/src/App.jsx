@@ -34,6 +34,7 @@ function Navbar() {
     <nav style={{ padding: '1rem 1.5rem', display: 'flex', flexDirection: 'column', position: 'relative' }} className="glass-panel">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
         <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
+          <img src="/afb1.jpeg" alt="AFB Logo" style={{height:35, width:50}} />
           <h1 style={{ fontSize: isMobile ? '1.1rem' : '1.5rem', fontWeight: '700', whiteSpace: 'nowrap' }} className="gradient-text">AlArabia Fi Buyutikum</h1>
         </Link>
 
@@ -70,11 +71,31 @@ function Navbar() {
 // --- Pages ---
 
 function Home() {
+  const [modules, setModules] = useState([]);
+  const [loadingModules, setLoadingModules] = useState(true);
+  const [modulesError, setModulesError] = useState(null);
+
   const [instructors, setInstructors] = useState([]);
   const [loadingInstructors, setLoadingInstructors] = useState(true);
   const [instructorsError, setInstructorsError] = useState(null);
 
   useEffect(() => {
+    const fetchModules = async () => {
+      setLoadingModules(true);
+      setModulesError(null);
+      try {
+        const res = await fetch(`${API_BASE}/modules/`);
+        if (!res.ok) throw new Error("Failed to load modules.");
+        const data = await res.json();
+        setModules(data);
+      } catch (err) {
+        console.error(err);
+        setModulesError("Unable to load modules. Please try again later.");
+      } finally {
+        setLoadingModules(false);
+      }
+    };
+
     const fetchInstructors = async () => {
       setLoadingInstructors(true);
       setInstructorsError(null);
@@ -90,6 +111,8 @@ function Home() {
         setLoadingInstructors(false);
       }
     };
+
+    fetchModules();
     fetchInstructors();
   }, []);
 
@@ -161,10 +184,50 @@ function Home() {
         </div>
       </section>
 
+      {/* Dynamic Arabic Learning Modules Section */}
+      <section style={{ padding: '5rem 2rem', maxWidth: '1200px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
+        <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
+          <BookOpen size={40} color="var(--color-primary)" style={{ margin: '0 auto 1rem' }} />
+          <h2 style={{ fontSize: '2.5rem', fontWeight: '700', marginBottom: '1rem' }} className="gradient-text">Arabic Learning Modules</h2>
+          <p style={{ color: '#e0e0e0', maxWidth: '600px', margin: '0 auto' }}>Explore our structured levels designed to take you from foundational Arabic to complete fluency.</p>
+        </div>
+
+        {loadingModules ? (
+          <p style={{ color: 'var(--color-primary)', textAlign: 'center', padding: '3rem', fontSize: '1.2rem' }}>Loading modules...</p>
+        ) : modulesError ? (
+          <p style={{ color: '#ff6b6b', textAlign: 'center', padding: '3rem', fontSize: '1.1rem' }}>{modulesError}</p>
+        ) : modules.length === 0 ? (
+          <p style={{ color: '#e0e0e0', textAlign: 'center', fontSize: '1.1rem', padding: '3rem' }}>No modules available at the moment.</p>
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '2rem' }}>
+            {modules.map((mod) => (
+              <motion.div
+                key={mod._id || mod.id || mod.name}
+                whileHover={{ y: -8, boxShadow: '0 20px 40px rgba(0,0,0,0.6)' }}
+                className="glass-panel"
+                style={{ padding: '2rem', textAlign: 'center', border: '1px solid rgba(197, 229, 232, 0.15)', background: 'rgba(255,255,255,0.02)', display: 'flex', flexDirection: 'column', alignItems: 'center' }}
+              >
+                {mod.image ? (
+                  <div style={{ width: '64px', height: '64px', borderRadius: '16px', overflow: 'hidden', marginBottom: '1.2rem', border: '1px solid var(--color-primary)' }}>
+                    <img src={getAvatarUrl(mod.image, mod.name)} alt={mod.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  </div>
+                ) : (
+                  <div style={{ width: '64px', height: '64px', borderRadius: '16px', background: 'linear-gradient(135deg, var(--color-primary), var(--color-accent))', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.2rem', color: 'var(--color-bg-dark)', fontWeight: 'bold', fontSize: '1.5rem' }}>
+                    {mod.name}
+                  </div>
+                )}
+                <h3 style={{ fontSize: '1.6rem', marginBottom: '0.8rem', color: 'var(--color-white)', fontWeight: '700' }}>{mod.name}</h3>
+                <p style={{ color: '#b0c4c6', fontSize: '0.95rem', lineHeight: '1.5' }}>{mod.description}</p>
+              </motion.div>
+            ))}
+          </div>
+        )}
+      </section>
+
       {/* Dynamic Instructors Section */}
       <section style={{ padding: '5rem 2rem', maxWidth: '1200px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
         <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
-          <Users size={40} color="var(--color-primary)" style={{ margin: '0 auto 1rem' }} />
+          {/* <Users size={40} color="var(--color-primary)" style={{ margin: '0 auto 1rem' }} /> */}
           <h2 style={{ fontSize: '2.5rem', fontWeight: '700', marginBottom: '1rem' }} className="gradient-text">Our Expert Instructors</h2>
           <p style={{ color: '#e0e0e0', maxWidth: '600px', margin: '0 auto' }}>Learn from the best. Our team is constantly growing to bring you diverse expertise.</p>
         </div>
@@ -235,7 +298,7 @@ function Home() {
       {/* Dynamic Reviews Section */}
       <section style={{ padding: '5rem 2rem', maxWidth: '1200px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
         <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
-          <Star size={40} color="var(--color-primary)" style={{ margin: '0 auto 1rem' }} />
+          {/* <Star size={40} color="var(--color-primary)" style={{ margin: '0 auto 1rem' }} /> */}
           <h2 style={{ fontSize: '2.5rem', fontWeight: '700', marginBottom: '1rem' }} className="gradient-text">Student Reviews</h2>
           <p style={{ color: '#e0e0e0', maxWidth: '600px', margin: '0 auto' }}>Don't just take our word for it. Here is what our students have to say.</p>
         </div>
@@ -558,10 +621,11 @@ function AdminLogin({ onLogin }) {
 
 function AdminDashboard({ onLogout }) {
   const [activeTab, setActiveTab] = useState('overview');
-  const [stats, setStats] = useState({ total: 0, pending: 0, approved: 0, canceled: 0, total_students: 0, total_instructors: 0 });
+  const [stats, setStats] = useState({ total: 0, pending: 0, approved: 0, canceled: 0, total_students: 0, total_instructors: 0, total_modules: 0 });
   const [admissions, setAdmissions] = useState([]);
   const [students, setStudents] = useState([]);
   const [instructors, setInstructors] = useState([]);
+  const [modules, setModules] = useState([]);
   const [contacts, setContacts] = useState([]);
 
   // Instructor Form State
@@ -573,6 +637,16 @@ function AdminDashboard({ onLogout }) {
   const [instFormSuccess, setInstFormSuccess] = useState('');
   const [instFormError, setInstFormError] = useState('');
   const fileInputRef = useRef(null);
+
+  // Module Form State
+  const [modName, setModName] = useState('');
+  const [modDesc, setModDesc] = useState('');
+  const [modOrder, setModOrder] = useState(1);
+  const [modFile, setModFile] = useState(null);
+  const [editingModId, setEditingModId] = useState(null);
+  const [modFormSuccess, setModFormSuccess] = useState('');
+  const [modFormError, setModFormError] = useState('');
+  const modFileInputRef = useRef(null);
 
   // Assign modal state
   const [selectedStudent, setSelectedStudent] = useState(null);
@@ -617,6 +691,14 @@ function AdminDashboard({ onLogout }) {
     } catch (e) { console.error(e); }
   };
 
+  const fetchModules = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/modules/`);
+      const data = await res.json();
+      setModules(data);
+    } catch (e) { console.error(e); }
+  };
+
   const fetchContacts = async () => {
     try {
       const res = await fetch(`${API_BASE}/contact/`, { headers });
@@ -630,6 +712,7 @@ function AdminDashboard({ onLogout }) {
     if (activeTab === 'admissions') fetchAdmissions();
     if (activeTab === 'students') { fetchStudents(); fetchInstructors(); }
     if (activeTab === 'instructors') fetchInstructors();
+    if (activeTab === 'modules') fetchModules();
     if (activeTab === 'contacts') fetchContacts();
   }, [activeTab]);
 
@@ -734,6 +817,77 @@ function AdminDashboard({ onLogout }) {
     } catch (e) { alert("Failed to delete instructor"); }
   };
 
+  // Module Actions
+  const handleAddOrUpdateModule = async (e) => {
+    e.preventDefault();
+    setModFormSuccess('');
+    setModFormError('');
+    try {
+      const formData = new FormData();
+      formData.append('name', modName);
+      formData.append('description', modDesc);
+      formData.append('order', modOrder);
+      if (modFile) {
+        formData.append('image', modFile);
+      }
+
+      const url = editingModId ? `${API_BASE}/modules/${editingModId}` : `${API_BASE}/modules/`;
+      const method = editingModId ? 'PUT' : 'POST';
+
+      const res = await fetch(url, {
+        method,
+        headers: { 'Authorization': `Bearer ${token}` },
+        body: formData
+      });
+
+      if (!res.ok) throw new Error("Failed to save module.");
+
+      setModFormSuccess(editingModId ? "Module updated successfully!" : "Module added successfully!");
+      setModName('');
+      setModDesc('');
+      setModOrder(1);
+      setModFile(null);
+      setEditingModId(null);
+      if (modFileInputRef.current) modFileInputRef.current.value = "";
+      fetchModules();
+      fetchStats();
+    } catch (e) {
+      console.error(e);
+      setModFormError("Failed to save module. Please try again.");
+    }
+  };
+
+  const handleEditModuleClick = (mod) => {
+    setEditingModId(mod._id || mod.id);
+    setModName(mod.name || '');
+    setModDesc(mod.description || '');
+    setModOrder(mod.order || 1);
+    setModFile(null);
+    setModFormSuccess('');
+    setModFormError('');
+  };
+
+  const handleCancelEditModule = () => {
+    setEditingModId(null);
+    setModName('');
+    setModDesc('');
+    setModOrder(1);
+    setModFile(null);
+    setModFormSuccess('');
+    setModFormError('');
+    if (modFileInputRef.current) modFileInputRef.current.value = "";
+  };
+
+  const handleDeleteModule = async (id) => {
+    if (!confirm("Are you sure you want to delete this module?")) return;
+    try {
+      const res = await fetch(`${API_BASE}/modules/${id}`, { method: 'DELETE', headers });
+      if (!res.ok) throw new Error();
+      fetchModules();
+      fetchStats();
+    } catch (e) { alert("Failed to delete module"); }
+  };
+
   const handleAssignSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -760,6 +914,7 @@ function AdminDashboard({ onLogout }) {
         <button className={activeTab === 'admissions' ? 'btn-primary' : 'glass-panel'} style={{ width: '100%', textAlign: 'left', padding: '10px 15px', border: 'none' }} onClick={() => setActiveTab('admissions')}>Admissions</button>
         <button className={activeTab === 'students' ? 'btn-primary' : 'glass-panel'} style={{ width: '100%', textAlign: 'left', padding: '10px 15px', border: 'none' }} onClick={() => setActiveTab('students')}>Students</button>
         <button className={activeTab === 'instructors' ? 'btn-primary' : 'glass-panel'} style={{ width: '100%', textAlign: 'left', padding: '10px 15px', border: 'none' }} onClick={() => setActiveTab('instructors')}>Instructors</button>
+        <button className={activeTab === 'modules' ? 'btn-primary' : 'glass-panel'} style={{ width: '100%', textAlign: 'left', padding: '10px 15px', border: 'none' }} onClick={() => setActiveTab('modules')}>Modules</button>
         <button className={activeTab === 'contacts' ? 'btn-primary' : 'glass-panel'} style={{ width: '100%', textAlign: 'left', padding: '10px 15px', border: 'none' }} onClick={() => setActiveTab('contacts')}>Messages</button>
 
         <button className="glass-panel" style={{ width: '100%', textAlign: 'left', padding: '10px 15px', border: 'none', marginTop: 'auto', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#ff6b6b' }} onClick={onLogout}>
@@ -792,6 +947,10 @@ function AdminDashboard({ onLogout }) {
               <div className="glass-panel" style={{ padding: '1.5rem', textAlign: 'center', borderLeft: '4px solid var(--color-primary)' }}>
                 <h4 style={{ color: '#aaa', fontSize: '0.9rem', marginBottom: '0.5rem' }}>Active Students</h4>
                 <p style={{ fontSize: '2.5rem', fontWeight: 'bold', color: 'var(--color-primary)' }}>{stats.total_students}</p>
+              </div>
+              <div className="glass-panel" style={{ padding: '1.5rem', textAlign: 'center', borderLeft: '4px solid #9b59b6' }}>
+                <h4 style={{ color: '#aaa', fontSize: '0.9rem', marginBottom: '0.5rem' }}>Modules</h4>
+                <p style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#9b59b6' }}>{stats.total_modules || 0}</p>
               </div>
             </div>
           </div>
@@ -999,6 +1158,91 @@ function AdminDashboard({ onLogout }) {
                       <div style={{ display: 'flex', gap: '8px' }}>
                         <button onClick={() => handleEditInstructorClick(inst)} className="glass-panel" style={{ padding: '6px 12px', fontSize: '0.85rem', color: 'var(--color-primary)', border: '1px solid var(--color-primary)' }}>Edit</button>
                         <button onClick={() => handleDeleteInstructor(inst._id || inst.id)} className="glass-panel" style={{ padding: '6px 12px', fontSize: '0.85rem', color: '#e74c3c', border: '1px solid #e74c3c' }}><Trash2 size={14} /></button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {activeTab === 'modules' && (
+          <div>
+            <h2 style={{ color: 'var(--color-white)', marginBottom: '1.5rem' }}>Modules / Arabic Levels</h2>
+
+            {/* Module Form */}
+            <div className="glass-panel" style={{ padding: '2rem', marginBottom: '2.5rem' }}>
+              <h3 style={{ color: 'var(--color-white)', marginBottom: '1.5rem', fontSize: '1.3rem' }}>
+                {editingModId ? 'Edit Module' : 'Add New Module'}
+              </h3>
+              {modFormSuccess && <p style={{ color: '#2ecc71', marginBottom: '1rem' }}>{modFormSuccess}</p>}
+              {modFormError && <p style={{ color: '#ff6b6b', marginBottom: '1rem' }}>{modFormError}</p>}
+
+              <form onSubmit={handleAddOrUpdateModule} style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
+                <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                  <div style={{ flex: 2, minWidth: '220px' }}>
+                    <label style={{ display: 'block', color: 'var(--color-primary)', marginBottom: '0.4rem', fontSize: '0.9rem' }}>Module / Level Name *</label>
+                    <input type="text" placeholder="e.g. A1 or Arabic for Quran" value={modName} onChange={e => setModName(e.target.value)} required style={{ ...inputStyle, width: '100%' }} />
+                  </div>
+                  <div style={{ flex: 1, minWidth: '120px' }}>
+                    <label style={{ display: 'block', color: 'var(--color-primary)', marginBottom: '0.4rem', fontSize: '0.9rem' }}>Display Order</label>
+                    <input type="number" min="1" placeholder="1" value={modOrder} onChange={e => setModOrder(parseInt(e.target.value) || 1)} style={{ ...inputStyle, width: '100%' }} />
+                  </div>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', color: 'var(--color-primary)', marginBottom: '0.4rem', fontSize: '0.9rem' }}>Description / About *</label>
+                  <textarea placeholder="Beginner Arabic level designed for students starting their learning journey." value={modDesc} onChange={e => setModDesc(e.target.value)} required rows="3" style={{ ...inputStyle, width: '100%', resize: 'vertical' }} />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', color: 'var(--color-primary)', marginBottom: '0.4rem', fontSize: '0.9rem' }}>Optional Module Image/Icon (File Upload)</label>
+                  <input ref={modFileInputRef} type="file" accept="image/*" onChange={e => setModFile(e.target.files[0])} style={{ color: '#e0e0e0', padding: '8px 0' }} />
+                </div>
+
+                <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
+                  <button type="submit" className="btn-primary" style={{ padding: '12px 28px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <Plus size={18} /> {editingModId ? 'Update Module' : 'Add Module'}
+                  </button>
+                  {editingModId && (
+                    <button type="button" onClick={handleCancelEditModule} className="glass-panel" style={{ padding: '12px 20px', border: 'none', color: '#e0e0e0' }}>
+                      Cancel Edit
+                    </button>
+                  )}
+                </div>
+              </form>
+            </div>
+
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr>
+                  <th style={tableHeaderStyle}>Order</th>
+                  <th style={tableHeaderStyle}>Icon/Image</th>
+                  <th style={tableHeaderStyle}>Module Name</th>
+                  <th style={tableHeaderStyle}>Description</th>
+                  <th style={tableHeaderStyle}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {modules.map(mod => (
+                  <tr key={mod._id || mod.id}>
+                    <td style={tableCellStyle}><strong>#{mod.order || 1}</strong></td>
+                    <td style={tableCellStyle}>
+                      {mod.image ? (
+                        <img src={getAvatarUrl(mod.image, mod.name)} alt={mod.name} style={{ width: '40px', height: '40px', borderRadius: '8px', objectFit: 'cover' }} />
+                      ) : (
+                        <div style={{ width: '36px', height: '36px', borderRadius: '8px', background: 'var(--color-primary)', color: 'var(--color-bg-dark)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>
+                          {mod.name.substring(0, 2)}
+                        </div>
+                      )}
+                    </td>
+                    <td style={tableCellStyle}><strong>{mod.name}</strong></td>
+                    <td style={tableCellStyle}>{mod.description}</td>
+                    <td style={tableCellStyle}>
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <button onClick={() => handleEditModuleClick(mod)} className="glass-panel" style={{ padding: '6px 12px', fontSize: '0.85rem', color: 'var(--color-primary)', border: '1px solid var(--color-primary)' }}>Edit</button>
+                        <button onClick={() => handleDeleteModule(mod._id || mod.id)} className="glass-panel" style={{ padding: '6px 12px', fontSize: '0.85rem', color: '#e74c3c', border: '1px solid #e74c3c' }}><Trash2 size={14} /></button>
                       </div>
                     </td>
                   </tr>
