@@ -327,12 +327,12 @@ function Home() {
 
 function About() {
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ padding: '8rem 2rem 5rem', maxWidth: '900px', margin: '0 auto', textAlign: 'center' }}>
-      <h2 style={{ fontSize: '3rem', fontWeight: '800', marginBottom: '2rem' }} className="gradient-text">About Us</h2>
-      <p style={{ fontSize: '1.2rem', color: '#e0e0e0', marginBottom: '2rem', lineHeight: '1.8' }}>
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ padding: '2.5rem 1.5rem 4rem', maxWidth: '900px', margin: '0 auto', textAlign: 'center' }}>
+      <h2 style={{ fontSize: '3rem', fontWeight: '800', marginBottom: '1.5rem' }} className="gradient-text">About Us</h2>
+      <p style={{ fontSize: '1.15rem', color: '#e0e0e0', marginBottom: '1.5rem', lineHeight: '1.8' }}>
         AlArabia Fi Buyutikum (Arabic in Your Homes) was founded with a singular vision: to make the majestic Arabic language accessible to everyone, everywhere. We believe that learning Arabic shouldn't be confined to traditional classrooms or limited by geographical boundaries.
       </p>
-      <p style={{ fontSize: '1.2rem', color: '#e0e0e0', marginBottom: '4rem', lineHeight: '1.8' }}>
+      <p style={{ fontSize: '1.15rem', color: '#e0e0e0', marginBottom: '3rem', lineHeight: '1.8' }}>
         Leveraging cutting-edge technology and a layered, comprehensive curriculum, we bring expert native instructors directly to your screen. Our platform is designed to be highly engaging, intuitive, and effective, ensuring that your journey to mastering Arabic is as beautiful as the language itself.
       </p>
 
@@ -377,13 +377,13 @@ function Contact() {
   };
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ padding: '8rem 2rem 5rem', maxWidth: '1200px', margin: '0 auto' }}>
-      <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
-        <h2 style={{ fontSize: '3rem', fontWeight: '800', marginBottom: '1rem' }} className="gradient-text">Contact Us</h2>
-        <p style={{ color: '#e0e0e0', fontSize: '1.2rem' }}>We'd love to hear from you. Reach out with any questions.</p>
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ padding: '2rem 1.5rem 4rem', maxWidth: '1200px', margin: '0 auto' }}>
+      <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
+        <h2 style={{ fontSize: '3rem', fontWeight: '800', marginBottom: '0.75rem' }} className="gradient-text">Contact Us</h2>
+        <p style={{ color: '#e0e0e0', fontSize: '1.15rem' }}>We'd love to hear from you. Reach out with any questions.</p>
       </div>
 
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4rem', justifyContent: 'center' }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '2.5rem', justifyContent: 'center' }}>
         <div style={{ flex: '1', minWidth: '300px', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
           <div className="glass-panel" style={{ padding: '2rem', display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
             <Mail size={32} color="var(--color-primary)" />
