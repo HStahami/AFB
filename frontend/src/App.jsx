@@ -408,20 +408,20 @@ function Contact() {
           </div>
         </div>
 
-        <div className="glass-panel" style={{ flex: '2', minWidth: '350px', padding: '3rem' }}>
+        <div className="glass-panel responsive-form-card" style={{ flex: '2', minWidth: '280px' }}>
           {success ? (
             <div style={{ color: '#2ecc71', fontSize: '1.2rem', textAlign: 'center', padding: '2rem' }}>
               🎉 Your message has been sent successfully! We will get back to you soon.
             </div>
           ) : (
-            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-              <div style={{ display: 'flex', gap: '1.5rem' }}>
-                <input type="text" name="first_name" placeholder="First Name" required value={formData.first_name} onChange={handleChange} style={{ flex: 1, padding: '16px', borderRadius: '8px', border: '1px solid rgba(197, 229, 232, 0.2)', background: 'rgba(0,0,0,0.2)', color: 'var(--color-white)', outline: 'none' }} />
-                <input type="text" name="last_name" placeholder="Last Name" required value={formData.last_name} onChange={handleChange} style={{ flex: 1, padding: '16px', borderRadius: '8px', border: '1px solid rgba(197, 229, 232, 0.2)', background: 'rgba(0,0,0,0.2)', color: 'var(--color-white)', outline: 'none' }} />
+            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+              <div className="form-grid-2">
+                <input type="text" name="first_name" placeholder="First Name" required value={formData.first_name} onChange={handleChange} style={inputStyle} />
+                <input type="text" name="last_name" placeholder="Last Name" required value={formData.last_name} onChange={handleChange} style={inputStyle} />
               </div>
-              <input type="email" name="email" placeholder="Email Address" required value={formData.email} onChange={handleChange} style={{ padding: '16px', borderRadius: '8px', border: '1px solid rgba(197, 229, 232, 0.2)', background: 'rgba(0,0,0,0.2)', color: 'var(--color-white)', outline: 'none' }} />
-              <textarea name="message" placeholder="Your Message" rows="5" required value={formData.message} onChange={handleChange} style={{ padding: '16px', borderRadius: '8px', border: '1px solid rgba(197, 229, 232, 0.2)', background: 'rgba(0,0,0,0.2)', color: 'var(--color-white)', outline: 'none', resize: 'vertical' }}></textarea>
-              <button type="submit" className="btn-primary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginTop: '1rem' }}>
+              <input type="email" name="email" placeholder="Email Address" required value={formData.email} onChange={handleChange} style={inputStyle} />
+              <textarea name="message" placeholder="Your Message" rows="5" required value={formData.message} onChange={handleChange} style={{ ...inputStyle, resize: 'vertical' }}></textarea>
+              <button type="submit" className="btn-primary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginTop: '0.5rem' }}>
                 Send Message <Send size={18} />
               </button>
             </form>
@@ -534,8 +534,8 @@ function Admission() {
   };
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
-      <div className="glass-panel" style={{ padding: '4rem 3rem', maxWidth: '600px', width: '100%', textAlign: 'center' }}>
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem 1rem' }}>
+      <div className="glass-panel responsive-form-card" style={{ textAlign: 'center' }}>
         <Sparkles size={48} color="var(--color-primary)" style={{ margin: '0 auto 1.5rem' }} />
         <h2 style={{ fontSize: '2.5rem', fontWeight: '700', marginBottom: '1rem' }} className="gradient-text">Admission Form</h2>
         <p style={{ color: '#b0c4c6', marginBottom: '2.5rem', fontSize: '1.1rem' }}>
@@ -546,14 +546,14 @@ function Admission() {
             🎉 Application submitted successfully! Our team will contact you soon.
           </div>
         ) : (
-          <form onSubmit={handleSubmit} style={{ display: 'flex', gap: '1.5rem', flexDirection: 'column' }}>
-            <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-              <input type="text" name="first_name" placeholder="First Name" required value={formData.first_name} onChange={handleChange} style={{ ...inputStyle, minWidth: '200px' }} />
-              <input type="text" name="last_name" placeholder="Last Name" required value={formData.last_name} onChange={handleChange} style={{ ...inputStyle, minWidth: '200px' }} />
+          <form onSubmit={handleSubmit} style={{ display: 'flex', gap: '1.25rem', flexDirection: 'column' }}>
+            <div className="form-grid-2">
+              <input type="text" name="first_name" placeholder="First Name" required value={formData.first_name} onChange={handleChange} style={inputStyle} />
+              <input type="text" name="last_name" placeholder="Last Name" required value={formData.last_name} onChange={handleChange} style={inputStyle} />
             </div>
             <input type="email" name="email" placeholder="Email Address" required value={formData.email} onChange={handleChange} style={inputStyle} />
             <input type="tel" name="phone" placeholder="Phone Number" required value={formData.phone} onChange={handleChange} style={inputStyle} />
-            <button type="submit" className="btn-primary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', padding: '16px', fontSize: '1.1rem', marginTop: '1rem' }}>
+            <button type="submit" className="btn-primary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', padding: '16px', fontSize: '1.1rem', marginTop: '0.5rem' }}>
               Submit Application <Send size={20} />
             </button>
           </form>
@@ -990,60 +990,89 @@ function AdminDashboard({ onLogout }) {
   const tableCellStyle = { padding: '12px', borderBottom: '1px solid rgba(255,255,255,0.05)', color: '#e0e0e0' };
 
   return (
-    <div style={{ display: 'flex', flexWrap: 'wrap', minHeight: '90vh', background: 'rgba(0,0,0,0.1)', borderRadius: '12px', overflow: 'hidden' }}>
-      {/* Sidebar */}
-      <div style={{ width: '100%', maxWidth: '220px', flexShrink: 0, background: 'rgba(7, 34, 36, 0.4)', backdropFilter: 'blur(10px)', borderRight: '1px solid rgba(197, 229, 232, 0.1)', padding: '1.5rem 1rem', display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center' }}>
-        <h3 style={{ color: 'var(--color-white)', fontWeight: 'bold', marginBottom: '0.5rem', textAlign: 'center', width: '100%' }} className="gradient-text">LMS Panel</h3>
-        <button className={activeTab === 'overview' ? 'btn-primary' : 'glass-panel'} style={{ flex: '1 1 auto', textAlign: 'left', padding: '10px 15px', border: 'none', minWidth: '90px' }} onClick={() => setActiveTab('overview')}>Overview</button>
-        <button className={activeTab === 'admissions' ? 'btn-primary' : 'glass-panel'} style={{ flex: '1 1 auto', textAlign: 'left', padding: '10px 15px', border: 'none', minWidth: '90px' }} onClick={() => setActiveTab('admissions')}>Admissions</button>
-        <button className={activeTab === 'students' ? 'btn-primary' : 'glass-panel'} style={{ flex: '1 1 auto', textAlign: 'left', padding: '10px 15px', border: 'none', minWidth: '90px' }} onClick={() => setActiveTab('students')}>Students</button>
-        <button className={activeTab === 'instructors' ? 'btn-primary' : 'glass-panel'} style={{ flex: '1 1 auto', textAlign: 'left', padding: '10px 15px', border: 'none', minWidth: '90px' }} onClick={() => setActiveTab('instructors')}>Instructors</button>
-        <button className={activeTab === 'modules' ? 'btn-primary' : 'glass-panel'} style={{ flex: '1 1 auto', textAlign: 'left', padding: '10px 15px', border: 'none', minWidth: '90px' }} onClick={() => setActiveTab('modules')}>Modules</button>
-        <button className={activeTab === 'slots' ? 'btn-primary' : 'glass-panel'} style={{ flex: '1 1 auto', textAlign: 'left', padding: '10px 15px', border: 'none', minWidth: '90px' }} onClick={() => setActiveTab('slots')}>Slots</button>
-        <button className={activeTab === 'contacts' ? 'btn-primary' : 'glass-panel'} style={{ flex: '1 1 auto', textAlign: 'left', padding: '10px 15px', border: 'none', minWidth: '90px' }} onClick={() => setActiveTab('contacts')}>Messages</button>
+    <div className="admin-layout">
+      {/* Mobile Top Header */}
+      <div className="admin-mobile-header">
+        <h3 style={{ color: 'var(--color-white)', fontWeight: 'bold', margin: 0, fontSize: '1.2rem' }} className="gradient-text">LMS Panel</h3>
+        <button className="glass-panel" style={{ padding: '6px 12px', border: 'none', display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#ff6b6b', fontSize: '0.85rem' }} onClick={onLogout}>
+          <LogOut size={14} /> Logout
+        </button>
+      </div>
 
-        <button className="glass-panel" style={{ flex: '1 1 auto', textAlign: 'left', padding: '10px 15px', border: 'none', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#ff6b6b', minWidth: '90px' }} onClick={onLogout}>
+      {/* Mobile Horizontal Tab Navigation */}
+      <div className="admin-mobile-tab-bar no-scrollbar">
+        {[
+          { id: 'overview', label: 'Overview' },
+          { id: 'admissions', label: 'Admissions' },
+          { id: 'students', label: 'Students' },
+          { id: 'instructors', label: 'Instructors' },
+          { id: 'modules', label: 'Modules' },
+          { id: 'slots', label: 'Slots' },
+          { id: 'contacts', label: 'Messages' },
+        ].map(tab => (
+          <button
+            key={tab.id}
+            className={`admin-tab-pill ${activeTab === tab.id ? 'active' : ''}`}
+            onClick={() => setActiveTab(tab.id)}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Desktop Sidebar */}
+      <div className="admin-sidebar">
+        <h3 style={{ color: 'var(--color-white)', fontWeight: 'bold', marginBottom: '1.5rem', textAlign: 'center' }} className="gradient-text">LMS Panel</h3>
+        <button className={activeTab === 'overview' ? 'btn-primary' : 'glass-panel'} style={{ width: '100%', textAlign: 'left', padding: '10px 15px', border: 'none' }} onClick={() => setActiveTab('overview')}>Overview</button>
+        <button className={activeTab === 'admissions' ? 'btn-primary' : 'glass-panel'} style={{ width: '100%', textAlign: 'left', padding: '10px 15px', border: 'none' }} onClick={() => setActiveTab('admissions')}>Admissions</button>
+        <button className={activeTab === 'students' ? 'btn-primary' : 'glass-panel'} style={{ width: '100%', textAlign: 'left', padding: '10px 15px', border: 'none' }} onClick={() => setActiveTab('students')}>Students</button>
+        <button className={activeTab === 'instructors' ? 'btn-primary' : 'glass-panel'} style={{ width: '100%', textAlign: 'left', padding: '10px 15px', border: 'none' }} onClick={() => setActiveTab('instructors')}>Instructors</button>
+        <button className={activeTab === 'modules' ? 'btn-primary' : 'glass-panel'} style={{ width: '100%', textAlign: 'left', padding: '10px 15px', border: 'none' }} onClick={() => setActiveTab('modules')}>Modules</button>
+        <button className={activeTab === 'slots' ? 'btn-primary' : 'glass-panel'} style={{ width: '100%', textAlign: 'left', padding: '10px 15px', border: 'none' }} onClick={() => setActiveTab('slots')}>Slots</button>
+        <button className={activeTab === 'contacts' ? 'btn-primary' : 'glass-panel'} style={{ width: '100%', textAlign: 'left', padding: '10px 15px', border: 'none' }} onClick={() => setActiveTab('contacts')}>Messages</button>
+
+        <button className="glass-panel" style={{ width: '100%', textAlign: 'left', padding: '10px 15px', border: 'none', marginTop: 'auto', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#ff6b6b' }} onClick={onLogout}>
           <LogOut size={16} /> Logout
         </button>
       </div>
 
       {/* Main Admin Area */}
-      <div style={{ flex: 1, minWidth: 0, width: '100%', padding: '1.5rem', overflowX: 'auto' }}>
+      <div className="admin-content-area">
         {activeTab === 'overview' && (
           <div>
-            <h2 style={{ color: 'var(--color-white)', marginBottom: '2rem' }}>Institute Overview</h2>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1.5rem', marginBottom: '3rem' }}>
+            <h2 style={{ color: 'var(--color-white)', marginBottom: '1.5rem', fontSize: '1.6rem' }}>Institute Overview</h2>
+            <div className="stats-cards-grid">
               <div className="glass-panel" style={{ padding: '1.5rem', textAlign: 'center' }}>
-                <h4 style={{ color: '#aaa', fontSize: '0.9rem', marginBottom: '0.5rem' }}>Total Forms</h4>
-                <p style={{ fontSize: '2.5rem', fontWeight: 'bold', color: 'var(--color-white)' }}>{stats.total}</p>
+                <h4 style={{ color: '#aaa', fontSize: '0.85rem', marginBottom: '0.4rem' }}>Total Forms</h4>
+                <p style={{ fontSize: '2.2rem', fontWeight: 'bold', color: 'var(--color-white)' }}>{stats.total}</p>
               </div>
               <div className="glass-panel" style={{ padding: '1.5rem', textAlign: 'center', borderLeft: '4px solid #f39c12' }}>
-                <h4 style={{ color: '#aaa', fontSize: '0.9rem', marginBottom: '0.5rem' }}>Pending</h4>
-                <p style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#f39c12' }}>{stats.pending}</p>
+                <h4 style={{ color: '#aaa', fontSize: '0.85rem', marginBottom: '0.4rem' }}>Pending</h4>
+                <p style={{ fontSize: '2.2rem', fontWeight: 'bold', color: '#f39c12' }}>{stats.pending}</p>
               </div>
               <div className="glass-panel" style={{ padding: '1.5rem', textAlign: 'center', borderLeft: '4px solid #2ecc71' }}>
-                <h4 style={{ color: '#aaa', fontSize: '0.9rem', marginBottom: '0.5rem' }}>Approved</h4>
-                <p style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#2ecc71' }}>{stats.approved}</p>
+                <h4 style={{ color: '#aaa', fontSize: '0.85rem', marginBottom: '0.4rem' }}>Approved</h4>
+                <p style={{ fontSize: '2.2rem', fontWeight: 'bold', color: '#2ecc71' }}>{stats.approved}</p>
               </div>
               <div className="glass-panel" style={{ padding: '1.5rem', textAlign: 'center', borderLeft: '4px solid #e74c3c' }}>
-                <h4 style={{ color: '#aaa', fontSize: '0.9rem', marginBottom: '0.5rem' }}>Canceled</h4>
-                <p style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#e74c3c' }}>{stats.canceled}</p>
+                <h4 style={{ color: '#aaa', fontSize: '0.85rem', marginBottom: '0.4rem' }}>Canceled</h4>
+                <p style={{ fontSize: '2.2rem', fontWeight: 'bold', color: '#e74c3c' }}>{stats.canceled}</p>
               </div>
               <div className="glass-panel" style={{ padding: '1.5rem', textAlign: 'center', borderLeft: '4px solid var(--color-primary)' }}>
-                <h4 style={{ color: '#aaa', fontSize: '0.9rem', marginBottom: '0.5rem' }}>Active Students</h4>
-                <p style={{ fontSize: '2.5rem', fontWeight: 'bold', color: 'var(--color-primary)' }}>{stats.total_students}</p>
+                <h4 style={{ color: '#aaa', fontSize: '0.85rem', marginBottom: '0.4rem' }}>Active Students</h4>
+                <p style={{ fontSize: '2.2rem', fontWeight: 'bold', color: 'var(--color-primary)' }}>{stats.total_students}</p>
               </div>
               <div className="glass-panel" style={{ padding: '1.5rem', textAlign: 'center', borderLeft: '4px solid var(--color-accent)' }}>
-                <h4 style={{ color: '#aaa', fontSize: '0.9rem', marginBottom: '0.5rem' }}>Active Instructors</h4>
-                <p style={{ fontSize: '2.5rem', fontWeight: 'bold', color: 'var(--color-accent)' }}>{instructors.length}</p>
+                <h4 style={{ color: '#aaa', fontSize: '0.85rem', marginBottom: '0.4rem' }}>Active Instructors</h4>
+                <p style={{ fontSize: '2.2rem', fontWeight: 'bold', color: 'var(--color-accent)' }}>{instructors.length}</p>
               </div>
               <div className="glass-panel" style={{ padding: '1.5rem', textAlign: 'center', borderLeft: '4px solid #3498db' }}>
-                <h4 style={{ color: '#aaa', fontSize: '0.9rem', marginBottom: '0.5rem' }}>Class Slots</h4>
-                <p style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#3498db' }}>{stats.total_slots || slots.length || 0}</p>
+                <h4 style={{ color: '#aaa', fontSize: '0.85rem', marginBottom: '0.4rem' }}>Class Slots</h4>
+                <p style={{ fontSize: '2.2rem', fontWeight: 'bold', color: '#3498db' }}>{stats.total_slots || slots.length || 0}</p>
               </div>
               <div className="glass-panel" style={{ padding: '1.5rem', textAlign: 'center', borderLeft: '4px solid #9b59b6' }}>
-                <h4 style={{ color: '#aaa', fontSize: '0.9rem', marginBottom: '0.5rem' }}>Modules</h4>
-                <p style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#9b59b6' }}>{stats.total_modules || 0}</p>
+                <h4 style={{ color: '#aaa', fontSize: '0.85rem', marginBottom: '0.4rem' }}>Modules</h4>
+                <p style={{ fontSize: '2.2rem', fontWeight: 'bold', color: '#9b59b6' }}>{stats.total_modules || 0}</p>
               </div>
             </div>
 
@@ -1122,79 +1151,83 @@ function AdminDashboard({ onLogout }) {
 
         {activeTab === 'admissions' && (
           <div>
-            <h2 style={{ color: 'var(--color-white)', marginBottom: '1.5rem' }}>Admission Forms</h2>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead>
-                <tr>
-                  <th style={tableHeaderStyle}>Name</th>
-                  <th style={tableHeaderStyle}>Email</th>
-                  <th style={tableHeaderStyle}>Phone</th>
-                  <th style={tableHeaderStyle}>Status</th>
-                  <th style={tableHeaderStyle}>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {admissions.map(adm => (
-                  <tr key={adm._id}>
-                    <td style={tableCellStyle}>{adm.first_name} {adm.last_name}</td>
-                    <td style={tableCellStyle}>{adm.email}</td>
-                    <td style={tableCellStyle}>{adm.phone}</td>
-                    <td style={tableCellStyle}>
-                      <span style={{
-                        padding: '4px 8px',
-                        borderRadius: '4px',
-                        fontSize: '0.85rem',
-                        background: adm.status === 'Approved' ? 'rgba(46, 204, 113, 0.2)' : adm.status === 'Canceled' ? 'rgba(231, 76, 60, 0.2)' : 'rgba(243, 156, 18, 0.2)',
-                        color: adm.status === 'Approved' ? '#2ecc71' : adm.status === 'Canceled' ? '#e74c3c' : '#f39c12'
-                      }}>{adm.status}</span>
-                    </td>
-                    <td style={tableCellStyle}>
-                      {adm.status === 'Pending' && (
-                        <button onClick={() => handleSendFeeEmail(adm._id)} className="btn-primary" style={{ padding: '6px 12px', fontSize: '0.85rem', marginRight: '8px' }}>Send Fee Info</button>
-                      )}
-                      {adm.status === 'Fee Email Sent' && (
-                        <button onClick={() => handleApprove(adm._id)} className="btn-primary" style={{ padding: '6px 12px', fontSize: '0.85rem', marginRight: '8px', background: '#2e7d32' }}>Approve (Paid)</button>
-                      )}
-                      {adm.status !== 'Approved' && adm.status !== 'Canceled' && (
-                        <button onClick={() => handleCancel(adm._id)} className="glass-panel" style={{ padding: '6px 12px', fontSize: '0.85rem', color: '#e74c3c', border: '1px solid #e74c3c' }}>Cancel</button>
-                      )}
-                    </td>
+            <h2 style={{ color: 'var(--color-white)', marginBottom: '1.5rem', fontSize: '1.6rem' }}>Admission Forms</h2>
+            <div className="table-responsive-container">
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr>
+                    <th style={tableHeaderStyle}>Name</th>
+                    <th style={tableHeaderStyle}>Email</th>
+                    <th style={tableHeaderStyle}>Phone</th>
+                    <th style={tableHeaderStyle}>Status</th>
+                    <th style={tableHeaderStyle}>Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {admissions.map(adm => (
+                    <tr key={adm._id}>
+                      <td style={tableCellStyle}>{adm.first_name} {adm.last_name}</td>
+                      <td style={tableCellStyle}>{adm.email}</td>
+                      <td style={tableCellStyle}>{adm.phone}</td>
+                      <td style={tableCellStyle}>
+                        <span style={{
+                          padding: '4px 8px',
+                          borderRadius: '4px',
+                          fontSize: '0.85rem',
+                          background: adm.status === 'Approved' ? 'rgba(46, 204, 113, 0.2)' : adm.status === 'Canceled' ? 'rgba(231, 76, 60, 0.2)' : 'rgba(243, 156, 18, 0.2)',
+                          color: adm.status === 'Approved' ? '#2ecc71' : adm.status === 'Canceled' ? '#e74c3c' : '#f39c12'
+                        }}>{adm.status}</span>
+                      </td>
+                      <td style={tableCellStyle}>
+                        {adm.status === 'Pending' && (
+                          <button onClick={() => handleSendFeeEmail(adm._id)} className="btn-primary" style={{ padding: '6px 12px', fontSize: '0.85rem', marginRight: '8px' }}>Send Fee Info</button>
+                        )}
+                        {adm.status === 'Fee Email Sent' && (
+                          <button onClick={() => handleApprove(adm._id)} className="btn-primary" style={{ padding: '6px 12px', fontSize: '0.85rem', marginRight: '8px', background: '#2e7d32' }}>Approve (Paid)</button>
+                        )}
+                        {adm.status !== 'Approved' && adm.status !== 'Canceled' && (
+                          <button onClick={() => handleCancel(adm._id)} className="glass-panel" style={{ padding: '6px 12px', fontSize: '0.85rem', color: '#e74c3c', border: '1px solid #e74c3c' }}>Cancel</button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
 
         {activeTab === 'students' && (
           <div>
-            <h2 style={{ color: 'var(--color-white)', marginBottom: '1.5rem' }}>Active Students</h2>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead>
-                <tr>
-                  <th style={tableHeaderStyle}>Name</th>
-                  <th style={tableHeaderStyle}>Email</th>
-                  <th style={tableHeaderStyle}>Phone</th>
-                  <th style={tableHeaderStyle}>Slot</th>
-                  <th style={tableHeaderStyle}>Instructor</th>
-                  <th style={tableHeaderStyle}>Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {students.map(std => (
-                  <tr key={std._id}>
-                    <td style={tableCellStyle}>{std.first_name} {std.last_name}</td>
-                    <td style={tableCellStyle}>{std.email}</td>
-                    <td style={tableCellStyle}>{std.phone}</td>
-                    <td style={tableCellStyle}>{std.slot || <span style={{ color: '#777' }}>Not Assigned</span>}</td>
-                    <td style={tableCellStyle}>{std.instructor || <span style={{ color: '#777' }}>Not Assigned</span>}</td>
-                    <td style={tableCellStyle}>
-                      <button onClick={() => setSelectedStudent(std)} className="btn-primary" style={{ padding: '6px 12px', fontSize: '0.85rem' }}>Assign/Edit</button>
-                    </td>
+            <h2 style={{ color: 'var(--color-white)', marginBottom: '1.5rem', fontSize: '1.6rem' }}>Active Students</h2>
+            <div className="table-responsive-container">
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr>
+                    <th style={tableHeaderStyle}>Name</th>
+                    <th style={tableHeaderStyle}>Email</th>
+                    <th style={tableHeaderStyle}>Phone</th>
+                    <th style={tableHeaderStyle}>Slot</th>
+                    <th style={tableHeaderStyle}>Instructor</th>
+                    <th style={tableHeaderStyle}>Action</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {students.map(std => (
+                    <tr key={std._id}>
+                      <td style={tableCellStyle}>{std.first_name} {std.last_name}</td>
+                      <td style={tableCellStyle}>{std.email}</td>
+                      <td style={tableCellStyle}>{std.phone}</td>
+                      <td style={tableCellStyle}>{std.slot || <span style={{ color: '#777' }}>Not Assigned</span>}</td>
+                      <td style={tableCellStyle}>{std.instructor || <span style={{ color: '#777' }}>Not Assigned</span>}</td>
+                      <td style={tableCellStyle}>
+                        <button onClick={() => setSelectedStudent(std)} className="btn-primary" style={{ padding: '6px 12px', fontSize: '0.85rem' }}>Assign/Edit</button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
 
             {/* Assign Modal Overlay */}
             {selectedStudent && (
@@ -1283,60 +1316,62 @@ function AdminDashboard({ onLogout }) {
               </form>
             </div>
 
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead>
-                <tr>
-                  <th style={tableHeaderStyle}>Picture</th>
-                  <th style={tableHeaderStyle}>Name</th>
-                  <th style={tableHeaderStyle}>About / Specialty</th>
-                  <th style={tableHeaderStyle}>Active Slots / Students</th>
-                  <th style={tableHeaderStyle}>Total Students</th>
-                  <th style={tableHeaderStyle}>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {instructors.map(inst => (
-                  <tr key={inst._id || inst.id}>
-                    <td style={tableCellStyle}>
-                      <img src={getAvatarUrl(inst.avatar, inst.name)} alt={inst.name} style={{ width: '44px', height: '44px', borderRadius: '50%', objectFit: 'cover', background: 'var(--color-bg-dark)' }} />
-                    </td>
-                    <td style={tableCellStyle}><strong>{inst.name}</strong></td>
-                    <td style={tableCellStyle}>
-                      <div>{inst.about || inst.specialty || '-'}</div>
-                      {inst.specialty && inst.about && inst.specialty !== inst.about && (
-                        <div style={{ color: 'var(--color-primary)', fontSize: '0.8rem' }}>{inst.specialty}</div>
-                      )}
-                    </td>
-                    <td style={tableCellStyle}>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '0.85rem' }}>
-                        {inst.students && inst.students.length > 0 ? (
-                          inst.students.map((s, idx) => (
-                            <span key={idx} style={{ color: '#b0c4c6' }}>
-                              • {s.slot}: {s.name}
-                            </span>
-                          ))
-                        ) : (
-                          <span style={{ color: '#666' }}>No active assignments</span>
-                        )}
-                      </div>
-                    </td>
-                    <td style={tableCellStyle}>{inst.total_students || 0}</td>
-                    <td style={tableCellStyle}>
-                      <div style={{ display: 'flex', gap: '8px' }}>
-                        <button onClick={() => handleEditInstructorClick(inst)} className="glass-panel" style={{ padding: '6px 12px', fontSize: '0.85rem', color: 'var(--color-primary)', border: '1px solid var(--color-primary)' }}>Edit</button>
-                        <button onClick={() => handleDeleteInstructor(inst._id || inst.id)} className="glass-panel" style={{ padding: '6px 12px', fontSize: '0.85rem', color: '#e74c3c', border: '1px solid #e74c3c' }}><Trash2 size={14} /></button>
-                      </div>
-                    </td>
+            <div className="table-responsive-container">
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr>
+                    <th style={tableHeaderStyle}>Picture</th>
+                    <th style={tableHeaderStyle}>Name</th>
+                    <th style={tableHeaderStyle}>About / Specialty</th>
+                    <th style={tableHeaderStyle}>Active Slots / Students</th>
+                    <th style={tableHeaderStyle}>Total Students</th>
+                    <th style={tableHeaderStyle}>Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {instructors.map(inst => (
+                    <tr key={inst._id || inst.id}>
+                      <td style={tableCellStyle}>
+                        <img src={getAvatarUrl(inst.avatar, inst.name)} alt={inst.name} style={{ width: '44px', height: '44px', borderRadius: '50%', objectFit: 'cover', background: 'var(--color-bg-dark)' }} />
+                      </td>
+                      <td style={tableCellStyle}><strong>{inst.name}</strong></td>
+                      <td style={tableCellStyle}>
+                        <div>{inst.about || inst.specialty || '-'}</div>
+                        {inst.specialty && inst.about && inst.specialty !== inst.about && (
+                          <div style={{ color: 'var(--color-primary)', fontSize: '0.8rem' }}>{inst.specialty}</div>
+                        )}
+                      </td>
+                      <td style={tableCellStyle}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '0.85rem' }}>
+                          {inst.students && inst.students.length > 0 ? (
+                            inst.students.map((s, idx) => (
+                              <span key={idx} style={{ color: '#b0c4c6' }}>
+                                • {s.slot}: {s.name}
+                              </span>
+                            ))
+                          ) : (
+                            <span style={{ color: '#666' }}>No active assignments</span>
+                          )}
+                        </div>
+                      </td>
+                      <td style={tableCellStyle}>{inst.total_students || 0}</td>
+                      <td style={tableCellStyle}>
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          <button onClick={() => handleEditInstructorClick(inst)} className="glass-panel" style={{ padding: '6px 12px', fontSize: '0.85rem', color: 'var(--color-primary)', border: '1px solid var(--color-primary)' }}>Edit</button>
+                          <button onClick={() => handleDeleteInstructor(inst._id || inst.id)} className="glass-panel" style={{ padding: '6px 12px', fontSize: '0.85rem', color: '#e74c3c', border: '1px solid #e74c3c' }}><Trash2 size={14} /></button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
 
         {activeTab === 'modules' && (
           <div>
-            <h2 style={{ color: 'var(--color-white)', marginBottom: '1.5rem' }}>Modules / Arabic Levels</h2>
+            <h2 style={{ color: 'var(--color-white)', marginBottom: '1.5rem', fontSize: '1.6rem' }}>Modules / Arabic Levels</h2>
 
             {/* Module Form */}
             <div className="glass-panel" style={{ padding: '2rem', marginBottom: '2.5rem' }}>
@@ -1381,41 +1416,43 @@ function AdminDashboard({ onLogout }) {
               </form>
             </div>
 
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead>
-                <tr>
-                  <th style={tableHeaderStyle}>Order</th>
-                  <th style={tableHeaderStyle}>Icon/Image</th>
-                  <th style={tableHeaderStyle}>Module Name</th>
-                  <th style={tableHeaderStyle}>Description</th>
-                  <th style={tableHeaderStyle}>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {modules.map(mod => (
-                  <tr key={mod._id || mod.id}>
-                    <td style={tableCellStyle}><strong>#{mod.order || 1}</strong></td>
-                    <td style={tableCellStyle}>
-                      {mod.image ? (
-                        <img src={getAvatarUrl(mod.image, mod.name)} alt={mod.name} style={{ width: '40px', height: '40px', borderRadius: '8px', objectFit: 'cover' }} />
-                      ) : (
-                        <div style={{ width: '36px', height: '36px', borderRadius: '8px', background: 'var(--color-primary)', color: 'var(--color-bg-dark)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>
-                          {mod.name.substring(0, 2)}
-                        </div>
-                      )}
-                    </td>
-                    <td style={tableCellStyle}><strong>{mod.name}</strong></td>
-                    <td style={tableCellStyle}>{mod.description}</td>
-                    <td style={tableCellStyle}>
-                      <div style={{ display: 'flex', gap: '8px' }}>
-                        <button onClick={() => handleEditModuleClick(mod)} className="glass-panel" style={{ padding: '6px 12px', fontSize: '0.85rem', color: 'var(--color-primary)', border: '1px solid var(--color-primary)' }}>Edit</button>
-                        <button onClick={() => handleDeleteModule(mod._id || mod.id)} className="glass-panel" style={{ padding: '6px 12px', fontSize: '0.85rem', color: '#e74c3c', border: '1px solid #e74c3c' }}><Trash2 size={14} /></button>
-                      </div>
-                    </td>
+            <div className="table-responsive-container">
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr>
+                    <th style={tableHeaderStyle}>Order</th>
+                    <th style={tableHeaderStyle}>Icon/Image</th>
+                    <th style={tableHeaderStyle}>Module Name</th>
+                    <th style={tableHeaderStyle}>Description</th>
+                    <th style={tableHeaderStyle}>Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {modules.map(mod => (
+                    <tr key={mod._id || mod.id}>
+                      <td style={tableCellStyle}><strong>#{mod.order || 1}</strong></td>
+                      <td style={tableCellStyle}>
+                        {mod.image ? (
+                          <img src={getAvatarUrl(mod.image, mod.name)} alt={mod.name} style={{ width: '40px', height: '40px', borderRadius: '8px', objectFit: 'cover' }} />
+                        ) : (
+                          <div style={{ width: '36px', height: '36px', borderRadius: '8px', background: 'var(--color-primary)', color: 'var(--color-bg-dark)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>
+                            {mod.name.substring(0, 2)}
+                          </div>
+                        )}
+                      </td>
+                      <td style={tableCellStyle}><strong>{mod.name}</strong></td>
+                      <td style={tableCellStyle}>{mod.description}</td>
+                      <td style={tableCellStyle}>
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          <button onClick={() => handleEditModuleClick(mod)} className="glass-panel" style={{ padding: '6px 12px', fontSize: '0.85rem', color: 'var(--color-primary)', border: '1px solid var(--color-primary)' }}>Edit</button>
+                          <button onClick={() => handleDeleteModule(mod._id || mod.id)} className="glass-panel" style={{ padding: '6px 12px', fontSize: '0.85rem', color: '#e74c3c', border: '1px solid #e74c3c' }}><Trash2 size={14} /></button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
 
@@ -1463,68 +1500,72 @@ function AdminDashboard({ onLogout }) {
               </form>
             </div>
 
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead>
-                <tr>
-                  <th style={tableHeaderStyle}>Days</th>
-                  <th style={tableHeaderStyle}>Time</th>
-                  <th style={tableHeaderStyle}>Full Slot String</th>
-                  <th style={tableHeaderStyle}>Status</th>
-                  <th style={tableHeaderStyle}>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {slots.map(s => (
-                  <tr key={s._id || s.id}>
-                    <td style={tableCellStyle}><strong>{s.days}</strong></td>
-                    <td style={tableCellStyle}>{s.time}</td>
-                    <td style={tableCellStyle}><span style={{ color: 'var(--color-primary)' }}>{s.days} — {s.time}</span></td>
-                    <td style={tableCellStyle}>
-                      <span style={{
-                        padding: '4px 10px',
-                        borderRadius: '4px',
-                        fontSize: '0.85rem',
-                        fontWeight: '500',
-                        background: s.status === 'Active' ? 'rgba(46, 204, 113, 0.2)' : 'rgba(231, 76, 60, 0.2)',
-                        color: s.status === 'Active' ? '#2ecc71' : '#e74c3c'
-                      }}>{s.status || 'Active'}</span>
-                    </td>
-                    <td style={tableCellStyle}>
-                      <div style={{ display: 'flex', gap: '8px' }}>
-                        <button onClick={() => handleEditSlotClick(s)} className="glass-panel" style={{ padding: '6px 12px', fontSize: '0.85rem', color: 'var(--color-primary)', border: '1px solid var(--color-primary)' }}>Edit</button>
-                        <button onClick={() => handleDeleteSlot(s._id || s.id)} className="glass-panel" style={{ padding: '6px 12px', fontSize: '0.85rem', color: '#e74c3c', border: '1px solid #e74c3c' }}><Trash2 size={14} /></button>
-                      </div>
-                    </td>
+            <div className="table-responsive-container">
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr>
+                    <th style={tableHeaderStyle}>Days</th>
+                    <th style={tableHeaderStyle}>Time</th>
+                    <th style={tableHeaderStyle}>Full Slot String</th>
+                    <th style={tableHeaderStyle}>Status</th>
+                    <th style={tableHeaderStyle}>Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {slots.map(s => (
+                    <tr key={s._id || s.id}>
+                      <td style={tableCellStyle}><strong>{s.days}</strong></td>
+                      <td style={tableCellStyle}>{s.time}</td>
+                      <td style={tableCellStyle}><span style={{ color: 'var(--color-primary)' }}>{s.days} — {s.time}</span></td>
+                      <td style={tableCellStyle}>
+                        <span style={{
+                          padding: '4px 10px',
+                          borderRadius: '4px',
+                          fontSize: '0.85rem',
+                          fontWeight: '500',
+                          background: s.status === 'Active' ? 'rgba(46, 204, 113, 0.2)' : 'rgba(231, 76, 60, 0.2)',
+                          color: s.status === 'Active' ? '#2ecc71' : '#e74c3c'
+                        }}>{s.status || 'Active'}</span>
+                      </td>
+                      <td style={tableCellStyle}>
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          <button onClick={() => handleEditSlotClick(s)} className="glass-panel" style={{ padding: '6px 12px', fontSize: '0.85rem', color: 'var(--color-primary)', border: '1px solid var(--color-primary)' }}>Edit</button>
+                          <button onClick={() => handleDeleteSlot(s._id || s.id)} className="glass-panel" style={{ padding: '6px 12px', fontSize: '0.85rem', color: '#e74c3c', border: '1px solid #e74c3c' }}><Trash2 size={14} /></button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
 
         {activeTab === 'contacts' && (
           <div>
-            <h2 style={{ color: 'var(--color-white)', marginBottom: '1.5rem' }}>Contact Messages</h2>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead>
-                <tr>
-                  <th style={tableHeaderStyle}>Sender Name</th>
-                  <th style={tableHeaderStyle}>Email</th>
-                  <th style={tableHeaderStyle}>Message</th>
-                  <th style={tableHeaderStyle}>Date</th>
-                </tr>
-              </thead>
-              <tbody>
-                {contacts.map(c => (
-                  <tr key={c._id}>
-                    <td style={tableCellStyle}>{c.first_name} {c.last_name}</td>
-                    <td style={tableCellStyle}>{c.email}</td>
-                    <td style={tableCellStyle}>{c.message}</td>
-                    <td style={tableCellStyle}>{new Date(c.created_at).toLocaleDateString()}</td>
+            <h2 style={{ color: 'var(--color-white)', marginBottom: '1.5rem', fontSize: '1.6rem' }}>Contact Messages</h2>
+            <div className="table-responsive-container">
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr>
+                    <th style={tableHeaderStyle}>Sender Name</th>
+                    <th style={tableHeaderStyle}>Email</th>
+                    <th style={tableHeaderStyle}>Message</th>
+                    <th style={tableHeaderStyle}>Date</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {contacts.map(c => (
+                    <tr key={c._id}>
+                      <td style={tableCellStyle}>{c.first_name} {c.last_name}</td>
+                      <td style={tableCellStyle}>{c.email}</td>
+                      <td style={tableCellStyle}>{c.message}</td>
+                      <td style={tableCellStyle}>{new Date(c.created_at).toLocaleDateString()}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
       </div>
@@ -1533,8 +1574,9 @@ function AdminDashboard({ onLogout }) {
 }
 
 const inputStyle = {
-  flex: 1,
-  padding: '16px',
+  width: '100%',
+  boxSizing: 'border-box',
+  padding: '14px 16px',
   borderRadius: '8px',
   border: '1px solid rgba(197, 229, 232, 0.3)',
   background: 'rgba(0,0,0,0.2)',
