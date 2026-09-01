@@ -4,7 +4,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { BookOpen, Globe2, Sparkles, ArrowRight, Send, Users, Star, Mail, Phone, MapPin, ChevronDown, ChevronLeft, ChevronRight, Menu, X, Plus, Trash2, Check, XCircle, LogOut, Lock } from 'lucide-react';
 import './index.css';
 
-const API_BASE = "http://localhost:8000/api";
+const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:8000/api";
+const BACKEND_URL = API_BASE.replace(/\/api\/?$/, '');
 
 const getAvatarUrl = (avatarUrl, name) => {
   if (!avatarUrl) {
@@ -12,7 +13,7 @@ const getAvatarUrl = (avatarUrl, name) => {
     return `https://ui-avatars.com/api/?name=${encoded}&background=C5E5E8&color=072224&size=150&font-size=0.33&bold=true`;
   }
   if (avatarUrl.startsWith('/uploads')) {
-    return `http://localhost:8000${avatarUrl}`;
+    return `${BACKEND_URL}${avatarUrl}`;
   }
   return avatarUrl;
 };
