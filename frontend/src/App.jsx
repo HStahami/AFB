@@ -4,8 +4,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { BookOpen, Globe2, Sparkles, ArrowRight, Send, Users, Star, Mail, Phone, MapPin, ChevronDown, ChevronLeft, ChevronRight, Menu, X, Plus, Trash2, Check, XCircle, LogOut, Lock } from 'lucide-react';
 import './index.css';
 
-const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:8000/api";
-const BACKEND_URL = API_BASE.replace(/\/api\/?$/, '');
+const API_BASE = import.meta.env.VITE_API_BASE || "/api";
+const BACKEND_URL = API_BASE.startsWith('http') ? API_BASE.replace(/\/api\/?$/, '') : '';
 
 const getAvatarUrl = (avatarUrl, name) => {
   if (!avatarUrl) {
@@ -547,9 +547,9 @@ function Admission() {
           </div>
         ) : (
           <form onSubmit={handleSubmit} style={{ display: 'flex', gap: '1.5rem', flexDirection: 'column' }}>
-            <div style={{ display: 'flex', gap: '1rem' }}>
-              <input type="text" name="first_name" placeholder="First Name" required value={formData.first_name} onChange={handleChange} style={inputStyle} />
-              <input type="text" name="last_name" placeholder="Last Name" required value={formData.last_name} onChange={handleChange} style={inputStyle} />
+            <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+              <input type="text" name="first_name" placeholder="First Name" required value={formData.first_name} onChange={handleChange} style={{ ...inputStyle, minWidth: '200px' }} />
+              <input type="text" name="last_name" placeholder="Last Name" required value={formData.last_name} onChange={handleChange} style={{ ...inputStyle, minWidth: '200px' }} />
             </div>
             <input type="email" name="email" placeholder="Email Address" required value={formData.email} onChange={handleChange} style={inputStyle} />
             <input type="tel" name="phone" placeholder="Phone Number" required value={formData.phone} onChange={handleChange} style={inputStyle} />
@@ -990,25 +990,25 @@ function AdminDashboard({ onLogout }) {
   const tableCellStyle = { padding: '12px', borderBottom: '1px solid rgba(255,255,255,0.05)', color: '#e0e0e0' };
 
   return (
-    <div style={{ display: 'flex', minHeight: '90vh', background: 'rgba(0,0,0,0.1)', borderRadius: '12px', overflow: 'hidden' }}>
+    <div style={{ display: 'flex', flexWrap: 'wrap', minHeight: '90vh', background: 'rgba(0,0,0,0.1)', borderRadius: '12px', overflow: 'hidden' }}>
       {/* Sidebar */}
-      <div style={{ width: '220px', background: 'rgba(7, 34, 36, 0.4)', backdropFilter: 'blur(10px)', borderRight: '1px solid rgba(197, 229, 232, 0.1)', padding: '2rem 1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        <h3 style={{ color: 'var(--color-white)', fontWeight: 'bold', marginBottom: '1.5rem', textAlign: 'center' }} className="gradient-text">LMS Panel</h3>
-        <button className={activeTab === 'overview' ? 'btn-primary' : 'glass-panel'} style={{ width: '100%', textAlign: 'left', padding: '10px 15px', border: 'none' }} onClick={() => setActiveTab('overview')}>Overview</button>
-        <button className={activeTab === 'admissions' ? 'btn-primary' : 'glass-panel'} style={{ width: '100%', textAlign: 'left', padding: '10px 15px', border: 'none' }} onClick={() => setActiveTab('admissions')}>Admissions</button>
-        <button className={activeTab === 'students' ? 'btn-primary' : 'glass-panel'} style={{ width: '100%', textAlign: 'left', padding: '10px 15px', border: 'none' }} onClick={() => setActiveTab('students')}>Students</button>
-        <button className={activeTab === 'instructors' ? 'btn-primary' : 'glass-panel'} style={{ width: '100%', textAlign: 'left', padding: '10px 15px', border: 'none' }} onClick={() => setActiveTab('instructors')}>Instructors</button>
-        <button className={activeTab === 'modules' ? 'btn-primary' : 'glass-panel'} style={{ width: '100%', textAlign: 'left', padding: '10px 15px', border: 'none' }} onClick={() => setActiveTab('modules')}>Modules</button>
-        <button className={activeTab === 'slots' ? 'btn-primary' : 'glass-panel'} style={{ width: '100%', textAlign: 'left', padding: '10px 15px', border: 'none' }} onClick={() => setActiveTab('slots')}>Slots</button>
-        <button className={activeTab === 'contacts' ? 'btn-primary' : 'glass-panel'} style={{ width: '100%', textAlign: 'left', padding: '10px 15px', border: 'none' }} onClick={() => setActiveTab('contacts')}>Messages</button>
+      <div style={{ width: '100%', maxWidth: '220px', flexShrink: 0, background: 'rgba(7, 34, 36, 0.4)', backdropFilter: 'blur(10px)', borderRight: '1px solid rgba(197, 229, 232, 0.1)', padding: '1.5rem 1rem', display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center' }}>
+        <h3 style={{ color: 'var(--color-white)', fontWeight: 'bold', marginBottom: '0.5rem', textAlign: 'center', width: '100%' }} className="gradient-text">LMS Panel</h3>
+        <button className={activeTab === 'overview' ? 'btn-primary' : 'glass-panel'} style={{ flex: '1 1 auto', textAlign: 'left', padding: '10px 15px', border: 'none', minWidth: '90px' }} onClick={() => setActiveTab('overview')}>Overview</button>
+        <button className={activeTab === 'admissions' ? 'btn-primary' : 'glass-panel'} style={{ flex: '1 1 auto', textAlign: 'left', padding: '10px 15px', border: 'none', minWidth: '90px' }} onClick={() => setActiveTab('admissions')}>Admissions</button>
+        <button className={activeTab === 'students' ? 'btn-primary' : 'glass-panel'} style={{ flex: '1 1 auto', textAlign: 'left', padding: '10px 15px', border: 'none', minWidth: '90px' }} onClick={() => setActiveTab('students')}>Students</button>
+        <button className={activeTab === 'instructors' ? 'btn-primary' : 'glass-panel'} style={{ flex: '1 1 auto', textAlign: 'left', padding: '10px 15px', border: 'none', minWidth: '90px' }} onClick={() => setActiveTab('instructors')}>Instructors</button>
+        <button className={activeTab === 'modules' ? 'btn-primary' : 'glass-panel'} style={{ flex: '1 1 auto', textAlign: 'left', padding: '10px 15px', border: 'none', minWidth: '90px' }} onClick={() => setActiveTab('modules')}>Modules</button>
+        <button className={activeTab === 'slots' ? 'btn-primary' : 'glass-panel'} style={{ flex: '1 1 auto', textAlign: 'left', padding: '10px 15px', border: 'none', minWidth: '90px' }} onClick={() => setActiveTab('slots')}>Slots</button>
+        <button className={activeTab === 'contacts' ? 'btn-primary' : 'glass-panel'} style={{ flex: '1 1 auto', textAlign: 'left', padding: '10px 15px', border: 'none', minWidth: '90px' }} onClick={() => setActiveTab('contacts')}>Messages</button>
 
-        <button className="glass-panel" style={{ width: '100%', textAlign: 'left', padding: '10px 15px', border: 'none', marginTop: 'auto', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#ff6b6b' }} onClick={onLogout}>
+        <button className="glass-panel" style={{ flex: '1 1 auto', textAlign: 'left', padding: '10px 15px', border: 'none', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#ff6b6b', minWidth: '90px' }} onClick={onLogout}>
           <LogOut size={16} /> Logout
         </button>
       </div>
 
       {/* Main Admin Area */}
-      <div style={{ flex: 1, padding: '2rem', overflowX: 'auto' }}>
+      <div style={{ flex: 1, minWidth: 0, width: '100%', padding: '1.5rem', overflowX: 'auto' }}>
         {activeTab === 'overview' && (
           <div>
             <h2 style={{ color: 'var(--color-white)', marginBottom: '2rem' }}>Institute Overview</h2>
