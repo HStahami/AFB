@@ -8,7 +8,10 @@ from app.routers import admissions, students, instructors, modules, slots, conta
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    os.makedirs("uploads", exist_ok=True)
+    try:
+        os.makedirs("uploads", exist_ok=True)
+    except Exception:
+        pass
     await connect_to_mongo()
     yield
     await close_mongo_connection()
@@ -20,8 +23,12 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-os.makedirs("uploads", exist_ok=True)
-app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
+try:
+    os.makedirs("uploads", exist_ok=True)
+    if os.path.exists("uploads"):
+        app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
+except Exception:
+    pass
 
 app.add_middleware(
     CORSMiddleware,

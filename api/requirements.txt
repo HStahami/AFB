@@ -1,7 +1,9 @@
 fastapi
+pydantic
+pydantic-settings
+email-validator
 motor
 python-dotenv
-pydantic[email]
-pydantic-settings
 python-jose[cryptography]
 python-multipart
+uvicorn
