@@ -46,5 +46,13 @@ async def close_mongo_connection():
         print("MongoDB connection closed.")
 
 def get_db():
+    global client, db
+    if db is None:
+        try:
+            safe_uri = _build_safe_uri(settings.MONGODB_URI)
+            client = AsyncIOMotorClient(safe_uri, serverSelectionTimeoutMS=5000)
+            db = client[settings.MONGODB_DB_NAME]
+        except Exception as e:
+            print(f"[WARNING] Lazy connect failed: {e}")
     return db
 
