@@ -32,7 +32,7 @@ function Navbar() {
   }, []);
 
   return (
-    <nav style={{ padding: '1rem 1.5rem', display: 'flex', flexDirection: 'column', position: 'relative' }} className="glass-panel">
+    <nav style={{ padding: '1rem 1.5rem', display: 'flex', flexDirection: 'column', position: 'relative' }} className="navbar-glass">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
         <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
           <img src="/afb1.jpeg" alt="AFB Logo" style={{ height: 35, width: 50 }} />
