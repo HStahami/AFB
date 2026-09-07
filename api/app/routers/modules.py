@@ -1,15 +1,15 @@
-import os
-import uuid
 from bson import ObjectId
 from datetime import datetime
 from typing import Optional
-from fastapi import APIRouter, HTTPException, File, UploadFile, Form
+from fastapi import APIRouter, HTTPException, File, UploadFile, Form, Depends
 from app.database import get_db
+from app.core.dependencies import require_admin
+from app.services.storage_service import upload_media_file
 
 router = APIRouter(prefix="/api/modules", tags=["Modules"])
 
 
-@router.get("/", summary="Get all modules sorted by display order")
+@router.get("/", summary="Get all modules sorted by display order (Public)")
 async def get_all_modules():
     db = get_db()
     if db is None:
@@ -19,12 +19,17 @@ async def get_all_modules():
         async for doc in db.modules.find().sort([("order", 1), ("created_at", 1)]):
             doc["_id"] = str(doc["_id"])
             doc["id"] = doc["_id"]
-            if "description" not in doc:
+            name_val = doc.get("name") or doc.get("title") or "Module"
+            doc["name"] = name_val
+            doc["title"] = doc.get("title") or name_val
+            if "description" not in doc or doc["description"] is None:
                 doc["description"] = ""
             if "image" not in doc:
                 doc["image"] = None
-            if "order" not in doc:
+            if "order" not in doc or doc["order"] is None:
                 doc["order"] = 1
+            if "is_active" not in doc:
+                doc["is_active"] = True
             modules.append(doc)
         return modules
     except Exception as e:
@@ -32,32 +37,29 @@ async def get_all_modules():
         return []
 
 
-@router.post("/", summary="Create a new module")
+@router.post("/", summary="Create a new module (Admin Only)")
 async def create_module(
     name: str = Form(...),
     description: Optional[str] = Form(""),
     order: Optional[int] = Form(1),
-    image: Optional[UploadFile] = File(None)
+    image: Optional[UploadFile] = File(None),
+    admin_user: dict = Depends(require_admin)
 ):
     db = get_db()
     image_url = None
 
     if image and image.filename:
-        ext = os.path.splitext(image.filename)[1] or ".png"
-        filename = f"module_{uuid.uuid4().hex}{ext}"
-        filepath = os.path.join("uploads", filename)
-        os.makedirs("uploads", exist_ok=True)
-        content = await image.read()
-        with open(filepath, "wb") as f:
-            f.write(content)
-        image_url = f"/uploads/{filename}"
+        image_url = await upload_media_file(image, folder="modules", prefix="module")
 
     try:
+        name_clean = name.strip() if name else "Module"
         doc = {
-            "name": name,
+            "name": name_clean,
+            "title": name_clean,
             "description": description or "",
             "order": int(order) if order is not None else 1,
             "image": image_url,
+            "is_active": True,
             "created_at": datetime.utcnow()
         }
         result = await db.modules.insert_one(doc)
@@ -67,13 +69,15 @@ async def create_module(
         raise HTTPException(status_code=500, detail="Could not create module.")
 
 
-@router.put("/{module_id}", summary="Update a module")
+@router.put("/{module_id}", summary="Update a module (Admin Only)")
 async def update_module(
     module_id: str,
     name: str = Form(...),
     description: Optional[str] = Form(""),
     order: Optional[int] = Form(1),
-    image: Optional[UploadFile] = File(None)
+    is_active: Optional[bool] = Form(True),
+    image: Optional[UploadFile] = File(None),
+    admin_user: dict = Depends(require_admin)
 ):
     db = get_db()
     try:
@@ -81,21 +85,18 @@ async def update_module(
         if not existing:
             raise HTTPException(status_code=404, detail="Module not found")
 
+        name_clean = name.strip() if name else "Module"
         update_data = {
-            "name": name,
+            "name": name_clean,
+            "title": name_clean,
             "description": description or "",
-            "order": int(order) if order is not None else 1
+            "order": int(order) if order is not None else 1,
+            "is_active": is_active if is_active is not None else existing.get("is_active", True),
+            "updated_at": datetime.utcnow()
         }
 
         if image and image.filename:
-            ext = os.path.splitext(image.filename)[1] or ".png"
-            filename = f"module_{uuid.uuid4().hex}{ext}"
-            filepath = os.path.join("uploads", filename)
-            os.makedirs("uploads", exist_ok=True)
-            content = await image.read()
-            with open(filepath, "wb") as f:
-                f.write(content)
-            update_data["image"] = f"/uploads/{filename}"
+            update_data["image"] = await upload_media_file(image, folder="modules", prefix="module")
 
         await db.modules.update_one({"_id": ObjectId(module_id)}, {"$set": update_data})
         return {"message": "Module updated successfully."}
@@ -106,8 +107,11 @@ async def update_module(
         raise HTTPException(status_code=500, detail="Could not update module.")
 
 
-@router.delete("/{module_id}", summary="Delete a module")
-async def delete_module(module_id: str):
+@router.delete("/{module_id}", summary="Delete a module (Admin Only)")
+async def delete_module(
+    module_id: str,
+    admin_user: dict = Depends(require_admin)
+):
     db = get_db()
     try:
         result = await db.modules.delete_one({"_id": ObjectId(module_id)})

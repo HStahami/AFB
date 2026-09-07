@@ -1,13 +1,14 @@
 from bson import ObjectId
 from datetime import datetime
 from typing import Optional
-from fastapi import APIRouter, HTTPException, Form
+from fastapi import APIRouter, HTTPException, Form, Depends
 from app.database import get_db
+from app.core.dependencies import require_admin
 
 router = APIRouter(prefix="/api/slots", tags=["Slots"])
 
 
-@router.get("/", summary="Get all class slots")
+@router.get("/", summary="Get all class slots (Public)")
 async def get_all_slots(status: Optional[str] = None):
     db = get_db()
     if db is None:
@@ -30,11 +31,12 @@ async def get_all_slots(status: Optional[str] = None):
         return []
 
 
-@router.post("/", summary="Create a new class slot")
+@router.post("/", summary="Create a new class slot (Admin Only)")
 async def create_slot(
     days: str = Form(...),
     time: str = Form(...),
-    status: Optional[str] = Form("Active")
+    status: Optional[str] = Form("Active"),
+    admin_user: dict = Depends(require_admin)
 ):
     db = get_db()
     try:
@@ -51,12 +53,13 @@ async def create_slot(
         raise HTTPException(status_code=500, detail="Could not create slot.")
 
 
-@router.put("/{slot_id}", summary="Update a class slot")
+@router.put("/{slot_id}", summary="Update a class slot (Admin Only)")
 async def update_slot(
     slot_id: str,
     days: str = Form(...),
     time: str = Form(...),
-    status: Optional[str] = Form("Active")
+    status: Optional[str] = Form("Active"),
+    admin_user: dict = Depends(require_admin)
 ):
     db = get_db()
     try:
@@ -80,8 +83,11 @@ async def update_slot(
         raise HTTPException(status_code=500, detail="Could not update slot.")
 
 
-@router.delete("/{slot_id}", summary="Delete a class slot")
-async def delete_slot(slot_id: str):
+@router.delete("/{slot_id}", summary="Delete a class slot (Admin Only)")
+async def delete_slot(
+    slot_id: str,
+    admin_user: dict = Depends(require_admin)
+):
     db = get_db()
     try:
         result = await db.slots.delete_one({"_id": ObjectId(slot_id)})

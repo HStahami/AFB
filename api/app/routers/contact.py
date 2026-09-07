@@ -1,12 +1,13 @@
 from datetime import datetime
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from app.database import get_db
 from app.models import ContactCreate
+from app.core.dependencies import require_admin
 
 router = APIRouter(prefix="/api/contact", tags=["Contact"])
 
 
-@router.post("/", summary="Submit a contact form")
+@router.post("/", summary="Submit a contact form (Public)")
 async def submit_contact(data: ContactCreate):
     db = get_db()
 
@@ -24,8 +25,8 @@ async def submit_contact(data: ContactCreate):
     return {"message": "Your message has been sent successfully!"}
 
 
-@router.get("/", summary="Get all contact messages (Admin)")
-async def get_all_contact_messages():
+@router.get("/", summary="Get all contact messages (Admin Only)")
+async def get_all_contact_messages(admin_user: dict = Depends(require_admin)):
     db = get_db()
     if db is None:
         return []

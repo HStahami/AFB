@@ -4,7 +4,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 import os
 from app.database import connect_to_mongo, close_mongo_connection
-from app.routers import admissions, students, instructors, modules, slots, contact, auth, dashboard
+from app.routers import (
+    admissions, students, instructors, modules, slots, contact, auth, dashboard,
+    enrollments, tasks, submissions, assessments, attendance, notifications, resources, reports, storage
+)
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -13,6 +17,13 @@ async def lifespan(app: FastAPI):
     except Exception:
         pass
     await connect_to_mongo()
+    # Idempotent DB initialization (admin account bootstrap, indexes, status flags)
+    try:
+        from app.database import get_db
+        from app.core.init_db import init_database
+        await init_database(get_db())
+    except Exception as e:
+        print(f"[INIT DB WARNING] Startup init encountered note: {e}")
     yield
     await close_mongo_connection()
 
@@ -30,13 +41,40 @@ try:
 except Exception:
     pass
 
+from app.config import settings
+
+# Configure CORS with support for local dev, Vercel preview/production, and custom domains
+allowed_origins = [
+    "http://localhost:5173",
+    "http://localhost:3000",
+    "http://127.0.0.1:5173",
+    "http://127.0.0.1:3000",
+]
+if settings.ALLOWED_ORIGINS:
+    for orig in settings.ALLOWED_ORIGINS.split(","):
+        if orig.strip() and orig.strip() not in allowed_origins:
+            allowed_origins.append(orig.strip())
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, replace with your frontend URL
+    allow_origins=allowed_origins,
+    allow_origin_regex=r"^https:\/\/.*\.vercel\.app$" if not settings.ALLOWED_ORIGINS else None,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.middleware("http")
+async def add_security_headers(request, call_next):
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "SAMEORIGIN"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    return response
+
 
 # Include all routers
 app.include_router(auth.router)
@@ -47,6 +85,15 @@ app.include_router(instructors.router)
 app.include_router(modules.router)
 app.include_router(slots.router)
 app.include_router(contact.router)
+app.include_router(enrollments.router)
+app.include_router(tasks.router)
+app.include_router(submissions.router)
+app.include_router(assessments.router)
+app.include_router(attendance.router)
+app.include_router(notifications.router)
+app.include_router(resources.router)
+app.include_router(reports.router)
+app.include_router(storage.router)
 
 from fastapi.responses import FileResponse
 
