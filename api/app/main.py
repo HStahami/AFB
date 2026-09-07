@@ -117,6 +117,32 @@ from fastapi.responses import FileResponse
 
 frontend_dist = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "frontend", "dist"))
 
+@app.get("/api/health", tags=["Health"])
+@app.get("/health", tags=["Health"])
+async def health_check():
+    db_status = "unknown"
+    db_error = None
+    try:
+        from app.database import get_db
+        db = get_db()
+        if db is not None:
+            await db.command("ping")
+            db_status = "connected"
+        else:
+            db_status = "db_is_none"
+    except Exception as e:
+        db_status = "error"
+        db_error = str(e)
+
+    return {
+        "status": "ok",
+        "database": db_status,
+        "database_error": db_error,
+        "environment": settings.ENVIRONMENT,
+        "mongodb_configured": bool(settings.MONGODB_URI and "localhost" not in settings.MONGODB_URI)
+    }
+
+
 if os.path.exists(frontend_dist):
     assets_dir = os.path.join(frontend_dist, "assets")
     if os.path.exists(assets_dir):
@@ -124,7 +150,7 @@ if os.path.exists(frontend_dist):
 
     @app.get("/{full_path:path}", tags=["Frontend"])
     async def serve_spa(full_path: str = ""):
-        if full_path.startswith("api") or full_path.startswith("uploads") or full_path in ["docs", "redoc", "openapi.json"]:
+        if full_path.startswith("api") or full_path.startswith("uploads") or full_path in ["docs", "redoc", "openapi.json", "health"]:
             return {"detail": "Not Found"}
         file_path = os.path.join(frontend_dist, full_path)
         if full_path and os.path.isfile(file_path):
