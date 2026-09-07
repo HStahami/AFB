@@ -52,13 +52,31 @@ class Settings(BaseSettings):
 
 def validate_production_config(cfg: Settings) -> None:
     """
-    Validates configuration integrity with safe serverless fallbacks.
+    Strictly validates configuration integrity.
+    Fails safely and immediately if critical secrets are insecure in production.
     """
+    is_prod = cfg.ENVIRONMENT.lower() in ["production", "prod"]
     jwt_secret = cfg.JWT_SECRET_KEY.strip() if cfg.JWT_SECRET_KEY else ""
 
-    if not jwt_secret or len(jwt_secret) < 32 or jwt_secret.lower() in ["secret", "changeme", "admin"]:
-        # Fallback to a stable 32+ char fallback to prevent 500 server crash on Vercel cold start
-        cfg.JWT_SECRET_KEY = "afb-production-secure-fallback-key-2026-alarabia-portal-auth-jwt"
+    if is_prod:
+        if not jwt_secret:
+            raise RuntimeError(
+                "CRITICAL SECURITY CONFIGURATION ERROR: JWT_SECRET_KEY is missing or empty in production."
+            )
+        if jwt_secret.lower() in ["secret", "changeme", "admin", "jwtsecret", "default", "12345678"]:
+            raise RuntimeError(
+                "CRITICAL SECURITY CONFIGURATION ERROR: JWT_SECRET_KEY is set to a trivial/insecure default."
+            )
+        if len(jwt_secret) < 32:
+            raise RuntimeError(
+                "CRITICAL SECURITY CONFIGURATION ERROR: JWT_SECRET_KEY must be at least 32 characters in production."
+            )
+    else:
+        # Development fallback with warning
+        if not jwt_secret or jwt_secret.lower() == "secret":
+            print("[SECURITY WARNING] Running with development JWT secret key. DO NOT USE IN PRODUCTION.")
+            if not cfg.JWT_SECRET_KEY:
+                cfg.JWT_SECRET_KEY = "afb-development-fallback-secret-key-32chars-min"
 
 settings = Settings()
 validate_production_config(settings)

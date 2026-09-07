@@ -57,12 +57,30 @@ if settings.ALLOWED_ORIGINS:
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=allowed_origins,
-    allow_origin_regex=r"^https:\/\/.*\.vercel\.app$" if not settings.ALLOWED_ORIGINS else None,
-    allow_credentials=True,
+    allow_origins=allowed_origins if settings.ALLOWED_ORIGINS else ["*"],
+    allow_origin_regex=r"^https?:\/\/.*$" if not settings.ALLOWED_ORIGINS else None,
+    allow_credentials=False if not settings.ALLOWED_ORIGINS else True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.middleware("http")
+async def normalize_api_path(request, call_next):
+    """
+    Ensures that if Vercel serverless rewrites strip '/api', internal FastAPI
+    routing routes the request seamlessly to the registered router endpoints.
+    """
+    path = request.scope.get("path", "")
+    prefixes = [
+        "/auth", "/dashboard", "/admissions", "/students", "/instructors",
+        "/modules", "/slots", "/contact", "/enrollments", "/tasks",
+        "/submissions", "/assessments", "/attendance", "/notifications",
+        "/resources", "/reports", "/storage"
+    ]
+    if not path.startswith("/api") and any(path.startswith(p) for p in prefixes):
+        request.scope["path"] = f"/api{path}"
+    return await call_next(request)
 
 
 @app.middleware("http")

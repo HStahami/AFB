@@ -76,10 +76,17 @@ async def login(data: LoginRequest):
     identifier = data.username.strip()
     identifier_lower = identifier.lower()
 
-    # Query by username, email, or student_code
+    # Query by username, email, or student_code (case-insensitive)
+    import re
+    safe_regex = re.escape(identifier)
     user = await db.users.find_one({
         "$or": [
+            {"username": {"$regex": f"^{safe_regex}$", "$options": "i"}},
+            {"email": {"$regex": f"^{safe_regex}$", "$options": "i"}},
+            {"student_code": {"$regex": f"^{safe_regex}$", "$options": "i"}},
+            {"username": identifier},
             {"username": identifier_lower},
+            {"email": identifier},
             {"email": identifier_lower},
             {"student_code": identifier}
         ]
