@@ -1,4 +1,4 @@
-from urllib.parse import quote_plus, urlparse, urlunparse
+from urllib.parse import quote_plus, unquote_plus, urlparse, urlunparse
 from motor.motor_asyncio import AsyncIOMotorClient
 from app.config import settings
 
@@ -7,24 +7,31 @@ db = None
 
 def _build_safe_uri(uri: str) -> str:
     """
-    Automatically URL-encodes the username and password in a MongoDB URI
-    so that special characters (like @, #, !, %) don't cause connection errors.
+    Safely sanitizes and URL-encodes MongoDB URI credentials.
+    Prevents double-encoding and handles wrapped quotes from env dashboards.
     """
+    if not uri or not isinstance(uri, str):
+        return uri or "mongodb://localhost:27017"
+    
+    uri_str = uri.strip()
+    if (uri_str.startswith('"') and uri_str.endswith('"')) or (uri_str.startswith("'") and uri_str.endswith("'")):
+        uri_str = uri_str[1:-1].strip()
+
     try:
-        parsed = urlparse(uri)
-        # Only encode if username/password are present and not already encoded
+        parsed = urlparse(uri_str)
         if parsed.username and parsed.password:
-            safe_user = quote_plus(parsed.username)
-            safe_pass = quote_plus(parsed.password)
-            # Rebuild netloc with encoded credentials
-            host = parsed.hostname
+            raw_user = unquote_plus(parsed.username)
+            raw_pass = unquote_plus(parsed.password)
+            safe_user = quote_plus(raw_user)
+            safe_pass = quote_plus(raw_pass)
+            host = parsed.hostname or ""
             port = f":{parsed.port}" if parsed.port else ""
             new_netloc = f"{safe_user}:{safe_pass}@{host}{port}"
             safe_uri = urlunparse(parsed._replace(netloc=new_netloc))
             return safe_uri
     except Exception:
         pass
-    return uri
+    return uri_str
 
 async def connect_to_mongo():
     global client, db
