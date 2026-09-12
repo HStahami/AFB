@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, Star, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowRight, Star, ChevronLeft, ChevronRight, User, Users, CheckCircle2 } from 'lucide-react';
 import { modulesApi, instructorsApi } from '../../api';
 import { getAvatarUrl } from '../../api/client';
 
@@ -110,6 +110,158 @@ export function Home() {
           >
             <Link to="/admission" className="btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '16px 40px', fontSize: '1.1rem', textDecoration: 'none' }}>
               Get Started <ArrowRight size={20} />
+            </Link>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Class Types Section */}
+      <section style={{ padding: '5rem 2rem 2rem 2rem', maxWidth: '1200px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
+        <div style={{ textAlign: 'center', marginBottom: '3.5rem' }}>
+          <h2 style={{ fontSize: '2.5rem', fontWeight: '700', marginBottom: '1rem' }} className="gradient-text">Class Types</h2>
+          <p style={{ color: '#e0e0e0', maxWidth: '600px', margin: '0 auto', fontSize: '1.05rem' }}>
+            Choose the flexible learning format that fits your daily routine and learning pace.
+          </p>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '2rem' }}>
+          {/* Card 1: Monday to Friday 1 on 1 */}
+          <motion.div
+            whileHover={{ y: -8, boxShadow: '0 20px 40px rgba(0,0,0,0.6)' }}
+            className="glass-panel"
+            style={{
+              padding: '2.5rem',
+              borderRadius: '20px',
+              border: '1px solid rgba(197, 229, 232, 0.2)',
+              background: 'rgba(255,255,255,0.02)',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              position: 'relative',
+              overflow: 'hidden',
+            }}
+          >
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
+                <div style={{ width: '56px', height: '56px', borderRadius: '14px', background: 'rgba(56, 189, 248, 0.15)', border: '1px solid rgba(56, 189, 248, 0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-primary)' }}>
+                  <User size={28} />
+                </div>
+                <span style={{ fontSize: '0.8rem', fontWeight: '600', padding: '6px 14px', borderRadius: '20px', background: 'rgba(56, 189, 248, 0.1)', color: 'var(--color-primary)', border: '1px solid rgba(56, 189, 248, 0.25)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                  Weekday Format
+                </span>
+              </div>
+
+              <h3 style={{ fontSize: '1.6rem', fontWeight: '700', color: 'var(--color-white)', marginBottom: '0.4rem' }}>
+                Monday to Friday
+              </h3>
+              <p style={{ fontSize: '1.15rem', color: 'var(--color-primary)', fontWeight: '600', marginBottom: '1.2rem' }}>
+                1 on 1 Classes Only
+              </p>
+              <p style={{ color: '#b0c4c6', fontSize: '0.95rem', lineHeight: '1.6', marginBottom: '1.8rem' }}>
+                Dedicated private tutoring designed for focused, individual attention and personalized Arabic learning pace.
+              </p>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem', marginBottom: '2rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: '#e0e0e0', fontSize: '0.95rem' }}>
+                  <CheckCircle2 size={18} color="var(--color-primary)" style={{ flexShrink: 0 }} />
+                  <span>100% exclusive 1-on-1 instructor focus</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: '#e0e0e0', fontSize: '0.95rem' }}>
+                  <CheckCircle2 size={18} color="var(--color-primary)" style={{ flexShrink: 0 }} />
+                  <span>Customized schedule from Monday to Friday</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: '#e0e0e0', fontSize: '0.95rem' }}>
+                  <CheckCircle2 size={18} color="var(--color-primary)" style={{ flexShrink: 0 }} />
+                  <span>Personalized curriculum & speaking practice</span>
+                </div>
+              </div>
+            </div>
+
+            <Link
+              to="/admission"
+              className="btn-primary"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.5rem',
+                padding: '12px 24px',
+                fontSize: '1rem',
+                textDecoration: 'none',
+                textAlign: 'center',
+              }}
+            >
+              Apply for 1-on-1 <ArrowRight size={18} />
+            </Link>
+          </motion.div>
+
+          {/* Card 2: Weekend Group + 1 on 1 */}
+          <motion.div
+            whileHover={{ y: -8, boxShadow: '0 20px 40px rgba(0,0,0,0.6)' }}
+            className="glass-panel"
+            style={{
+              padding: '2.5rem',
+              borderRadius: '20px',
+              border: '1px solid rgba(197, 229, 232, 0.2)',
+              background: 'rgba(255,255,255,0.02)',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              position: 'relative',
+              overflow: 'hidden',
+            }}
+          >
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
+                <div style={{ width: '56px', height: '56px', borderRadius: '14px', background: 'rgba(217, 119, 6, 0.15)', border: '1px solid rgba(217, 119, 6, 0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fbbf24' }}>
+                  <Users size={28} />
+                </div>
+                <span style={{ fontSize: '0.8rem', fontWeight: '600', padding: '6px 14px', borderRadius: '20px', background: 'rgba(217, 119, 6, 0.1)', color: '#fbbf24', border: '1px solid rgba(217, 119, 6, 0.25)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                  Weekend Format
+                </span>
+              </div>
+
+              <h3 style={{ fontSize: '1.6rem', fontWeight: '700', color: 'var(--color-white)', marginBottom: '0.4rem' }}>
+                On Weekend
+              </h3>
+              <p style={{ fontSize: '1.15rem', color: '#fbbf24', fontWeight: '600', marginBottom: '1.2rem' }}>
+                Group + 1 on 1 Classes
+              </p>
+              <p style={{ color: '#b0c4c6', fontSize: '0.95rem', lineHeight: '1.6', marginBottom: '1.8rem' }}>
+                Collaborative group sessions with peers alongside flexible 1-on-1 slots, perfect for working professionals and weekend learners.
+              </p>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem', marginBottom: '2rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: '#e0e0e0', fontSize: '0.95rem' }}>
+                  <CheckCircle2 size={18} color="#fbbf24" style={{ flexShrink: 0 }} />
+                  <span>Interactive small group learning & discussions</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: '#e0e0e0', fontSize: '0.95rem' }}>
+                  <CheckCircle2 size={18} color="#fbbf24" style={{ flexShrink: 0 }} />
+                  <span>Flexible 1-on-1 weekend session options</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: '#e0e0e0', fontSize: '0.95rem' }}>
+                  <CheckCircle2 size={18} color="#fbbf24" style={{ flexShrink: 0 }} />
+                  <span>Ideal for students & professionals on Saturdays & Sundays</span>
+                </div>
+              </div>
+            </div>
+
+            <Link
+              to="/admission"
+              className="btn-primary"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.5rem',
+                padding: '12px 24px',
+                fontSize: '1rem',
+                textDecoration: 'none',
+                textAlign: 'center',
+              }}
+            >
+              Apply for Weekend <ArrowRight size={18} />
             </Link>
           </motion.div>
         </div>
