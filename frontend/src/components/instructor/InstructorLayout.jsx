@@ -111,46 +111,27 @@ export function InstructorLayout({ children }) {
   ];
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh", backgroundColor: "var(--color-bg)", color: "var(--color-white)" }}>
+    <div className="portal-root">
       {/* Top Header for Mobile & Desktop */}
-      <header
-        className="glass-panel"
-        style={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          right: 0,
-          height: "70px",
-          zIndex: 90,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: "0 1.5rem",
-          borderBottom: "1px solid rgba(255,255,255,0.08)",
-          borderRadius: 0
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+      <header className="portal-header">
+        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+          {/* Hamburger Menu Toggle (Mobile only) */}
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
-            className="mobile-toggle"
-            style={{
-              display: "none",
-              background: "transparent",
-              border: "none",
-              color: "var(--color-white)",
-              cursor: "pointer"
-            }}
+            className="portal-mobile-toggle"
+            aria-label="Toggle navigation menu"
           >
-            {mobileOpen ? <X size={26} /> : <Menu size={26} />}
+            {mobileOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
-          <Link to="/" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: "0.8rem" }}>
-            <img src="/afb1.jpeg" alt="AFB Logo" style={{ height: 36, width: 48, borderRadius: 4 }} />
-            <span style={{ fontSize: "1.2rem", fontWeight: "700" }} className="gradient-text">
+
+          <Link to="/" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: "0.6rem" }}>
+            <img src="/afb1.jpeg" alt="AFB Logo" style={{ height: 32, width: 42, borderRadius: 4 }} />
+            <span style={{ fontSize: "1.15rem", fontWeight: "700" }} className="gradient-text">
               AlArabia LMS
             </span>
           </Link>
           <span
+            className="portal-header-badge"
             style={{
               fontSize: "0.75rem",
               background: "rgba(197, 229, 232, 0.15)",
@@ -158,38 +139,38 @@ export function InstructorLayout({ children }) {
               padding: "3px 8px",
               borderRadius: "12px",
               fontWeight: "600",
-              marginLeft: "0.5rem"
             }}
           >
             Instructor Portal
           </span>
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: "1.2rem" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
           <Link
             to="/instructor/notifications"
             style={{
               position: "relative",
-              color: "var(--color-white)",
+              color: "#b0c4c6",
               textDecoration: "none",
               display: "flex",
-              alignItems: "center"
+              alignItems: "center",
+              padding: "6px"
             }}
             title="Notifications"
           >
-            <Bell size={22} />
+            <Bell size={20} />
             {unreadCount > 0 && (
               <span
                 style={{
                   position: "absolute",
-                  top: -6,
-                  right: -6,
+                  top: "1px",
+                  right: "1px",
                   backgroundColor: "#ff6b6b",
                   color: "#fff",
-                  fontSize: "0.7rem",
+                  fontSize: "0.65rem",
                   borderRadius: "50%",
-                  width: 18,
-                  height: 18,
+                  width: 16,
+                  height: 16,
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
@@ -203,87 +184,74 @@ export function InstructorLayout({ children }) {
 
           <Link
             to="/instructor/profile"
-            style={{ display: "flex", alignItems: "center", gap: "0.6rem", textDecoration: "none", color: "inherit" }}
+            style={{ display: "flex", alignItems: "center", gap: "0.5rem", textDecoration: "none", color: "inherit" }}
+            title="Instructor Profile"
           >
             <img
               src={getAvatarUrl(user?.avatar, user?.username || "Instructor")}
               alt="Avatar"
-              style={{ width: 34, height: 34, borderRadius: "50%", border: "1px solid var(--color-primary)" }}
+              style={{ width: 34, height: 34, borderRadius: "50%", border: "1px solid var(--color-primary)", objectFit: "cover" }}
             />
-            <span style={{ fontSize: "0.9rem", fontWeight: "500" }}>{user?.username || "Instructor"}</span>
+            <span className="hide-mobile" style={{ fontSize: "0.88rem", fontWeight: "500" }}>{user?.username || "Instructor"}</span>
           </Link>
 
           <button
             onClick={logout}
             style={{
-              background: "rgba(255, 107, 107, 0.15)",
+              background: "rgba(255, 107, 107, 0.12)",
               color: "#ff6b6b",
               border: "1px solid rgba(255, 107, 107, 0.3)",
               borderRadius: "6px",
-              padding: "6px 12px",
+              padding: "0.35rem 0.6rem",
               cursor: "pointer",
               display: "flex",
               alignItems: "center",
-              gap: "0.4rem",
-              fontSize: "0.85rem",
+              gap: "0.35rem",
+              fontSize: "0.8rem",
               fontWeight: "500"
             }}
+            title="Sign Out"
           >
-            <LogOut size={16} /> Logout
+            <LogOut size={15} />
+            <span className="hide-mobile">Logout</span>
           </button>
         </div>
       </header>
 
-      {/* Sidebar Navigation */}
-      <aside
-        className={`sidebar-nav ${mobileOpen ? "open" : ""}`}
-        style={{
-          width: "240px",
-          backgroundColor: "rgba(10, 24, 26, 0.95)",
-          borderRight: "1px solid rgba(255,255,255,0.08)",
-          position: "fixed",
-          top: "70px",
-          bottom: 0,
-          left: 0,
-          zIndex: 80,
-          display: "flex",
-          flexDirection: "column",
-          padding: "1.5rem 0.8rem",
-          overflowY: "auto"
-        }}
-      >
-        <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
+      {/* Desktop Sidebar (Hidden on mobile via CSS) */}
+      <aside className="portal-desktop-sidebar">
+        <div style={{ display: "flex", flexDirection: "column", gap: "0.35rem" }}>
           {navItems.map((item) => {
             const isActive = location.pathname === item.path;
             return (
               <Link
                 key={item.path}
                 to={item.path}
-                onClick={() => setMobileOpen(false)}
                 style={{
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "space-between",
-                  padding: "10px 14px",
+                  padding: "9px 12px",
                   borderRadius: "8px",
                   textDecoration: "none",
                   color: isActive ? "var(--color-primary)" : "#b0c4c6",
                   backgroundColor: isActive ? "rgba(197, 229, 232, 0.12)" : "transparent",
                   fontWeight: isActive ? "600" : "400",
-                  transition: "all 0.2s ease"
+                  fontSize: "0.9rem",
+                  transition: "all 0.15s ease"
                 }}
               >
-                <div style={{ display: "flex", alignItems: "center", gap: "0.8rem" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
                   {item.icon}
-                  <span style={{ fontSize: "0.95rem" }}>{item.label}</span>
+                  <span>{item.label}</span>
                 </div>
                 {item.badge && (
                   <span
                     style={{
                       background: "#ff6b6b",
                       color: "#fff",
-                      fontSize: "0.75rem",
-                      padding: "2px 7px",
+                      fontSize: "0.7rem",
+                      padding: "1px 6px",
                       borderRadius: "10px",
                       fontWeight: "bold"
                     }}
@@ -295,21 +263,152 @@ export function InstructorLayout({ children }) {
             );
           })}
         </div>
+
+        <div style={{ borderTop: "1px solid rgba(255, 255, 255, 0.08)", paddingTop: "1rem", marginTop: "1rem" }}>
+          <div style={{ fontSize: "0.75rem", color: "#8892b0", textAlign: "center" }}>
+            AlArabia LMS Instructor Portal
+          </div>
+        </div>
       </aside>
 
-      {/* Main Content Area */}
-      <main
-        style={{
-          flex: 1,
-          marginLeft: "240px",
-          marginTop: "70px",
-          padding: "2rem",
-          minHeight: "calc(100vh - 70px)",
-          width: "calc(100% - 240px)",
-          boxSizing: "border-box"
-        }}
-        className="instructor-main"
-      >
+      {/* Mobile Drawer (Slide-over overlay on mobile) */}
+      {mobileOpen && (
+        <div
+          className="portal-mobile-drawer-backdrop"
+          onClick={() => setMobileOpen(false)}
+        >
+          <div
+            className="portal-mobile-drawer"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Drawer Header */}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingBottom: "1rem", borderBottom: "1px solid rgba(255, 255, 255, 0.08)" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                <img src="/afb1.jpeg" alt="AFB Logo" style={{ height: 26, width: 34, borderRadius: 3 }} />
+                <span style={{ fontWeight: 700, color: "var(--color-primary)", fontSize: "1rem" }}>Instructor Menu</span>
+              </div>
+              <button
+                onClick={() => setMobileOpen(false)}
+                style={{
+                  background: "rgba(255, 255, 255, 0.08)",
+                  border: "none",
+                  color: "#fff",
+                  borderRadius: "50%",
+                  width: "32px",
+                  height: "32px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  cursor: "pointer",
+                }}
+                aria-label="Close menu"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Instructor Info Card in Drawer */}
+            <div
+              style={{
+                margin: "1rem 0",
+                padding: "0.85rem",
+                backgroundColor: "rgba(255, 255, 255, 0.04)",
+                borderRadius: "10px",
+                border: "1px solid rgba(255, 255, 255, 0.08)",
+                display: "flex",
+                alignItems: "center",
+                gap: "0.75rem",
+              }}
+            >
+              <img
+                src={getAvatarUrl(user?.avatar, user?.username || "Instructor")}
+                alt="Avatar"
+                style={{ width: 40, height: 40, borderRadius: "50%", border: "1px solid var(--color-primary)", objectFit: "cover" }}
+              />
+              <div style={{ overflow: "hidden" }}>
+                <div style={{ fontSize: "0.9rem", fontWeight: 600, color: "#fff", whiteSpace: "nowrap", textOverflow: "ellipsis", overflow: "hidden" }}>
+                  {user?.username || "Instructor"}
+                </div>
+                <div style={{ fontSize: "0.75rem", color: "var(--color-primary)", fontWeight: 600 }}>
+                  Role: Faculty Instructor
+                </div>
+              </div>
+            </div>
+
+            {/* Drawer Nav Links */}
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem", flex: 1 }}>
+              {navItems.map((item) => {
+                const isActive = location.pathname === item.path;
+                return (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    onClick={() => setMobileOpen(false)}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      padding: "10px 12px",
+                      borderRadius: "8px",
+                      textDecoration: "none",
+                      color: isActive ? "var(--color-primary)" : "#cbd5e1",
+                      backgroundColor: isActive ? "rgba(197, 229, 232, 0.12)" : "transparent",
+                      fontWeight: isActive ? "600" : "400",
+                      fontSize: "0.9rem",
+                    }}
+                  >
+                    <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+                      {item.icon}
+                      <span>{item.label}</span>
+                    </div>
+                    {item.badge && (
+                      <span
+                        style={{
+                          background: "#ff6b6b",
+                          color: "#fff",
+                          fontSize: "0.7rem",
+                          padding: "1px 6px",
+                          borderRadius: "10px",
+                          fontWeight: "bold"
+                        }}
+                      >
+                        {item.badge}
+                      </span>
+                    )}
+                  </Link>
+                );
+              })}
+            </div>
+
+            {/* Drawer Logout */}
+            <div style={{ borderTop: "1px solid rgba(255, 255, 255, 0.08)", paddingTop: "1rem", marginTop: "1rem" }}>
+              <button
+                onClick={logout}
+                style={{
+                  width: "100%",
+                  padding: "0.75rem",
+                  borderRadius: "8px",
+                  border: "1px solid rgba(255, 107, 107, 0.3)",
+                  backgroundColor: "rgba(255, 107, 107, 0.12)",
+                  color: "#ff6b6b",
+                  cursor: "pointer",
+                  fontWeight: 600,
+                  fontSize: "0.9rem",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "0.5rem",
+                }}
+              >
+                <LogOut size={16} /> Sign Out
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Main Content Area (Full width on mobile, offset on desktop) */}
+      <main className="portal-main-content">
         {children || <Outlet />}
       </main>
 
@@ -330,14 +429,14 @@ export function InstructorLayout({ children }) {
             padding: "1rem"
           }}
         >
-          <div className="glass-panel" style={{ maxWidth: "460px", width: "100%", padding: "2.5rem" }}>
+          <div className="glass-panel" style={{ maxWidth: "460px", width: "100%", padding: "2rem 1.5rem" }}>
             <div style={{ textAlign: "center", marginBottom: "1.5rem" }}>
-              <Lock size={44} color="var(--color-primary)" style={{ margin: "0 auto 0.8rem" }} />
-              <h2 style={{ fontSize: "1.5rem", fontWeight: "700" }} className="gradient-text">
+              <Lock size={40} color="var(--color-primary)" style={{ margin: "0 auto 0.8rem" }} />
+              <h2 style={{ fontSize: "1.35rem", fontWeight: "700" }} className="gradient-text">
                 Password Change Required
               </h2>
-              <p style={{ color: "#b0c4c6", fontSize: "0.9rem", marginTop: "0.5rem" }}>
-                You are currently logged in with a temporary password. Please set a strong, personal password to activate your instructor account.
+              <p style={{ color: "#b0c4c6", fontSize: "0.85rem", marginTop: "0.4rem" }}>
+                You are currently logged in with a temporary password. Please set a strong password to activate your instructor account.
               </p>
             </div>
 
@@ -376,9 +475,9 @@ export function InstructorLayout({ children }) {
               </div>
             )}
 
-            <form onSubmit={handlePasswordChange} style={{ display: "flex", flexDirection: "column", gap: "1.2rem" }}>
+            <form onSubmit={handlePasswordChange} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
               <div>
-                <label style={{ display: "block", fontSize: "0.85rem", marginBottom: "0.4rem", color: "#b0c4c6" }}>
+                <label style={{ display: "block", fontSize: "0.8rem", marginBottom: "0.35rem", color: "#b0c4c6" }}>
                   Current Temporary Password
                 </label>
                 <input
@@ -392,7 +491,7 @@ export function InstructorLayout({ children }) {
               </div>
 
               <div>
-                <label style={{ display: "block", fontSize: "0.85rem", marginBottom: "0.4rem", color: "#b0c4c6" }}>
+                <label style={{ display: "block", fontSize: "0.8rem", marginBottom: "0.35rem", color: "#b0c4c6" }}>
                   New Secure Password
                 </label>
                 <input
@@ -406,7 +505,7 @@ export function InstructorLayout({ children }) {
               </div>
 
               <div>
-                <label style={{ display: "block", fontSize: "0.85rem", marginBottom: "0.4rem", color: "#b0c4c6" }}>
+                <label style={{ display: "block", fontSize: "0.8rem", marginBottom: "0.35rem", color: "#b0c4c6" }}>
                   Confirm New Password
                 </label>
                 <input
@@ -423,7 +522,7 @@ export function InstructorLayout({ children }) {
                 type="submit"
                 disabled={pwdLoading}
                 className="btn-primary"
-                style={{ marginTop: "0.5rem", padding: "14px", width: "100%", opacity: pwdLoading ? 0.7 : 1 }}
+                style={{ marginTop: "0.5rem", padding: "12px", width: "100%", opacity: pwdLoading ? 0.7 : 1 }}
               >
                 {pwdLoading ? "Updating Password..." : "Set Password & Continue"}
               </button>
@@ -431,27 +530,6 @@ export function InstructorLayout({ children }) {
           </div>
         </div>
       )}
-
-      {/* Inline styles for responsive layout */}
-      <style>{`
-        @media (max-width: 768px) {
-          .mobile-toggle {
-            display: block !important;
-          }
-          .sidebar-nav {
-            transform: translateX(-100%);
-            transition: transform 0.3s ease;
-          }
-          .sidebar-nav.open {
-            transform: translateX(0);
-          }
-          .instructor-main {
-            margin-left: 0 !important;
-            width: 100% !important;
-            padding: 1rem !important;
-          }
-        }
-      `}</style>
     </div>
   );
 }
