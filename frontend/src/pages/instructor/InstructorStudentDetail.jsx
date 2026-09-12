@@ -206,20 +206,28 @@ export function InstructorStudentDetail() {
               <div><strong style={{ color: "#fff" }}>Email:</strong> {student.email}</div>
               <div><strong style={{ color: "#fff" }}>Phone:</strong> {student.phone || "Not provided"}</div>
               <div><strong style={{ color: "#fff" }}>Date of Birth:</strong> {student.date_of_birth || "Not provided"}</div>
-              <div><strong style={{ color: "#fff" }}>Gender:</strong> {student.gender || "Not specified"}</div>
+              <div><strong style={{ color: "#fff" }}>Country:</strong> {student.country || "Not specified"}</div>
+              <div><strong style={{ color: "#fff" }}>City:</strong> {student.city || "Not specified"}</div>
               <div><strong style={{ color: "#fff" }}>Address:</strong> {student.address || "Not provided"}</div>
+              <div><strong style={{ color: "#fff" }}>Education:</strong> {student.education || "Not specified"}</div>
+              <div><strong style={{ color: "#fff" }}>Referred By:</strong> {student.referral_source || "Not specified"}</div>
               <div><strong style={{ color: "#fff" }}>Bio:</strong> {student.bio || "No biography provided."}</div>
             </div>
           </div>
 
           <div className="glass-panel" style={{ padding: "1.8rem" }}>
             <h3 style={{ fontSize: "1.1rem", fontWeight: "600", marginBottom: "1.2rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
-              <Shield size={18} color="var(--color-primary)" /> Guardian / Emergency Contact
+              <Shield size={18} color="var(--color-primary)" /> Guardian & Course Preferences
             </h3>
             <div style={{ display: "flex", flexDirection: "column", gap: "0.8rem", fontSize: "0.9rem", color: "#b0c4c6" }}>
-              <div><strong style={{ color: "#fff" }}>Guardian Name:</strong> {student.guardian_name || "Not provided"}</div>
-              <div><strong style={{ color: "#fff" }}>Relationship:</strong> {student.guardian_relationship || "Not specified"}</div>
-              <div><strong style={{ color: "#fff" }}>Guardian Phone:</strong> {student.guardian_phone || "Not provided"}</div>
+              <div><strong style={{ color: "#fff" }}>Father / Guardian Name:</strong> {student.guardian_name || "Not provided"}</div>
+              <div><strong style={{ color: "#fff" }}>Father / Guardian Phone:</strong> {student.guardian_phone || "Not provided"}</div>
+              <div style={{ borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: "0.6rem", marginTop: "0.2rem" }}>
+                <strong style={{ color: "#fff" }}>Enrolled / Selected Course:</strong> {student.course || student.preferred_course || "Standard Arabic"}
+              </div>
+              <div><strong style={{ color: "#fff" }}>Preferred Days:</strong> {student.preferred_days || "Weekdays"}</div>
+              <div><strong style={{ color: "#fff" }}>Class Type:</strong> {student.preferred_class_type || "1 on 1"}</div>
+              <div><strong style={{ color: "#fff" }}>Preferred Time Slot:</strong> {student.preferred_time_slot || student.slot || "Not specified"}</div>
             </div>
           </div>
         </div>

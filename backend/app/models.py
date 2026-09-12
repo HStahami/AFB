@@ -73,7 +73,16 @@ class StudentProfileUpdate(BaseModel):
     phone: Optional[str] = None
     date_of_birth: Optional[str] = None
     gender: Optional[str] = None
+    country: Optional[str] = None
+    city: Optional[str] = None
     address: Optional[str] = None
+    education: Optional[str] = None
+    referral_source: Optional[str] = None
+    course: Optional[str] = None
+    preferred_course: Optional[str] = None
+    preferred_days: Optional[str] = None
+    preferred_class_type: Optional[str] = None
+    preferred_time_slot: Optional[str] = None
     profile_image: Optional[str] = None
     guardian_name: Optional[str] = None
     guardian_phone: Optional[str] = None
