@@ -9,7 +9,8 @@ class AdmissionCreate(BaseModel):
     last_name: str
     email: EmailStr
     phone: str
-    course: Optional[str] = None
+    course: Optional[str] = "Modern Standard Arabic"
+    bot_field: Optional[str] = None  # Honeypot field for anti-bot protection
 
 
 class AdmissionDB(AdmissionCreate):

@@ -65,6 +65,49 @@ app.add_middleware(
 )
 
 
+import time
+from collections import defaultdict
+from fastapi.responses import JSONResponse
+
+# Thread-safe in-memory rate limit tracking
+# Key: (ip, route_prefix) -> list of timestamps
+_rate_limits = defaultdict(list)
+
+RATE_LIMIT_RULES = {
+    "/api/auth/login": (15, 60),      # 15 login attempts per minute per IP
+    "/api/admissions": (20, 60),      # 20 admissions per minute per IP
+    "/api/contact": (15, 60),         # 15 messages per minute per IP
+}
+
+
+@app.middleware("http")
+async def rate_limiting_middleware(request, call_next):
+    """
+    Protects public mutation endpoints against brute-force attacks, DDoS, and bot spamming.
+    """
+    client_ip = request.client.host if request.client else "unknown"
+    path = request.scope.get("path", "")
+
+    for route_prefix, (max_reqs, window_seconds) in RATE_LIMIT_RULES.items():
+        if (path.startswith(route_prefix) or path.startswith(route_prefix.replace("/api", ""))) and request.method in ["POST", "PATCH"]:
+            now = time.time()
+            bucket_key = (client_ip, route_prefix)
+
+            # Purge timestamps older than the rate limit window
+            _rate_limits[bucket_key] = [t for t in _rate_limits[bucket_key] if now - t < window_seconds]
+
+            if len(_rate_limits[bucket_key]) >= max_reqs:
+                return JSONResponse(
+                    status_code=429,
+                    content={"detail": "Request limit exceeded. Please wait a moment before trying again."}
+                )
+
+            _rate_limits[bucket_key].append(now)
+            break
+
+    return await call_next(request)
+
+
 @app.middleware("http")
 async def normalize_api_path(request, call_next):
     """
@@ -85,12 +128,16 @@ async def normalize_api_path(request, call_next):
 
 @app.middleware("http")
 async def add_security_headers(request, call_next):
+    """
+    Injects high-grade cyber security headers (HSTS, NoSniff, SameOrigin, Referrer-Policy, Permissions-Policy).
+    """
     response = await call_next(request)
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"] = "SAMEORIGIN"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
     response.headers["X-XSS-Protection"] = "1; mode=block"
     response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
     return response
 
 

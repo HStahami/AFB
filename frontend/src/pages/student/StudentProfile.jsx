@@ -148,23 +148,54 @@ export function StudentProfile() {
     }
   };
 
+  const EMOJI_REGEX = /[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E0}-\u{1F1FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F900}-\u{1F9FF}\u{1FA70}-\u{1FAFF}]/u;
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
     setError(null);
     setMessage(null);
 
+    // 1. Mandatory Fields Validation
+    const requiredCheck = [
+      { val: formData.guardian_name, label: 'Father / Guardian Name' },
+      { val: formData.guardian_phone, label: 'Father / Guardian Phone Number' },
+      { val: formData.date_of_birth, label: 'Date of Birth' },
+      { val: formData.country, label: 'Country' },
+      { val: formData.city, label: 'City' },
+      { val: formData.address, label: 'Address' },
+      { val: formData.education, label: 'Education Level' },
+      { val: formData.referral_source, label: 'How did you hear about us' },
+      { val: formData.course, label: 'Course' },
+      { val: formData.preferred_days, label: 'Class Days' },
+      { val: formData.preferred_class_type, label: 'Class Type' },
+      { val: formData.preferred_time_slot, label: 'Suggested Time Slot' },
+    ];
+
+    for (const item of requiredCheck) {
+      if (!item.val || !String(item.val).trim()) {
+        setError(`Please fill in '${item.label}'. All fields are required.`);
+        setSaving(false);
+        return;
+      }
+      if (EMOJI_REGEX.test(String(item.val))) {
+        setError(`Invalid characters in '${item.label}': Emojis and special graphic symbols are not allowed.`);
+        setSaving(false);
+        return;
+      }
+    }
+
     try {
       await studentsApi.updateProfile({
-        phone: formData.phone || undefined,
-        guardian_name: formData.guardian_name || undefined,
-        guardian_phone: formData.guardian_phone || undefined,
-        date_of_birth: formData.date_of_birth || undefined,
-        country: formData.country || undefined,
-        city: formData.city || undefined,
-        address: formData.address || undefined,
-        education: formData.education || undefined,
-        referral_source: formData.referral_source || undefined,
+        phone: formData.phone?.trim() || undefined,
+        guardian_name: formData.guardian_name?.trim() || undefined,
+        guardian_phone: formData.guardian_phone?.trim() || undefined,
+        date_of_birth: formData.date_of_birth?.trim() || undefined,
+        country: formData.country?.trim() || undefined,
+        city: formData.city?.trim() || undefined,
+        address: formData.address?.trim() || undefined,
+        education: formData.education?.trim() || undefined,
+        referral_source: formData.referral_source?.trim() || undefined,
         course: formData.course || undefined,
         preferred_course: formData.course || undefined,
         module: formData.selected_module || undefined,
@@ -172,8 +203,8 @@ export function StudentProfile() {
         preferred_module: formData.selected_module || undefined,
         preferred_days: formData.preferred_days || undefined,
         preferred_class_type: formData.preferred_class_type || undefined,
-        preferred_time_slot: formData.preferred_time_slot || undefined,
-        bio: formData.bio || undefined,
+        preferred_time_slot: formData.preferred_time_slot?.trim() || undefined,
+        bio: formData.bio?.trim() || undefined,
       });
       setMessage('Profile updated successfully!');
       if (refreshUser) {
@@ -182,7 +213,8 @@ export function StudentProfile() {
       await loadProfileAndData();
     } catch (err) {
       console.error('Failed to update profile:', err);
-      setError(err.message || 'Failed to update profile. Please try again.');
+      const serverMsg = err.response?.data?.detail || err.message || 'Failed to update profile. Please try again.';
+      setError(serverMsg);
     } finally {
       setSaving(false);
     }

@@ -5,7 +5,13 @@ from app.database import get_db
 from app.models import AdmissionCreate, FeeStatusUpdate
 from app.core.dependencies import require_admin
 from app.core.security import hash_password
-from app.services.email_service import send_admission_alert, send_email
+from app.services.email_service import (
+    send_admission_alert,
+    send_email,
+    send_fee_instructions_email,
+    contains_emoji,
+    sanitize_text
+)
 from app.services.whatsapp_service import send_whatsapp_admission_alert
 from app.services.credential_service import generate_secure_temporary_password, send_student_credentials
 from app.services.notification_service import create_notification
@@ -17,10 +23,39 @@ router = APIRouter(prefix="/api/admissions", tags=["Admissions"])
 async def submit_admission(data: AdmissionCreate):
     db = get_db()
 
+    # 1. Bot & AI Scraper Defense (Invisible Honeypot Trap)
+    if data.bot_field and data.bot_field.strip():
+        # Silently trap and drop automated bot submissions without burdening DB
+        return {"message": "Application submitted successfully!", "form_id": "verified"}
+
+    # 2. Anti-Emoji and Security Checks
+    if contains_emoji(data.first_name) or contains_emoji(data.last_name) or contains_emoji(data.phone):
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid characters detected: Emojis and unsupported symbols are not allowed in names or contact fields."
+        )
+
+    clean_first_name = sanitize_text(data.first_name)
+    clean_last_name = sanitize_text(data.last_name)
+    clean_phone = sanitize_text(data.phone)
+    clean_course = sanitize_text(data.course or "Modern Standard Arabic")
+    clean_email = str(data.email).strip().lower()
+
+    if len(clean_first_name) < 2 or len(clean_last_name) < 2:
+        raise HTTPException(status_code=400, detail="First name and Last name must each be at least 2 characters.")
+    if len(clean_phone) < 7:
+        raise HTTPException(status_code=400, detail="Please enter a valid contact phone number.")
+
     document = {
-        **data.model_dump(),
+        "first_name": clean_first_name,
+        "last_name": clean_last_name,
+        "email": clean_email,
+        "phone": clean_phone,
+        "course": clean_course,
         "status": "Pending",
         "fee_status": "pending",
+        "fee_instructions_sent": True,
+        "fee_instructions_sent_at": datetime.utcnow(),
         "created_at": datetime.utcnow()
     }
 
@@ -40,11 +75,35 @@ async def submit_admission(data: AdmissionCreate):
             detail="Admission service is temporarily unavailable. Please try again later."
         )
 
-    student_name = f"{data.first_name} {data.last_name}"
-    send_admission_alert(student_name, data.email, data.phone, form_id)
-    await send_whatsapp_admission_alert(student_name, data.email, data.phone, form_id)
+    student_name = f"{clean_first_name} {clean_last_name}"
 
-    return {"message": "Application submitted successfully!", "form_id": form_id}
+    # 3. Automated Fee Payment Instructions Email Delivery to Applicant
+    send_fee_instructions_email(student_name, clean_email, form_id, clean_course)
+
+    # 4. Institute Alerts (Email & WhatsApp)
+    send_admission_alert(student_name, clean_email, clean_phone, form_id)
+    await send_whatsapp_admission_alert(student_name, clean_email, clean_phone, form_id)
+
+    # 5. In-App Notification for Admin Users
+    try:
+        admin_cursor = db.users.find({"role": "admin"})
+        async for admin in admin_cursor:
+            await create_notification(
+                db=db,
+                recipient_user_id=admin["_id"],
+                title="New Admission Application",
+                message=f"{student_name} ({clean_email}) submitted an admission for {clean_course}. Fee instructions sent.",
+                notification_type="admission",
+                related_entity_type="admission",
+                related_entity_id=form_id
+            )
+    except Exception as notif_err:
+        print(f"[ADMISSION NOTIFICATION ERROR]: {notif_err}")
+
+    return {
+        "message": "Application submitted successfully! Fee payment instructions have been sent to your email.",
+        "form_id": form_id
+    }
 
 
 
@@ -103,25 +162,19 @@ async def send_fee_email(form_id: str, admin_user: dict = Depends(require_admin)
         if not doc:
             raise HTTPException(status_code=404, detail="Form not found")
 
-        subject = "Fee Payment Instructions - AlArabia Fi Buyutikum"
-        body = f"""Dear {doc['first_name']} {doc['last_name']},
+        student_name = f"{doc['first_name']} {doc['last_name']}"
+        course_name = doc.get("course", "Modern Standard Arabic")
+        send_fee_instructions_email(student_name, doc['email'], form_id, course_name)
 
-Thank you for your interest in AlArabia Fi Buyutikum!
-
-Please proceed with the fee payment using the following details:
-[Add your payment instructions here]
-
-Once payment is made, your admission will be confirmed within 24 hours.
-
-JazakAllah Khair,
-Team AlArabia Fi Buyutikum
-"""
-        send_email(doc['email'], subject, body)
         await db.admissions.update_one(
             {"_id": ObjectId(form_id)},
-            {"$set": {"status": "Fee Email Sent"}}
+            {"$set": {
+                "fee_instructions_sent": True,
+                "fee_instructions_sent_at": datetime.utcnow(),
+                "status": "Fee Email Sent"
+            }}
         )
-        return {"message": "Fee email sent successfully."}
+        return {"message": "Fee payment instructions email sent successfully."}
     except HTTPException:
         raise
     except Exception as e:
@@ -216,15 +269,25 @@ async def approve_admission(form_id: str, admin_user: dict = Depends(require_adm
             "instructor": None,
             "instructor_id": None,
             "slot_id": None,
-            "approved_at": datetime.utcnow()
+            "approved_at": datetime.utcnow(),
+            "approved_by": admin_user.get("username", "admin"),
+            "credentials_delivered": True,
+            "credentials_sent_at": datetime.utcnow()
         }
         res_student = await db.students.insert_one(student_doc)
         new_student_id = res_student.inserted_id
 
-        # 6. Update Admission Status
+        # 6. Update Admission Status & Audit Record
         await db.admissions.update_one(
             {"_id": ObjectId(form_id)},
-            {"$set": {"status": "Approved", "fee_status": doc.get("fee_status", "verified")}}
+            {"$set": {
+                "status": "Approved",
+                "fee_status": doc.get("fee_status", "verified"),
+                "approved_by": admin_user.get("username", "admin"),
+                "student_code": student_code,
+                "credentials_delivered": True,
+                "credentials_sent_at": datetime.utcnow()
+            }}
         )
 
         # 7. Deliver Credentials via Email Service
@@ -269,3 +332,4 @@ async def cancel_admission(form_id: str, admin_user: dict = Depends(require_admi
     except Exception as e:
         print(f"ERROR canceling admission: {e}")
         raise HTTPException(status_code=500, detail="Could not cancel admission.")
+

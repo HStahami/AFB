@@ -190,22 +190,51 @@ export function OnboardingModal({ user, onComplete }) {
     }));
   };
 
+  const EMOJI_REGEX = /[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E0}-\u{1F1FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F900}-\u{1F9FF}\u{1FA70}-\u{1FAFF}]/u;
+
   const handleProfileSubmit = async (e) => {
     e.preventDefault();
     setProfileError(null);
 
+    // 1. Mandatory Fields Non-Empty and Anti-Emoji Check
+    const requiredCheck = [
+      { val: profileData.guardian_name, label: 'Father / Guardian Name' },
+      { val: profileData.guardian_phone, label: 'Father / Guardian Phone Number' },
+      { val: profileData.date_of_birth, label: 'Date of Birth' },
+      { val: profileData.country, label: 'Country' },
+      { val: profileData.city, label: 'City' },
+      { val: profileData.address, label: 'Address' },
+      { val: profileData.education, label: 'Education Level' },
+      { val: profileData.referral_source, label: 'How did you hear about us' },
+      { val: profileData.course, label: 'Course' },
+      { val: profileData.preferred_days, label: 'Class Days' },
+      { val: profileData.preferred_class_type, label: 'Class Type' },
+      { val: profileData.preferred_time_slot, label: 'Suggested Time Slot' },
+    ];
+
+    for (const item of requiredCheck) {
+      if (!item.val || !String(item.val).trim()) {
+        setProfileError(`Please fill in '${item.label}'. All fields are required to unlock the portal.`);
+        return;
+      }
+      if (EMOJI_REGEX.test(String(item.val))) {
+        setProfileError(`Invalid characters in '${item.label}': Emojis and special graphic symbols are strictly prohibited.`);
+        return;
+      }
+    }
+
     try {
       setProfileLoading(true);
       await studentsApi.updateProfile({
-        phone: profileData.phone || undefined,
-        guardian_name: profileData.guardian_name || undefined,
-        guardian_phone: profileData.guardian_phone || undefined,
-        date_of_birth: profileData.date_of_birth || undefined,
-        country: profileData.country || undefined,
-        city: profileData.city || undefined,
-        address: profileData.address || undefined,
-        education: profileData.education || undefined,
-        referral_source: profileData.referral_source || undefined,
+        phone: profileData.phone?.trim() || undefined,
+        guardian_name: profileData.guardian_name?.trim() || undefined,
+        guardian_phone: profileData.guardian_phone?.trim() || undefined,
+        date_of_birth: profileData.date_of_birth?.trim() || undefined,
+        country: profileData.country?.trim() || undefined,
+        city: profileData.city?.trim() || undefined,
+        address: profileData.address?.trim() || undefined,
+        education: profileData.education?.trim() || undefined,
+        referral_source: profileData.referral_source?.trim() || undefined,
         course: profileData.course || undefined,
         preferred_course: profileData.course || undefined,
         module: profileData.selected_module || undefined,
@@ -213,8 +242,8 @@ export function OnboardingModal({ user, onComplete }) {
         preferred_module: profileData.selected_module || undefined,
         preferred_days: profileData.preferred_days || undefined,
         preferred_class_type: profileData.preferred_class_type || undefined,
-        preferred_time_slot: profileData.preferred_time_slot || undefined,
-        bio: profileData.bio || undefined,
+        preferred_time_slot: profileData.preferred_time_slot?.trim() || undefined,
+        bio: profileData.bio?.trim() || undefined,
       });
 
       // Refresh AuthContext to mark profile_completed = true
@@ -223,7 +252,8 @@ export function OnboardingModal({ user, onComplete }) {
       }
     } catch (err) {
       console.error('Profile completion error:', err);
-      setProfileError(err.message || 'Failed to complete profile. Please review the form fields.');
+      const serverMsg = err.response?.data?.detail || err.message || 'Failed to complete profile. Please review the form fields.';
+      setProfileError(serverMsg);
     } finally {
       setProfileLoading(false);
     }

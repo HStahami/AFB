@@ -75,7 +75,8 @@ async def update_my_profile(
     """
     Student updates their own profile fields.
     Security: Sensitive fields (role, email, student_code, status) cannot be edited here.
-    Completing profile sets `profile_completed = True`.
+    Enforces anti-emoji, anti-spam, and non-empty validation for all profile attributes.
+    Completing profile sets `profile_completed = True` and unlocks portal access.
     """
     if current_user.get("role") != "student" and current_user.get("role") != "admin":
         raise HTTPException(status_code=403, detail="Access denied: Student account required.")
@@ -87,7 +88,52 @@ async def update_my_profile(
     if not student:
         raise HTTPException(status_code=404, detail="Student profile not found.")
 
-    update_dict = {k: v for k, v in data.model_dump().items() if v is not None}
+    raw_dict = data.model_dump()
+
+    # 1. Anti-Emoji & Threat Character Scan across all submitted text
+    from app.services.email_service import contains_emoji, sanitize_text
+    for field_name, field_val in raw_dict.items():
+        if isinstance(field_val, str) and field_val.strip():
+            if contains_emoji(field_val):
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Invalid format in '{field_name.replace('_', ' ').title()}': Emojis and special graphic symbols are strictly prohibited."
+                )
+
+    # 2. Strict Non-Empty & Format Validation for Mandatory Onboarding Fields
+    mandatory_fields = {
+        "guardian_name": "Father / Guardian Name",
+        "guardian_phone": "Father / Guardian Phone Number",
+        "date_of_birth": "Date of Birth",
+        "country": "Country",
+        "city": "City",
+        "address": "Residential Address",
+        "education": "Education Level",
+        "referral_source": "How did you hear about us",
+        "course": "Course",
+        "preferred_days": "Class Days (Weekdays / Weekend)",
+        "preferred_class_type": "Class Type",
+        "preferred_time_slot": "Suggested Time Slot"
+    }
+
+    # Check if student already has these fields in DB or is submitting them
+    for key, label in mandatory_fields.items():
+        val = raw_dict.get(key) or student.get(key)
+        if not val or not str(val).strip():
+            raise HTTPException(
+                status_code=400,
+                detail=f"Field '{label}' is required and cannot be left empty or unformatted."
+            )
+
+    # 3. Sanitize inputs
+    update_dict = {}
+    for k, v in raw_dict.items():
+        if v is not None:
+            if isinstance(v, str):
+                update_dict[k] = sanitize_text(v)
+            else:
+                update_dict[k] = v
+
     update_dict["updated_at"] = datetime.utcnow()
     update_dict["profile_completed"] = True
 
@@ -96,10 +142,15 @@ async def update_my_profile(
         {"$set": update_dict}
     )
 
-    # Mark profile_completed = True on user record as well
+    # Mark profile_completed = True and first_login = False on user record
     await db.users.update_one(
         {"_id": current_user["_id"]},
-        {"$set": {"profile_completed": True, "updated_at": datetime.utcnow()}}
+        {"$set": {
+            "profile_completed": True,
+            "first_login": False,
+            "onboarding_status": "completed",
+            "updated_at": datetime.utcnow()
+        }}
     )
 
     # Notify all Admin users regarding completed profile

@@ -46,6 +46,16 @@ class Settings(BaseSettings):
     STUDENT_PORTAL_URL: str = "/student/login"
     INSTRUCTOR_PORTAL_URL: str = "/instructor/login"
 
+    # Institute Fee Payment Instructions Configuration
+    FEE_BANK_NAME: str = os.getenv("FEE_BANK_NAME", "Meezan Bank")
+    FEE_ACCOUNT_TITLE: str = os.getenv("FEE_ACCOUNT_TITLE", "AlArabia Fi Buyutikum")
+    FEE_ACCOUNT_NUMBER: str = os.getenv("FEE_ACCOUNT_NUMBER", "01020108924018")
+    FEE_IBAN: str = os.getenv("FEE_IBAN", "PK64MEZN0001020108924018")
+    FEE_RAAST_ID: str = os.getenv("FEE_RAAST_ID", "03001234567")
+    FEE_EASYPAISA_JAZZCASH: str = os.getenv("FEE_EASYPAISA_JAZZCASH", "03001234567 (AlArabia Fi Buyutikum)")
+    FEE_VERIFICATION_WHATSAPP: str = os.getenv("FEE_VERIFICATION_WHATSAPP", "+92 300 1234567")
+    FEE_VERIFICATION_EMAIL: str = os.getenv("FEE_VERIFICATION_EMAIL", "admissions@alarabia.edu")
+
     class Config:
         env_file = _active_env
         extra = "ignore"

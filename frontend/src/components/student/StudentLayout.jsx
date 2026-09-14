@@ -14,6 +14,7 @@ import {
   LogOut,
   Menu,
   X,
+  Lock,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { notificationsApi } from '../../api';
@@ -208,13 +209,37 @@ export function StudentLayout({ children }) {
 
       {/* Desktop Sidebar (Hidden on mobile via CSS) */}
       <aside className="portal-desktop-sidebar">
+        {needsOnboarding && (
+          <div style={{
+            background: 'rgba(255, 183, 3, 0.1)',
+            border: '1px solid rgba(255, 183, 3, 0.3)',
+            borderRadius: '8px',
+            padding: '8px 10px',
+            marginBottom: '0.8rem',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            fontSize: '0.78rem',
+            color: '#ffb703'
+          }}>
+            <Lock size={15} style={{ flexShrink: 0 }} />
+            <span>Complete profile to unlock all portal modules</span>
+          </div>
+        )}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
           {navItems.map((item) => {
             const isActive = location.pathname === item.path;
+            const isLocked = needsOnboarding && item.path !== '/student/profile';
             return (
               <Link
                 key={item.path}
-                to={item.path}
+                to={isLocked ? '#' : item.path}
+                onClick={(e) => {
+                  if (isLocked) {
+                    e.preventDefault();
+                  }
+                }}
+                title={isLocked ? 'Locked: Complete profile to access' : item.label}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -222,10 +247,12 @@ export function StudentLayout({ children }) {
                   padding: '9px 12px',
                   borderRadius: '8px',
                   textDecoration: 'none',
-                  color: isActive ? 'var(--color-primary)' : '#b0c4c6',
-                  backgroundColor: isActive ? 'rgba(197, 229, 232, 0.12)' : 'transparent',
-                  fontWeight: isActive ? 600 : 400,
+                  color: isLocked ? '#64748b' : (isActive ? 'var(--color-primary)' : '#b0c4c6'),
+                  backgroundColor: isActive && !isLocked ? 'rgba(197, 229, 232, 0.12)' : 'transparent',
+                  fontWeight: isActive && !isLocked ? 600 : 400,
                   fontSize: '0.9rem',
+                  opacity: isLocked ? 0.45 : 1,
+                  cursor: isLocked ? 'not-allowed' : 'pointer',
                   transition: 'all 0.15s ease',
                 }}
               >
@@ -233,7 +260,9 @@ export function StudentLayout({ children }) {
                   {item.icon}
                   <span>{item.label}</span>
                 </div>
-                {item.badge > 0 && (
+                {isLocked ? (
+                  <Lock size={14} style={{ color: '#ffb703', opacity: 0.8 }} />
+                ) : item.badge > 0 ? (
                   <span
                     style={{
                       background: '#ef4444',
@@ -246,7 +275,7 @@ export function StudentLayout({ children }) {
                   >
                     {item.badge}
                   </span>
-                )}
+                ) : null}
               </Link>
             );
           })}
@@ -339,13 +368,38 @@ export function StudentLayout({ children }) {
 
             {/* Drawer Nav Links */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', flex: 1 }}>
+              {needsOnboarding && (
+                <div style={{
+                  background: 'rgba(255, 183, 3, 0.1)',
+                  border: '1px solid rgba(255, 183, 3, 0.3)',
+                  borderRadius: '8px',
+                  padding: '8px 10px',
+                  marginBottom: '0.5rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  fontSize: '0.78rem',
+                  color: '#ffb703'
+                }}>
+                  <Lock size={15} style={{ flexShrink: 0 }} />
+                  <span>Complete profile to unlock all features</span>
+                </div>
+              )}
               {navItems.map((item) => {
                 const isActive = location.pathname === item.path;
+                const isLocked = needsOnboarding && item.path !== '/student/profile';
                 return (
                   <Link
                     key={item.path}
-                    to={item.path}
-                    onClick={() => setMobileOpen(false)}
+                    to={isLocked ? '#' : item.path}
+                    onClick={(e) => {
+                      if (isLocked) {
+                        e.preventDefault();
+                      } else {
+                        setMobileOpen(false);
+                      }
+                    }}
+                    title={isLocked ? 'Locked: Complete profile to access' : item.label}
                     style={{
                       display: 'flex',
                       alignItems: 'center',
@@ -353,17 +407,21 @@ export function StudentLayout({ children }) {
                       padding: '10px 12px',
                       borderRadius: '8px',
                       textDecoration: 'none',
-                      color: isActive ? 'var(--color-primary)' : '#cbd5e1',
-                      backgroundColor: isActive ? 'rgba(197, 229, 232, 0.12)' : 'transparent',
-                      fontWeight: isActive ? 600 : 400,
+                      color: isLocked ? '#64748b' : (isActive ? 'var(--color-primary)' : '#cbd5e1'),
+                      backgroundColor: isActive && !isLocked ? 'rgba(197, 229, 232, 0.12)' : 'transparent',
+                      fontWeight: isActive && !isLocked ? 600 : 400,
                       fontSize: '0.9rem',
+                      opacity: isLocked ? 0.45 : 1,
+                      cursor: isLocked ? 'not-allowed' : 'pointer',
                     }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                       {item.icon}
                       <span>{item.label}</span>
                     </div>
-                    {item.badge > 0 && (
+                    {isLocked ? (
+                      <Lock size={14} style={{ color: '#ffb703', opacity: 0.8 }} />
+                    ) : item.badge > 0 ? (
                       <span
                         style={{
                           background: '#ef4444',
@@ -376,7 +434,7 @@ export function StudentLayout({ children }) {
                       >
                         {item.badge}
                       </span>
-                    )}
+                    ) : null}
                   </Link>
                 );
               })}

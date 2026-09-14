@@ -600,46 +600,126 @@ export function AdminDashboard({ onLogout }) {
 
         {activeTab === 'admissions' && (
           <div>
-            <h2 style={{ color: 'var(--color-white)', marginBottom: '1.5rem', fontSize: '1.6rem' }}>Admission Forms</h2>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+              <div>
+                <h2 style={{ color: 'var(--color-white)', margin: 0, fontSize: '1.6rem' }}>Student Admissions & Fee Lifecycle</h2>
+                <p style={{ color: '#aaa', margin: '4px 0 0 0', fontSize: '0.9rem' }}>
+                  Review applications, verify fee submissions, and approve admissions to provision portal accounts.
+                </p>
+              </div>
+            </div>
+
             <div className="table-responsive-container">
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
                   <tr>
-                    <th style={tableHeaderStyle}>Name</th>
-                    <th style={tableHeaderStyle}>Email</th>
-                    <th style={tableHeaderStyle}>Phone</th>
-                    <th style={tableHeaderStyle}>Status</th>
+                    <th style={tableHeaderStyle}>Applicant</th>
+                    <th style={tableHeaderStyle}>Contact Details</th>
+                    <th style={tableHeaderStyle}>Course</th>
+                    <th style={tableHeaderStyle}>Fee & Lifecycle Status</th>
+                    <th style={tableHeaderStyle}>Application Date</th>
                     <th style={tableHeaderStyle}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {admissions.map(adm => (
-                    <tr key={adm._id}>
-                      <td style={tableCellStyle}>{adm.first_name} {adm.last_name}</td>
-                      <td style={tableCellStyle}>{adm.email}</td>
-                      <td style={tableCellStyle}>{adm.phone}</td>
-                      <td style={tableCellStyle}>
-                        <span style={{
-                          padding: '4px 8px',
-                          borderRadius: '4px',
-                          fontSize: '0.85rem',
-                          background: adm.status === 'Approved' ? 'rgba(46, 204, 113, 0.2)' : adm.status === 'Canceled' ? 'rgba(231, 76, 60, 0.2)' : 'rgba(243, 156, 18, 0.2)',
-                          color: adm.status === 'Approved' ? '#2ecc71' : adm.status === 'Canceled' ? '#e74c3c' : '#f39c12'
-                        }}>{adm.status}</span>
-                      </td>
-                      <td style={tableCellStyle}>
-                        {adm.status === 'Pending' && (
-                          <button onClick={() => handleSendFeeEmail(adm._id)} className="btn-primary" style={{ padding: '6px 12px', fontSize: '0.85rem', marginRight: '8px' }}>Send Fee Info</button>
-                        )}
-                        {adm.status === 'Fee Email Sent' && (
-                          <button onClick={() => handleApprove(adm._id)} className="btn-primary" style={{ padding: '6px 12px', fontSize: '0.85rem', marginRight: '8px', background: '#2e7d32' }}>Approve (Paid)</button>
-                        )}
-                        {adm.status !== 'Approved' && adm.status !== 'Canceled' && (
-                          <button onClick={() => handleCancel(adm._id)} className="glass-panel" style={{ padding: '6px 12px', fontSize: '0.85rem', color: '#e74c3c', border: '1px solid #e74c3c' }}>Cancel</button>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
+                  {admissions.map(adm => {
+                    const isApproved = adm.status === 'Approved';
+                    const isCanceled = adm.status === 'Canceled';
+                    const feeSent = adm.fee_instructions_sent || adm.status === 'Fee Email Sent';
+
+                    return (
+                      <tr key={adm._id}>
+                        <td style={tableCellStyle}>
+                          <div style={{ fontWeight: '600', color: '#fff' }}>
+                            {adm.first_name} {adm.last_name}
+                          </div>
+                          {adm.student_code && (
+                            <div style={{ fontSize: '0.78rem', color: 'var(--color-primary)', fontWeight: 'bold' }}>
+                              ID: {adm.student_code}
+                            </div>
+                          )}
+                        </td>
+                        <td style={tableCellStyle}>
+                          <div style={{ fontSize: '0.85rem' }}>{adm.email}</div>
+                          <div style={{ fontSize: '0.78rem', color: '#aaa' }}>{adm.phone}</div>
+                        </td>
+                        <td style={tableCellStyle}>
+                          <span style={{ fontSize: '0.85rem', color: 'var(--color-primary)', fontWeight: '500' }}>
+                            {adm.course || 'Modern Standard Arabic'}
+                          </span>
+                        </td>
+                        <td style={tableCellStyle}>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'flex-start' }}>
+                            <span style={{
+                              padding: '3px 8px',
+                              borderRadius: '4px',
+                              fontSize: '0.8rem',
+                              fontWeight: '600',
+                              background: isApproved ? 'rgba(46, 204, 113, 0.2)' : isCanceled ? 'rgba(231, 76, 60, 0.2)' : 'rgba(243, 156, 18, 0.2)',
+                              color: isApproved ? '#2ecc71' : isCanceled ? '#e74c3c' : '#f39c12'
+                            }}>
+                              {adm.status}
+                            </span>
+                            {feeSent && (
+                              <span style={{ fontSize: '0.72rem', color: '#38bdf8', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                                ✉️ Fee Instructions Sent
+                              </span>
+                            )}
+                            {isApproved && adm.credentials_delivered && (
+                              <span style={{ fontSize: '0.72rem', color: '#2ecc71' }}>
+                                🔑 Credentials Delivered
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                        <td style={tableCellStyle}>
+                          <span style={{ fontSize: '0.82rem', color: '#888' }}>
+                            {adm.created_at ? new Date(adm.created_at).toLocaleDateString() : '—'}
+                          </span>
+                        </td>
+                        <td style={tableCellStyle}>
+                          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                            {!isApproved && !isCanceled && (
+                              <>
+                                <button
+                                  onClick={() => handleApprove(adm._id)}
+                                  className="btn-primary"
+                                  style={{ padding: '6px 12px', fontSize: '0.82rem', background: '#2e7d32', borderColor: '#2e7d32', cursor: 'pointer' }}
+                                  title="Confirm fee payment & dispatch portal credentials"
+                                >
+                                  Approve & Provision
+                                </button>
+                                <button
+                                  onClick={() => handleSendFeeEmail(adm._id)}
+                                  className="glass-panel"
+                                  style={{ padding: '6px 10px', fontSize: '0.82rem', color: '#38bdf8', borderColor: 'rgba(56, 189, 248, 0.4)', cursor: 'pointer' }}
+                                  title="Resend fee payment instructions email"
+                                >
+                                  Resend Fee Info
+                                </button>
+                                <button
+                                  onClick={() => handleCancel(adm._id)}
+                                  className="glass-panel"
+                                  style={{ padding: '6px 10px', fontSize: '0.82rem', color: '#e74c3c', border: '1px solid rgba(231, 76, 60, 0.4)', cursor: 'pointer' }}
+                                >
+                                  Cancel
+                                </button>
+                              </>
+                            )}
+                            {isApproved && (
+                              <button
+                                onClick={() => setActiveTab('students')}
+                                className="glass-panel"
+                                style={{ padding: '6px 10px', fontSize: '0.82rem', color: 'var(--color-primary)', borderColor: 'var(--color-primary)', cursor: 'pointer' }}
+                              >
+                                View in Students
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
