@@ -125,7 +125,7 @@ export function StudentAttendance() {
           </div>
         ) : records.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '3rem' }}>
-            <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem' }}>📅</div>
+            <div style={{ fontSize: '1.1rem', marginBottom: '0.5rem', color: '#8892b0' }}>No Attendance Logged</div>
             <h3 style={{ color: '#fff', marginBottom: '0.4rem' }}>No Attendance Logged Yet</h3>
             <p style={{ color: '#8892b0', margin: 0 }}>
               Your teacher will mark attendance during your live class sessions.

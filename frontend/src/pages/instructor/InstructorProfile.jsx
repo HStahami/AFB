@@ -136,7 +136,7 @@ export function InstructorProfile() {
             cursor: 'pointer',
           }}
         >
-          👤 Profile Information
+          Profile Information
         </button>
         <button
           onClick={() => setActiveTab('security')}
@@ -151,7 +151,7 @@ export function InstructorProfile() {
             cursor: 'pointer',
           }}
         >
-          🔒 Security & Password
+          Security & Password
         </button>
       </div>
 

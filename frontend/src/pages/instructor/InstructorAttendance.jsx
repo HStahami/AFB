@@ -194,7 +194,7 @@ export function InstructorAttendance() {
               fontWeight: 600,
             }}
           >
-            {saving ? 'Saving...' : '💾 Save Attendance'}
+            {saving ? 'Saving...' : 'Save Attendance'}
           </button>
         </div>
       </div>

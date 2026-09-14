@@ -102,7 +102,7 @@ export function InstructorNotifications() {
               fontSize: '0.85rem',
             }}
           >
-            ✓ Mark All Read
+            Mark All Read
           </button>
         )}
       </div>
@@ -174,7 +174,7 @@ export function InstructorNotifications() {
         </div>
       ) : filteredNotifications.length === 0 ? (
         <div className="glass-panel" style={{ textAlign: 'center', padding: '3.5rem' }}>
-          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🔔</div>
+          <div style={{ fontSize: '1.1rem', marginBottom: '0.5rem', color: '#8892b0' }}>No Notifications Found</div>
           <h3 style={{ color: '#fff', marginBottom: '0.5rem' }}>No Notifications Found</h3>
           <p style={{ color: '#8892b0', margin: 0 }}>
             {filter === 'unread'
@@ -213,7 +213,7 @@ export function InstructorNotifications() {
                     flexShrink: 0,
                   }}
                 >
-                  {notif.type === 'submission' ? '📝' : notif.type === 'alert' ? '⚠️' : '📢'}
+                  {notif.type === 'submission' ? 'Submission' : notif.type === 'alert' ? 'Alert' : 'Notice'}
                 </div>
 
                 <div>

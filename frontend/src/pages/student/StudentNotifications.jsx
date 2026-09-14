@@ -63,15 +63,15 @@ export function StudentNotifications() {
   const getIcon = (type) => {
     switch (type) {
       case 'task':
-        return '📝';
+        return 'Task';
       case 'submission':
-        return '📬';
+        return 'Submission';
       case 'assessment':
-        return '⭐';
+        return 'Grade';
       case 'schedule':
-        return '📅';
+        return 'Schedule';
       default:
-        return '🔔';
+        return 'Alert';
     }
   };
 
@@ -102,7 +102,7 @@ export function StudentNotifications() {
               fontSize: '0.85rem',
             }}
           >
-            ✓ Mark All Read
+            Mark All Read
           </button>
         )}
       </div>
@@ -167,7 +167,7 @@ export function StudentNotifications() {
         </div>
       ) : filtered.length === 0 ? (
         <div className="glass-panel" style={{ textAlign: 'center', padding: '3.5rem' }}>
-          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🔔</div>
+          <div style={{ fontSize: '1.1rem', marginBottom: '0.5rem', color: '#8892b0' }}>All Caught Up</div>
           <h3 style={{ color: '#fff', marginBottom: '0.5rem' }}>All Caught Up</h3>
           <p style={{ color: '#8892b0', margin: 0 }}>
             {filter === 'unread'

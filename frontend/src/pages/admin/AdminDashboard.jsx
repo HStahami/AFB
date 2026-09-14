@@ -464,9 +464,7 @@ export function AdminDashboard({ onLogout }) {
           style={{ width: '100%', textAlign: 'left', padding: '10px 15px', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }} 
           onClick={() => setActiveTab('notifications')}
         >
-          <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <Bell size={16} /> Notifications
-          </span>
+          <span>Notifications</span>
           {unreadNotifsCount > 0 && (
             <span style={{ background: '#e74c3c', color: '#fff', padding: '2px 7px', borderRadius: '12px', fontSize: '0.72rem', fontWeight: 'bold' }}>
               {unreadNotifsCount}
@@ -662,12 +660,12 @@ export function AdminDashboard({ onLogout }) {
                             </span>
                             {feeSent && (
                               <span style={{ fontSize: '0.72rem', color: '#38bdf8', display: 'flex', alignItems: 'center', gap: '3px' }}>
-                                ✉️ Fee Instructions Sent
+                                Fee Instructions Sent
                               </span>
                             )}
                             {isApproved && adm.credentials_delivered && (
                               <span style={{ fontSize: '0.72rem', color: '#2ecc71' }}>
-                                🔑 Credentials Delivered
+                                Credentials Delivered
                               </span>
                             )}
                           </div>
@@ -773,7 +771,7 @@ export function AdminDashboard({ onLogout }) {
                         </div>
                         {std.preferred_time_slot && (
                           <div style={{ fontSize: '0.72rem', color: '#f39c12' }} title="Suggested Slot">
-                            🕒 {std.preferred_time_slot}
+                            Suggested: {std.preferred_time_slot}
                           </div>
                         )}
                       </td>
@@ -782,7 +780,7 @@ export function AdminDashboard({ onLogout }) {
                           {std.slot || 'No Slot'}
                         </div>
                         <div style={{ fontSize: '0.78rem', color: std.instructor ? 'var(--color-primary)' : '#777' }}>
-                          {std.instructor ? `👨‍🏫 ${std.instructor}` : 'Unassigned'}
+                          {std.instructor ? std.instructor : 'Unassigned'}
                         </div>
                       </td>
                       <td style={tableCellStyle}>
@@ -824,7 +822,7 @@ export function AdminDashboard({ onLogout }) {
 
                   {/* Student's Saved Preferences Notice for Admin */}
                   <div style={{ backgroundColor: 'rgba(197, 229, 232, 0.08)', border: '1px solid rgba(197, 229, 232, 0.2)', borderRadius: '8px', padding: '0.85rem', marginBottom: '1.25rem', fontSize: '0.82rem', color: '#b0c4c6' }}>
-                    <div style={{ fontWeight: '700', color: 'var(--color-primary)', marginBottom: '0.35rem' }}>📌 Student's Saved Preferences:</div>
+                    <div style={{ fontWeight: '700', color: 'var(--color-primary)', marginBottom: '0.35rem' }}>Student's Saved Preferences:</div>
                     <div>• <strong>Course:</strong> {selectedStudent.course || selectedStudent.preferred_course || 'Modern Standard Arabic'}</div>
                     {(selectedStudent.selected_module || selectedStudent.module) && (
                       <div>• <strong>Module / Track:</strong> {selectedStudent.selected_module || selectedStudent.module}</div>
@@ -883,14 +881,14 @@ export function AdminDashboard({ onLogout }) {
                       className="glass-panel"
                       style={{ padding: '6px 12px', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: '0.9rem' }}
                     >
-                      ✕ Close
+                      Close
                     </button>
                   </div>
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem', fontSize: '0.88rem', color: '#b0c4c6' }}>
                     {/* Contact & Personal */}
                     <div style={{ backgroundColor: 'rgba(255,255,255,0.03)', padding: '1rem', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.06)' }}>
-                      <div style={{ color: 'var(--color-primary)', fontWeight: 700, marginBottom: '0.5rem', fontSize: '0.92rem' }}>👤 Personal & Contact Details</div>
+                      <div style={{ color: 'var(--color-primary)', fontWeight: 700, marginBottom: '0.5rem', fontSize: '0.92rem' }}>Personal & Contact Details</div>
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.5rem' }}>
                         <div><strong style={{ color: '#fff' }}>Email:</strong> {viewingStudent.email || 'N/A'}</div>
                         <div><strong style={{ color: '#fff' }}>Phone:</strong> {viewingStudent.phone || 'N/A'}</div>
@@ -905,7 +903,7 @@ export function AdminDashboard({ onLogout }) {
 
                     {/* Guardian Info */}
                     <div style={{ backgroundColor: 'rgba(255,255,255,0.03)', padding: '1rem', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.06)' }}>
-                      <div style={{ color: 'var(--color-primary)', fontWeight: 700, marginBottom: '0.5rem', fontSize: '0.92rem' }}>🛡️ Father / Guardian Details</div>
+                      <div style={{ color: 'var(--color-primary)', fontWeight: 700, marginBottom: '0.5rem', fontSize: '0.92rem' }}>Father / Guardian Details</div>
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.5rem' }}>
                         <div><strong style={{ color: '#fff' }}>Father / Guardian Name:</strong> {viewingStudent.guardian_name || viewingStudent.father_name || 'Not provided'}</div>
                         <div><strong style={{ color: '#fff' }}>Father / Guardian Phone:</strong> {viewingStudent.guardian_phone || viewingStudent.father_phone || 'Not provided'}</div>
@@ -914,7 +912,7 @@ export function AdminDashboard({ onLogout }) {
 
                     {/* Course & Preferences */}
                     <div style={{ backgroundColor: 'rgba(255,255,255,0.03)', padding: '1rem', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.06)' }}>
-                      <div style={{ color: 'var(--color-primary)', fontWeight: 700, marginBottom: '0.5rem', fontSize: '0.92rem' }}>📚 Course & Class Preferences</div>
+                      <div style={{ color: 'var(--color-primary)', fontWeight: 700, marginBottom: '0.5rem', fontSize: '0.92rem' }}>Course & Class Preferences</div>
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.5rem' }}>
                         <div><strong style={{ color: '#fff' }}>Selected Course:</strong> {viewingStudent.course || viewingStudent.preferred_course || 'Modern Standard Arabic'}</div>
                         <div><strong style={{ color: '#fff' }}>Module / Track:</strong> {viewingStudent.selected_module || viewingStudent.module || 'All 4 Modules Included'}</div>
@@ -928,7 +926,7 @@ export function AdminDashboard({ onLogout }) {
 
                     {/* Assigned LMS Class */}
                     <div style={{ backgroundColor: 'rgba(255,255,255,0.03)', padding: '1rem', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.06)' }}>
-                      <div style={{ color: 'var(--color-primary)', fontWeight: 700, marginBottom: '0.5rem', fontSize: '0.92rem' }}>🎓 Current Class Assignment</div>
+                      <div style={{ color: 'var(--color-primary)', fontWeight: 700, marginBottom: '0.5rem', fontSize: '0.92rem' }}>Current Class Assignment</div>
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.5rem' }}>
                         <div><strong style={{ color: '#fff' }}>Assigned Slot:</strong> {viewingStudent.slot || 'Not Assigned'}</div>
                         <div><strong style={{ color: '#fff' }}>Assigned Instructor:</strong> {viewingStudent.instructor || 'Not Assigned'}</div>
@@ -938,7 +936,7 @@ export function AdminDashboard({ onLogout }) {
                     {/* Bio */}
                     {viewingStudent.bio && (
                       <div style={{ backgroundColor: 'rgba(255,255,255,0.03)', padding: '1rem', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.06)' }}>
-                        <div style={{ color: 'var(--color-primary)', fontWeight: 700, marginBottom: '0.3rem', fontSize: '0.92rem' }}>📝 Academic Bio & Goals</div>
+                        <div style={{ color: 'var(--color-primary)', fontWeight: 700, marginBottom: '0.3rem', fontSize: '0.92rem' }}>Academic Bio & Goals</div>
                         <div style={{ color: '#e0e0e0', lineHeight: '1.5' }}>{viewingStudent.bio}</div>
                       </div>
                     )}

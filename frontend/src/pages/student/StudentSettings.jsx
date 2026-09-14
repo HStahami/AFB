@@ -141,7 +141,7 @@ export function StudentSettings() {
               fontSize: '1.25rem',
             }}
           >
-            🔒
+            
           </div>
           <div>
             <h2 style={{ fontSize: '1.2rem', fontWeight: 700, margin: 0, color: '#f8fafc' }}>
@@ -168,7 +168,7 @@ export function StudentSettings() {
               gap: '0.5rem',
             }}
           >
-            <span>✓</span> {successMessage}
+            {successMessage}
           </div>
         )}
 
@@ -187,7 +187,7 @@ export function StudentSettings() {
               gap: '0.5rem',
             }}
           >
-            <span>⚠️</span> {errorMessage}
+            {errorMessage}
           </div>
         )}
 

@@ -104,15 +104,15 @@ export function InstructorResources() {
   const getTypeIcon = (type) => {
     switch (type) {
       case 'pdf':
-        return '📄';
+        return 'PDF';
       case 'video':
-        return '🎥';
+        return 'Video';
       case 'audio':
-        return '🎧';
+        return 'Audio';
       case 'link':
-        return '🔗';
+        return 'Link';
       default:
-        return '📁';
+        return 'File';
     }
   };
 
@@ -238,7 +238,7 @@ export function InstructorResources() {
         </div>
       ) : filteredResources.length === 0 ? (
         <div className="glass-panel" style={{ textAlign: 'center', padding: '3.5rem' }}>
-          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📚</div>
+          <div style={{ fontSize: '1.1rem', marginBottom: '0.5rem', color: '#8892b0' }}>No Resources Found</div>
           <h3 style={{ color: '#fff', marginBottom: '0.5rem' }}>No Resources Found</h3>
           <p style={{ color: '#8892b0', maxWidth: '400px', margin: '0 auto 1.5rem auto' }}>
             You haven't uploaded any resources matching this query yet. Share reference materials, study guides, and recordings with your students.
@@ -402,7 +402,7 @@ export function InstructorResources() {
                 onClick={() => setModalOpen(false)}
                 style={{ background: 'none', border: 'none', color: '#8892b0', fontSize: '1.2rem', cursor: 'pointer' }}
               >
-                ✕
+                Close
               </button>
             </div>
 

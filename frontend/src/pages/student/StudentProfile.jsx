@@ -223,7 +223,6 @@ export function StudentProfile() {
   if (loading) {
     return (
       <div style={{ textAlign: 'center', padding: '4rem 1rem', color: '#8892b0' }}>
-        <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>⏳</div>
         <p style={{ fontSize: '1.1rem', color: 'var(--color-primary)' }}>Loading student profile...</p>
       </div>
     );
@@ -335,7 +334,7 @@ export function StudentProfile() {
             gap: '0.5rem',
           }}
         >
-          <span>✓</span> {message}
+          {message}
         </div>
       )}
 
@@ -348,12 +347,10 @@ export function StudentProfile() {
             border: '1px solid rgba(239, 68, 68, 0.3)',
             color: '#f87171',
             fontSize: '0.95rem',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
+            marginBottom: '1.5rem',
           }}
         >
-          <span>⚠️</span> {error}
+          {error}
         </div>
       )}
 
@@ -361,8 +358,8 @@ export function StudentProfile() {
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
         {/* Section 1: Personal & Contact Details */}
         <div className="glass-panel" style={{ padding: '1.75rem', borderRadius: '14px' }}>
-          <h2 style={{ fontSize: '1.2rem', fontWeight: 700, margin: '0 0 1.25rem 0', color: '#f1f5f9', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span>👤</span> Personal & Contact Details
+          <h2 style={{ fontSize: '1.2rem', fontWeight: 700, margin: '0 0 1.25rem 0', color: '#f1f5f9' }}>
+            Personal & Contact Details
           </h2>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.25rem' }}>
             {/* 1. Name */}
@@ -589,8 +586,8 @@ export function StudentProfile() {
 
         {/* Section 2: Education & Background */}
         <div className="glass-panel" style={{ padding: '1.75rem', borderRadius: '14px' }}>
-          <h2 style={{ fontSize: '1.2rem', fontWeight: 700, margin: '0 0 1.25rem 0', color: '#f1f5f9', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span>🎓</span> Education & Background
+          <h2 style={{ fontSize: '1.2rem', fontWeight: 700, margin: '0 0 1.25rem 0', color: '#f1f5f9' }}>
+            Education & Background
           </h2>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.25rem' }}>
             {/* 10. Education */}
@@ -660,8 +657,8 @@ export function StudentProfile() {
 
         {/* Section 3: Course & Class Preferences */}
         <div className="glass-panel" style={{ padding: '1.75rem', borderRadius: '14px' }}>
-          <h2 style={{ fontSize: '1.2rem', fontWeight: 700, margin: '0 0 1.25rem 0', color: '#f1f5f9', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span>📚</span> Course & Class Preferences
+          <h2 style={{ fontSize: '1.2rem', fontWeight: 700, margin: '0 0 1.25rem 0', color: '#f1f5f9' }}>
+            Course & Class Preferences
           </h2>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.25rem' }}>
             {/* Course */}
@@ -897,8 +894,8 @@ export function StudentProfile() {
 
         {/* Academic Bio / Aspirations */}
         <div className="glass-panel" style={{ padding: '1.75rem', borderRadius: '14px' }}>
-          <h2 style={{ fontSize: '1.2rem', fontWeight: 700, margin: '0 0 1.25rem 0', color: '#f1f5f9', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span>📝</span> Academic Bio & Arabic Goals
+          <h2 style={{ fontSize: '1.2rem', fontWeight: 700, margin: '0 0 1.25rem 0', color: '#f1f5f9' }}>
+            Academic Bio & Arabic Goals
           </h2>
           <div>
             <label style={{ display: 'block', fontSize: '0.85rem', color: '#cbd5e1', marginBottom: '0.4rem', fontWeight: 500 }}>
@@ -960,7 +957,7 @@ export function StudentProfile() {
               gap: '0.5rem',
             }}
           >
-            {saving ? 'Saving...' : '💾 Save Profile'}
+            {saving ? 'Saving...' : 'Save Profile'}
           </button>
         </div>
       </form>

@@ -300,12 +300,11 @@ export function OnboardingModal({ user, onComplete }) {
               borderRadius: '50%',
               backgroundColor: 'rgba(56, 189, 248, 0.15)',
               color: 'var(--color-primary)',
-              fontSize: '1.6rem',
-              marginBottom: '0.85rem',
               border: '1px solid rgba(56, 189, 248, 0.3)',
+              fontWeight: '700',
             }}
           >
-            {step === 1 ? '🔒' : '📋'}
+            {step === 1 ? '1' : '2'}
           </div>
 
           <h2 style={{ fontSize: '1.4rem', fontWeight: 700, color: '#fff', margin: 0 }}>
@@ -470,8 +469,8 @@ export function OnboardingModal({ user, onComplete }) {
 
             {/* Section 1: Personal & Contact Details */}
             <div style={{ border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '12px', padding: '1.25rem', backgroundColor: 'rgba(255, 255, 255, 0.02)' }}>
-              <div style={{ fontSize: '0.82rem', color: 'var(--color-primary)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                <span>👤</span> Personal & Contact Details
+              <div style={{ fontSize: '0.82rem', color: 'var(--color-primary)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '1rem' }}>
+                Personal & Contact Details
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
@@ -692,8 +691,8 @@ export function OnboardingModal({ user, onComplete }) {
 
             {/* Section 2: Education & Background */}
             <div style={{ border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '12px', padding: '1.25rem', backgroundColor: 'rgba(255, 255, 255, 0.02)' }}>
-              <div style={{ fontSize: '0.82rem', color: 'var(--color-primary)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                <span>🎓</span> Education & Background
+              <div style={{ fontSize: '0.82rem', color: 'var(--color-primary)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '1rem' }}>
+                Education & Background
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem' }}>
@@ -762,8 +761,8 @@ export function OnboardingModal({ user, onComplete }) {
 
             {/* Section 3: Course & Class Preferences */}
             <div style={{ border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '12px', padding: '1.25rem', backgroundColor: 'rgba(255, 255, 255, 0.02)' }}>
-              <div style={{ fontSize: '0.82rem', color: 'var(--color-primary)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                <span>📚</span> Course & Class Preferences
+              <div style={{ fontSize: '0.82rem', color: 'var(--color-primary)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '1rem' }}>
+                Course & Class Preferences
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
@@ -1013,7 +1012,7 @@ export function OnboardingModal({ user, onComplete }) {
                 boxShadow: '0 4px 14px rgba(16, 185, 129, 0.35)',
               }}
             >
-              {profileLoading ? 'Finalizing Profile...' : 'Complete Profile & Open Portal ✓'}
+              {profileLoading ? 'Finalizing Profile...' : 'Complete Profile & Open Portal'}
             </button>
           </form>
         )}

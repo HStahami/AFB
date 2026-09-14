@@ -127,7 +127,7 @@ export function InstructorReports() {
               fontSize: '0.85rem',
             }}
           >
-            🖨️ Print Summary
+            Print Summary
           </button>
           <button
             onClick={exportCSV}
@@ -143,7 +143,7 @@ export function InstructorReports() {
               gap: '0.5rem',
             }}
           >
-            📥 Export CSV
+            Export CSV
           </button>
         </div>
       </div>
@@ -433,7 +433,7 @@ export function InstructorReports() {
                 }}
                 style={{ background: 'none', border: 'none', color: '#8892b0', fontSize: '1.2rem', cursor: 'pointer' }}
               >
-                ✕
+                Close
               </button>
             </div>
 

@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { studentsApi, reportsApi } from '../../api';
 import { useAuth } from '../../context/AuthContext';
@@ -30,7 +30,6 @@ export function StudentDashboard() {
   if (loading) {
     return (
       <div style={{ textAlign: 'center', padding: '4rem 1rem', color: '#8892b0' }}>
-        <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>⏳</div>
         <p style={{ fontSize: '1.1rem', color: 'var(--color-primary)' }}>Loading your learning dashboard...</p>
       </div>
     );
@@ -190,16 +189,16 @@ export function StudentDashboard() {
         <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#fff' }}>Quick LMS Actions:</span>
         <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
           <Link to="/student/tasks" className="btn-primary" style={{ textDecoration: 'none', padding: '0.55rem 1.2rem', fontSize: '0.85rem' }}>
-            📝 View Tasks
+            View Tasks
           </Link>
           <Link to="/student/courses" className="glass-panel" style={{ textDecoration: 'none', padding: '0.55rem 1.2rem', fontSize: '0.85rem', color: '#fff', border: '1px solid rgba(255,255,255,0.1)' }}>
-            📚 Course Syllabus
+            Course Syllabus
           </Link>
           <Link to="/student/attendance" className="glass-panel" style={{ textDecoration: 'none', padding: '0.55rem 1.2rem', fontSize: '0.85rem', color: '#fff', border: '1px solid rgba(255,255,255,0.1)' }}>
-            📅 Attendance Sheet
+            Attendance Sheet
           </Link>
           <Link to="/student/resources" className="glass-panel" style={{ textDecoration: 'none', padding: '0.55rem 1.2rem', fontSize: '0.85rem', color: '#fff', border: '1px solid rgba(255,255,255,0.1)' }}>
-            📁 Study Materials
+            Study Materials
           </Link>
         </div>
       </div>
@@ -249,7 +248,7 @@ export function StudentDashboard() {
                   <div>
                     {t.is_submitted ? (
                       <span style={{ fontSize: '0.75rem', padding: '3px 8px', borderRadius: '4px', background: 'rgba(52, 211, 153, 0.15)', color: '#34d399', fontWeight: 600 }}>
-                        ✓ Submitted
+                        Submitted
                       </span>
                     ) : (
                       <Link

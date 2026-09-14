@@ -57,7 +57,7 @@ export function StudentCourses() {
         </div>
       ) : courses.length === 0 ? (
         <div className="glass-panel" style={{ textAlign: 'center', padding: '3.5rem' }}>
-          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📚</div>
+          <div style={{ fontSize: '1.2rem', marginBottom: '0.8rem', color: '#8892b0' }}>No Enrollments</div>
           <h3 style={{ color: '#fff', marginBottom: '0.5rem' }}>No Active Enrollments</h3>
           <p style={{ color: '#8892b0', margin: 0 }}>
             You are not currently enrolled in any module. Please contact the administrator.
@@ -107,10 +107,10 @@ export function StudentCourses() {
 
                   <div style={{ display: 'flex', gap: '0.75rem' }}>
                     <div style={{ padding: '0.4rem 0.8rem', borderRadius: '6px', background: 'rgba(255, 255, 255, 0.05)', fontSize: '0.8rem', color: '#b0c4c6' }}>
-                      📝 {item.tasks_count || 0} Tasks Assigned
+                      {item.tasks_count || 0} Tasks Assigned
                     </div>
                     <div style={{ padding: '0.4rem 0.8rem', borderRadius: '6px', background: 'rgba(255, 255, 255, 0.05)', fontSize: '0.8rem', color: '#b0c4c6' }}>
-                      📁 {item.resources_count || 0} Learning Materials
+                      {item.resources_count || 0} Learning Materials
                     </div>
                   </div>
                 </div>
@@ -171,10 +171,10 @@ export function StudentCourses() {
                       Class Days & Timetable
                     </div>
                     <div style={{ fontWeight: 600, color: '#fff', fontSize: '0.95rem', marginTop: '0.2rem' }}>
-                      📅 {slot.days || 'Weekly Schedule'}
+                      {slot.days || 'Weekly Schedule'}
                     </div>
                     <div style={{ fontSize: '0.8rem', color: '#b0c4c6', marginTop: '0.1rem' }}>
-                      ⏰ {slot.time || 'Check schedule calendar'}
+                      {slot.time || 'Check schedule calendar'}
                     </div>
                   </div>
                 </div>

@@ -177,7 +177,7 @@ export function StudentTasks() {
         </div>
       ) : filteredTasks.length === 0 ? (
         <div className="glass-panel" style={{ textAlign: 'center', padding: '3.5rem' }}>
-          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📝</div>
+          <div style={{ fontSize: '1.1rem', marginBottom: '0.5rem', color: '#8892b0' }}>No Tasks Found</div>
           <h3 style={{ color: '#fff', marginBottom: '0.5rem' }}>No Tasks Found</h3>
           <p style={{ color: '#8892b0', margin: 0 }}>
             {filter === 'pending'
@@ -241,7 +241,7 @@ export function StudentTasks() {
                     >
                       {task.submission_status === 'reviewed'
                         ? `Grade: ${task.grade || ''} (${task.score || 0}%)`
-                        : '✓ Submitted'}
+                        : 'Submitted'}
                     </span>
                   ) : (
                     <span
@@ -280,7 +280,7 @@ export function StudentTasks() {
 
                 {task.due_date && (
                   <div style={{ fontSize: '0.75rem', color: '#8892b0', marginBottom: '1rem' }}>
-                    ⏰ Due: <strong>{new Date(task.due_date).toLocaleDateString()}</strong>
+                    Due: <strong>{new Date(task.due_date).toLocaleDateString()}</strong>
                   </div>
                 )}
               </div>
@@ -356,7 +356,7 @@ export function StudentTasks() {
                 onClick={closeTaskModal}
                 style={{ background: 'none', border: 'none', color: '#8892b0', fontSize: '1.25rem', cursor: 'pointer' }}
               >
-                ✕
+                Close
               </button>
             </div>
 
@@ -396,7 +396,7 @@ export function StudentTasks() {
                         rel="noopener noreferrer"
                         style={{ color: 'var(--color-primary)', fontSize: '0.8rem', textDecoration: 'none', background: 'rgba(255,255,255,0.05)', padding: '2px 8px', borderRadius: '4px' }}
                       >
-                        📄 Attachment {i + 1} ↗
+                        Attachment {i + 1} ↗
                       </a>
                     ))}
                   </div>
@@ -410,7 +410,7 @@ export function StudentTasks() {
                 <div style={{ padding: '1.25rem', borderRadius: '8px', backgroundColor: 'rgba(52, 211, 153, 0.08)', border: '1px solid rgba(52, 211, 153, 0.2)' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
                     <span style={{ fontSize: '0.8rem', color: '#34d399', fontWeight: 700, textTransform: 'uppercase' }}>
-                      ✓ Your Submission
+                      Your Submission
                     </span>
                     <span style={{ fontSize: '0.75rem', color: '#8892b0' }}>
                       {activeTask.submitted_at ? new Date(activeTask.submitted_at).toLocaleDateString() : ''}
@@ -440,7 +440,7 @@ export function StudentTasks() {
                   </div>
                 ) : (
                   <div style={{ fontSize: '0.85rem', color: '#fbbf24', textAlign: 'center', padding: '0.75rem', borderRadius: '6px', background: 'rgba(251, 191, 36, 0.1)' }}>
-                    ⏳ Your submission is currently waiting for instructor review and grading.
+                    Your submission is currently waiting for instructor review and grading.
                   </div>
                 )}
 
@@ -512,7 +512,7 @@ export function StudentTasks() {
                     className="btn-primary"
                     style={{ padding: '0.65rem 1.5rem', border: 'none', cursor: (submitting || uploading) ? 'not-allowed' : 'pointer', fontWeight: 600 }}
                   >
-                    {uploading ? 'Uploading File...' : submitting ? 'Submitting...' : 'Submit Assignment ✓'}
+                    {uploading ? 'Uploading File...' : submitting ? 'Submitting...' : 'Submit Assignment'}
                   </button>
                 </div>
               </form>

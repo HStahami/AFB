@@ -83,7 +83,7 @@ export function StudentSubmissions() {
         </div>
       ) : filtered.length === 0 ? (
         <div className="glass-panel" style={{ textAlign: 'center', padding: '3.5rem' }}>
-          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📤</div>
+          <div style={{ fontSize: '1.1rem', marginBottom: '0.5rem', color: '#8892b0' }}>No Submissions Found</div>
           <h3 style={{ color: '#fff', marginBottom: '0.5rem' }}>No Submissions Found</h3>
           <p style={{ color: '#8892b0', margin: 0 }}>
             {filter === 'reviewed'
@@ -205,7 +205,7 @@ export function StudentSubmissions() {
                 onClick={() => setSelectedSub(null)}
                 style={{ background: 'none', border: 'none', color: '#8892b0', fontSize: '1.2rem', cursor: 'pointer' }}
               >
-                ✕
+                Close
               </button>
             </div>
 
@@ -230,7 +230,7 @@ export function StudentSubmissions() {
                         rel="noopener noreferrer"
                         style={{ color: 'var(--color-primary)', fontSize: '0.8rem', textDecoration: 'none' }}
                       >
-                        📎 File {i + 1} ↗
+                        File {i + 1} ↗
                       </a>
                     ))}
                   </div>
@@ -261,7 +261,7 @@ export function StudentSubmissions() {
               </div>
             ) : (
               <div style={{ padding: '1rem', borderRadius: '8px', backgroundColor: 'rgba(251, 191, 36, 0.1)', color: '#fbbf24', fontSize: '0.85rem', marginBottom: '1.5rem', textAlign: 'center' }}>
-                ⏳ This submission is queued for grading by your instructor.
+                This submission is queued for grading by your instructor.
               </div>
             )}
 

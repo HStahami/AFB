@@ -70,10 +70,10 @@ export function StudentCourseDetail() {
 
           <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
             <div style={{ padding: '0.5rem 1rem', borderRadius: '6px', background: 'rgba(56, 189, 248, 0.1)', color: '#38bdf8', fontSize: '0.85rem' }}>
-              📝 {tasks.length} Assigned Tasks
+              {tasks.length} Assigned Tasks
             </div>
             <div style={{ padding: '0.5rem 1rem', borderRadius: '6px', background: 'rgba(52, 211, 153, 0.1)', color: '#34d399', fontSize: '0.85rem' }}>
-              📁 {resources.length} Learning Resources
+              {resources.length} Learning Resources
             </div>
           </div>
         </div>

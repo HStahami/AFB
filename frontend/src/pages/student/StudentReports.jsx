@@ -29,7 +29,7 @@ export function StudentReports() {
   if (loading) {
     return (
       <div className="glass-panel" style={{ textAlign: 'center', padding: '4rem 1rem', color: '#8892b0' }}>
-        <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>📈</div>
+        <div style={{ fontSize: '1.1rem', marginBottom: '0.5rem', color: '#8892b0' }}>Progress Report</div>
         <p style={{ color: 'var(--color-primary)', fontSize: '1.1rem' }}>Computing your dynamic progress report...</p>
       </div>
     );
@@ -77,7 +77,7 @@ export function StudentReports() {
             gap: '0.5rem',
           }}
         >
-          🖨️ Print Academic Report
+          Print Academic Report
         </button>
       </div>
 

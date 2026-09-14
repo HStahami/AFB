@@ -37,15 +37,15 @@ export function StudentResources() {
   const getTypeIcon = (type) => {
     switch (type) {
       case 'pdf':
-        return '📄';
+        return 'PDF';
       case 'video':
-        return '🎥';
+        return 'Video';
       case 'audio':
-        return '🎧';
+        return 'Audio';
       case 'link':
-        return '🔗';
+        return 'Link';
       default:
-        return '📁';
+        return 'File';
     }
   };
 
@@ -131,7 +131,7 @@ export function StudentResources() {
         </div>
       ) : filtered.length === 0 ? (
         <div className="glass-panel" style={{ textAlign: 'center', padding: '3.5rem' }}>
-          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📁</div>
+          <div style={{ fontSize: '1.1rem', marginBottom: '0.5rem', color: '#8892b0' }}>No Resources Available</div>
           <h3 style={{ color: '#fff', marginBottom: '0.5rem' }}>No Resources Available</h3>
           <p style={{ color: '#8892b0', margin: 0 }}>
             No study materials have been published for your enrolled courses yet.
