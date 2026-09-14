@@ -223,8 +223,11 @@ export function InstructorStudentDetail() {
               <div><strong style={{ color: "#fff" }}>Father / Guardian Name:</strong> {student.guardian_name || "Not provided"}</div>
               <div><strong style={{ color: "#fff" }}>Father / Guardian Phone:</strong> {student.guardian_phone || "Not provided"}</div>
               <div style={{ borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: "0.6rem", marginTop: "0.2rem" }}>
-                <strong style={{ color: "#fff" }}>Enrolled / Selected Course:</strong> {student.course || student.preferred_course || "Standard Arabic"}
+                <strong style={{ color: "#fff" }}>Enrolled / Selected Course:</strong> {student.course || student.preferred_course || "Modern Standard Arabic"}
               </div>
+              {(student.selected_module || student.module) && (
+                <div><strong style={{ color: "#fff" }}>Module / Track:</strong> {student.selected_module || student.module}</div>
+              )}
               <div><strong style={{ color: "#fff" }}>Preferred Days:</strong> {student.preferred_days || "Weekdays"}</div>
               <div><strong style={{ color: "#fff" }}>Class Type:</strong> {student.preferred_class_type || "1 on 1"}</div>
               <div><strong style={{ color: "#fff" }}>Preferred Time Slot:</strong> {student.preferred_time_slot || student.slot || "Not specified"}</div>

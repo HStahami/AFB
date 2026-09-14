@@ -30,10 +30,11 @@ export function OnboardingModal({ user, onComplete }) {
     address: '',
     education: 'Undergraduate',
     referral_source: 'Social Media',
-    course: '',
+    course: 'Modern Standard Arabic',
+    selected_module: 'All 4 Modules Included',
     preferred_days: 'Weekdays',
     preferred_class_type: '1 on 1',
-    preferred_time_slot: 'Morning (08:00 AM - 12:00 PM)',
+    preferred_time_slot: '',
     bio: '',
   });
 
@@ -71,12 +72,31 @@ export function OnboardingModal({ user, onComplete }) {
 
       const resolvedEmail = prof?.email || user?.email || '';
       const resolvedPhone = prof?.phone || '';
-      const defaultCourse = mods.length > 0 ? (mods[0].title || mods[0].name) : 'Arabic for Beginners';
-      const resolvedCourse = prof?.course || prof?.preferred_course || defaultCourse;
+
+      const rawCourse = prof?.course || prof?.preferred_course || 'Modern Standard Arabic';
+      let resolvedCourse = rawCourse;
+      if (!['Modern Standard Arabic', 'Arabic For Kids', 'Arabic Training (MENA)'].includes(rawCourse)) {
+        if (rawCourse.toLowerCase().includes('kid')) {
+          resolvedCourse = 'Arabic For Kids';
+        } else if (rawCourse.toLowerCase().includes('mena') || rawCourse.toLowerCase().includes('train')) {
+          resolvedCourse = 'Arabic Training (MENA)';
+        } else {
+          resolvedCourse = 'Modern Standard Arabic';
+        }
+      }
+
+      let defaultModule = 'All 4 Modules Included';
+      if (resolvedCourse === 'Arabic Training (MENA)') {
+        defaultModule = 'Team Training';
+      } else if (resolvedCourse === 'Arabic For Kids') {
+        defaultModule = '';
+      }
+      const resolvedModule = prof?.selected_module || prof?.module || defaultModule;
       const resolvedDays = prof?.preferred_days || 'Weekdays';
-      const resolvedClassType = resolvedDays === 'Weekdays' ? '1 on 1' : (prof?.preferred_class_type || '1 on 1');
-      const defaultSlot = slots.length > 0 ? (slots[0].title || slots[0].name || slots[0].time_window) : 'Morning (08:00 AM - 12:00 PM)';
-      const resolvedSlot = prof?.preferred_time_slot || defaultSlot;
+      const resolvedClassType = resolvedCourse === 'Arabic Training (MENA)'
+        ? 'Team Training'
+        : (resolvedDays === 'Weekdays' ? '1 on 1' : (prof?.preferred_class_type || '1 on 1'));
+      const resolvedSlot = prof?.preferred_time_slot || prof?.slot || '';
 
       setProfileData({
         name: resolvedName,
@@ -91,6 +111,7 @@ export function OnboardingModal({ user, onComplete }) {
         education: prof?.education || 'Undergraduate',
         referral_source: prof?.referral_source || 'Social Media',
         course: resolvedCourse,
+        selected_module: resolvedModule,
         preferred_days: resolvedDays,
         preferred_class_type: resolvedClassType,
         preferred_time_slot: resolvedSlot,
@@ -138,11 +159,34 @@ export function OnboardingModal({ user, onComplete }) {
     }
   };
 
+  const handleCourseChange = (newCourse) => {
+    let defaultModule = '';
+    let defaultClassType = '1 on 1';
+    if (newCourse === 'Modern Standard Arabic') {
+      defaultModule = 'All 4 Modules Included';
+      defaultClassType = profileData.preferred_days === 'Weekdays' ? '1 on 1' : (profileData.preferred_class_type === 'Team Training' ? '1 on 1' : profileData.preferred_class_type || '1 on 1');
+    } else if (newCourse === 'Arabic Training (MENA)') {
+      defaultModule = 'Team Training';
+      defaultClassType = 'Team Training';
+    } else if (newCourse === 'Arabic For Kids') {
+      defaultModule = '';
+      defaultClassType = profileData.preferred_days === 'Weekdays' ? '1 on 1' : (profileData.preferred_class_type === 'Team Training' ? '1 on 1' : profileData.preferred_class_type || '1 on 1');
+    }
+    setProfileData((prev) => ({
+      ...prev,
+      course: newCourse,
+      selected_module: defaultModule,
+      preferred_class_type: defaultClassType,
+    }));
+  };
+
   const handleDaysChange = (newDays) => {
     setProfileData((prev) => ({
       ...prev,
       preferred_days: newDays,
-      preferred_class_type: newDays === 'Weekdays' ? '1 on 1' : prev.preferred_class_type || '1 on 1',
+      preferred_class_type: prev.course === 'Arabic Training (MENA)'
+        ? 'Team Training'
+        : (newDays === 'Weekdays' ? '1 on 1' : (prev.preferred_class_type === 'Team Training' ? '1 on 1' : prev.preferred_class_type || '1 on 1')),
     }));
   };
 
@@ -164,6 +208,9 @@ export function OnboardingModal({ user, onComplete }) {
         referral_source: profileData.referral_source || undefined,
         course: profileData.course || undefined,
         preferred_course: profileData.course || undefined,
+        module: profileData.selected_module || undefined,
+        selected_module: profileData.selected_module || undefined,
+        preferred_module: profileData.selected_module || undefined,
         preferred_days: profileData.preferred_days || undefined,
         preferred_class_type: profileData.preferred_class_type || undefined,
         preferred_time_slot: profileData.preferred_time_slot || undefined,
@@ -683,14 +730,14 @@ export function OnboardingModal({ user, onComplete }) {
               </div>
             </div>
 
-            {/* Section 3: Class & Course Preferences */}
+            {/* Section 3: Course & Class Preferences */}
             <div style={{ border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '12px', padding: '1.25rem', backgroundColor: 'rgba(255, 255, 255, 0.02)' }}>
               <div style={{ fontSize: '0.82rem', color: 'var(--color-primary)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                 <span>📚</span> Course & Class Preferences
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
-                {/* 12. Course (modules) */}
+                {/* Course */}
                 <div>
                   <label style={{ display: 'block', fontSize: '0.8rem', color: '#cbd5e1', marginBottom: '0.35rem', fontWeight: 500 }}>
                     Course *
@@ -698,7 +745,7 @@ export function OnboardingModal({ user, onComplete }) {
                   <select
                     required
                     value={profileData.course}
-                    onChange={(e) => setProfileData({ ...profileData, course: e.target.value })}
+                    onChange={(e) => handleCourseChange(e.target.value)}
                     style={{
                       width: '100%',
                       padding: '0.65rem 0.85rem',
@@ -710,25 +757,69 @@ export function OnboardingModal({ user, onComplete }) {
                       boxSizing: 'border-box',
                     }}
                   >
-                    {modulesList.length > 0 ? (
-                      modulesList.map((mod) => (
-                        <option key={mod._id || mod.id} value={mod.title || mod.name}>
-                          {mod.title || mod.name}
-                        </option>
-                      ))
-                    ) : (
-                      <>
-                        <option value="Arabic for Beginners">Arabic for Beginners</option>
-                        <option value="Intermediate Arabic">Intermediate Arabic</option>
-                        <option value="Advanced Classical & Quranic Arabic">Advanced Classical & Quranic Arabic</option>
-                        <option value="Conversational Arabic">Conversational Arabic</option>
-                        <option value="Arabic Grammar & Morphology">Arabic Grammar & Morphology</option>
-                      </>
-                    )}
+                    <option value="Modern Standard Arabic">Modern Standard Arabic</option>
+                    <option value="Arabic For Kids">Arabic For Kids</option>
+                    <option value="Arabic Training (MENA)">Arabic Training (MENA)</option>
                   </select>
                 </div>
 
-                {/* 13. Days */}
+                {/* Dynamic Modules Options based on Course */}
+                {profileData.course === 'Modern Standard Arabic' && (
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.8rem', color: '#cbd5e1', marginBottom: '0.35rem', fontWeight: 500 }}>
+                      Modules (Options) *
+                    </label>
+                    <select
+                      required
+                      value={profileData.selected_module || 'All 4 Modules Included'}
+                      onChange={(e) => setProfileData({ ...profileData, selected_module: e.target.value })}
+                      style={{
+                        width: '100%',
+                        padding: '0.65rem 0.85rem',
+                        backgroundColor: 'rgba(15, 23, 42, 0.8)',
+                        border: '1px solid rgba(255, 255, 255, 0.15)',
+                        borderRadius: '8px',
+                        color: '#fff',
+                        fontSize: '0.85rem',
+                        boxSizing: 'border-box',
+                      }}
+                    >
+                      <option value="All 4 Modules Included">All 4 Modules Included</option>
+                      <option value="Module 1: Foundation (A1)">Module 1: Foundation (A1)</option>
+                      <option value="Module 2: Elementary (A2)">Module 2: Elementary (A2)</option>
+                      <option value="Module 3: Intermediate (B1)">Module 3: Intermediate (B1)</option>
+                      <option value="Module 4: Advanced (B2)">Module 4: Advanced (B2)</option>
+                    </select>
+                  </div>
+                )}
+
+                {profileData.course === 'Arabic Training (MENA)' && (
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.8rem', color: '#cbd5e1', marginBottom: '0.35rem', fontWeight: 500 }}>
+                      Module / Training Track *
+                    </label>
+                    <select
+                      value="Team Training"
+                      disabled
+                      style={{
+                        width: '100%',
+                        padding: '0.65rem 0.85rem',
+                        backgroundColor: 'rgba(15, 23, 42, 0.5)',
+                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                        borderRadius: '8px',
+                        color: 'var(--color-primary)',
+                        fontWeight: 600,
+                        fontSize: '0.85rem',
+                        cursor: 'not-allowed',
+                        boxSizing: 'border-box',
+                      }}
+                    >
+                      <option value="Team Training">Team Training</option>
+                    </select>
+                  </div>
+                )}
+
+                {/* Days */}
                 <div>
                   <label style={{ display: 'block', fontSize: '0.8rem', color: '#cbd5e1', marginBottom: '0.35rem', fontWeight: 500 }}>
                     Days *
@@ -750,15 +841,37 @@ export function OnboardingModal({ user, onComplete }) {
                   >
                     <option value="Weekdays">Weekdays</option>
                     <option value="Weekend">Weekend</option>
+                    {profileData.course === 'Arabic Training (MENA)' && (
+                      <option value="Custom Schedule">Custom Schedule (Team / Corporate)</option>
+                    )}
                   </select>
                 </div>
 
-                {/* Conditional Class Type based on Days */}
+                {/* Class Type: for Modern Standard Arabic & Arabic For Kids */}
                 <div>
                   <label style={{ display: 'block', fontSize: '0.8rem', color: '#cbd5e1', marginBottom: '0.35rem', fontWeight: 500 }}>
                     Class Type *
                   </label>
-                  {profileData.preferred_days === 'Weekdays' ? (
+                  {profileData.course === 'Arabic Training (MENA)' ? (
+                    <select
+                      value="Team Training"
+                      disabled
+                      style={{
+                        width: '100%',
+                        padding: '0.65rem 0.85rem',
+                        backgroundColor: 'rgba(15, 23, 42, 0.5)',
+                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                        borderRadius: '8px',
+                        color: 'var(--color-primary)',
+                        fontWeight: 600,
+                        fontSize: '0.85rem',
+                        cursor: 'not-allowed',
+                        boxSizing: 'border-box',
+                      }}
+                    >
+                      <option value="Team Training">Team Training</option>
+                    </select>
+                  ) : profileData.preferred_days === 'Weekdays' ? (
                     <select
                       value="1 on 1"
                       disabled
@@ -798,15 +911,17 @@ export function OnboardingModal({ user, onComplete }) {
                   )}
                 </div>
 
-                {/* 14. Preferred Time Slot */}
-                <div>
+                {/* Preferred Time Slot (Student's suggestion) */}
+                <div style={{ gridColumn: '1 / -1' }}>
                   <label style={{ display: 'block', fontSize: '0.8rem', color: '#cbd5e1', marginBottom: '0.35rem', fontWeight: 500 }}>
-                    Preferred Time Slot *
+                    Preferred Time Slot (Your Suggestion) *
                   </label>
-                  <select
+                  <input
+                    type="text"
                     required
                     value={profileData.preferred_time_slot}
                     onChange={(e) => setProfileData({ ...profileData, preferred_time_slot: e.target.value })}
+                    placeholder="e.g. 06:00 PM - 07:00 PM (PKT) / After 5 PM / Flexible"
                     style={{
                       width: '100%',
                       padding: '0.65rem 0.85rem',
@@ -817,25 +932,35 @@ export function OnboardingModal({ user, onComplete }) {
                       fontSize: '0.85rem',
                       boxSizing: 'border-box',
                     }}
-                  >
-                    {slotsList.length > 0 ? (
-                      slotsList.map((slot) => {
-                        const slotLabel = slot.title || slot.name || slot.time_window || `${slot.start_time || ''} - ${slot.end_time || ''}`;
-                        return (
-                          <option key={slot._id || slot.id} value={slotLabel}>
-                            {slotLabel}
-                          </option>
-                        );
-                      })
-                    ) : (
-                      <>
-                        <option value="Morning (08:00 AM - 12:00 PM)">Morning (08:00 AM - 12:00 PM)</option>
-                        <option value="Afternoon (12:00 PM - 05:00 PM)">Afternoon (12:00 PM - 05:00 PM)</option>
-                        <option value="Evening (05:00 PM - 09:00 PM)">Evening (05:00 PM - 09:00 PM)</option>
-                        <option value="Night (09:00 PM - 12:00 AM)">Night (09:00 PM - 12:00 AM)</option>
-                      </>
-                    )}
-                  </select>
+                  />
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', marginTop: '0.5rem', alignItems: 'center' }}>
+                    <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Quick suggestions:</span>
+                    {[
+                      'Morning (08:00 AM - 12:00 PM)',
+                      'Afternoon (12:00 PM - 05:00 PM)',
+                      'Evening (05:00 PM - 09:00 PM)',
+                      'Night (09:00 PM - 12:00 AM)',
+                      'Flexible / Any Time',
+                    ].map((sug) => (
+                      <button
+                        key={sug}
+                        type="button"
+                        onClick={() => setProfileData((prev) => ({ ...prev, preferred_time_slot: sug }))}
+                        style={{
+                          fontSize: '0.72rem',
+                          padding: '3px 9px',
+                          borderRadius: '12px',
+                          background: profileData.preferred_time_slot === sug ? 'rgba(197, 229, 232, 0.25)' : 'rgba(255, 255, 255, 0.05)',
+                          color: profileData.preferred_time_slot === sug ? 'var(--color-primary)' : '#cbd5e1',
+                          border: profileData.preferred_time_slot === sug ? '1px solid var(--color-primary)' : '1px solid rgba(255, 255, 255, 0.1)',
+                          cursor: 'pointer',
+                          transition: 'all 0.15s ease',
+                        }}
+                      >
+                        {sug}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>

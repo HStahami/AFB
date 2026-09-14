@@ -80,6 +80,9 @@ class StudentProfileUpdate(BaseModel):
     referral_source: Optional[str] = None
     course: Optional[str] = None
     preferred_course: Optional[str] = None
+    module: Optional[str] = None
+    selected_module: Optional[str] = None
+    preferred_module: Optional[str] = None
     preferred_days: Optional[str] = None
     preferred_class_type: Optional[str] = None
     preferred_time_slot: Optional[str] = None

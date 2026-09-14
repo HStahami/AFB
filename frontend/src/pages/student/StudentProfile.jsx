@@ -21,10 +21,11 @@ export function StudentProfile() {
     address: '',
     education: 'Undergraduate',
     referral_source: 'Social Media',
-    course: '',
+    course: 'Modern Standard Arabic',
+    selected_module: 'All 4 Modules Included',
     preferred_days: 'Weekdays',
     preferred_class_type: '1 on 1',
-    preferred_time_slot: 'Morning (08:00 AM - 12:00 PM)',
+    preferred_time_slot: '',
     bio: '',
   });
   const [message, setMessage] = useState(null);
@@ -60,12 +61,31 @@ export function StudentProfile() {
 
       const resolvedEmail = data?.email || user?.email || '';
       const resolvedPhone = data?.phone || '';
-      const defaultCourse = mods.length > 0 ? (mods[0].title || mods[0].name) : 'Arabic for Beginners';
-      const resolvedCourse = data?.course || data?.preferred_course || defaultCourse;
+
+      const rawCourse = data?.course || data?.preferred_course || 'Modern Standard Arabic';
+      let resolvedCourse = rawCourse;
+      if (!['Modern Standard Arabic', 'Arabic For Kids', 'Arabic Training (MENA)'].includes(rawCourse)) {
+        if (rawCourse.toLowerCase().includes('kid')) {
+          resolvedCourse = 'Arabic For Kids';
+        } else if (rawCourse.toLowerCase().includes('mena') || rawCourse.toLowerCase().includes('train')) {
+          resolvedCourse = 'Arabic Training (MENA)';
+        } else {
+          resolvedCourse = 'Modern Standard Arabic';
+        }
+      }
+
+      let defaultModule = 'All 4 Modules Included';
+      if (resolvedCourse === 'Arabic Training (MENA)') {
+        defaultModule = 'Team Training';
+      } else if (resolvedCourse === 'Arabic For Kids') {
+        defaultModule = '';
+      }
+      const resolvedModule = data?.selected_module || data?.module || defaultModule;
       const resolvedDays = data?.preferred_days || 'Weekdays';
-      const resolvedClassType = resolvedDays === 'Weekdays' ? '1 on 1' : (data?.preferred_class_type || '1 on 1');
-      const defaultSlot = slots.length > 0 ? (slots[0].title || slots[0].name || slots[0].time_window) : 'Morning (08:00 AM - 12:00 PM)';
-      const resolvedSlot = data?.preferred_time_slot || defaultSlot;
+      const resolvedClassType = resolvedCourse === 'Arabic Training (MENA)'
+        ? 'Team Training'
+        : (resolvedDays === 'Weekdays' ? '1 on 1' : (data?.preferred_class_type || '1 on 1'));
+      const resolvedSlot = data?.preferred_time_slot || data?.slot || '';
 
       setFormData({
         name: resolvedName,
@@ -80,6 +100,7 @@ export function StudentProfile() {
         education: data?.education || 'Undergraduate',
         referral_source: data?.referral_source || 'Social Media',
         course: resolvedCourse,
+        selected_module: resolvedModule,
         preferred_days: resolvedDays,
         preferred_class_type: resolvedClassType,
         preferred_time_slot: resolvedSlot,
@@ -95,11 +116,32 @@ export function StudentProfile() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    if (name === 'preferred_days') {
+    if (name === 'course') {
+      let defaultModule = '';
+      let defaultClassType = '1 on 1';
+      if (value === 'Modern Standard Arabic') {
+        defaultModule = 'All 4 Modules Included';
+        defaultClassType = formData.preferred_days === 'Weekdays' ? '1 on 1' : (formData.preferred_class_type === 'Team Training' ? '1 on 1' : formData.preferred_class_type || '1 on 1');
+      } else if (value === 'Arabic Training (MENA)') {
+        defaultModule = 'Team Training';
+        defaultClassType = 'Team Training';
+      } else if (value === 'Arabic For Kids') {
+        defaultModule = '';
+        defaultClassType = formData.preferred_days === 'Weekdays' ? '1 on 1' : (formData.preferred_class_type === 'Team Training' ? '1 on 1' : formData.preferred_class_type || '1 on 1');
+      }
+      setFormData((prev) => ({
+        ...prev,
+        course: value,
+        selected_module: defaultModule,
+        preferred_class_type: defaultClassType,
+      }));
+    } else if (name === 'preferred_days') {
       setFormData((prev) => ({
         ...prev,
         preferred_days: value,
-        preferred_class_type: value === 'Weekdays' ? '1 on 1' : prev.preferred_class_type || '1 on 1',
+        preferred_class_type: prev.course === 'Arabic Training (MENA)'
+          ? 'Team Training'
+          : (value === 'Weekdays' ? '1 on 1' : (prev.preferred_class_type === 'Team Training' ? '1 on 1' : prev.preferred_class_type || '1 on 1')),
       }));
     } else {
       setFormData((prev) => ({ ...prev, [name]: value }));
@@ -125,6 +167,9 @@ export function StudentProfile() {
         referral_source: formData.referral_source || undefined,
         course: formData.course || undefined,
         preferred_course: formData.course || undefined,
+        module: formData.selected_module || undefined,
+        selected_module: formData.selected_module || undefined,
+        preferred_module: formData.selected_module || undefined,
         preferred_days: formData.preferred_days || undefined,
         preferred_class_type: formData.preferred_class_type || undefined,
         preferred_time_slot: formData.preferred_time_slot || undefined,
@@ -581,13 +626,13 @@ export function StudentProfile() {
           </div>
         </div>
 
-        {/* Section 3: Class & Course Preferences */}
+        {/* Section 3: Course & Class Preferences */}
         <div className="glass-panel" style={{ padding: '1.75rem', borderRadius: '14px' }}>
           <h2 style={{ fontSize: '1.2rem', fontWeight: 700, margin: '0 0 1.25rem 0', color: '#f1f5f9', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <span>📚</span> Course & Class Preferences
           </h2>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.25rem' }}>
-            {/* 12. Course */}
+            {/* Course */}
             <div>
               <label style={{ display: 'block', fontSize: '0.85rem', color: '#cbd5e1', marginBottom: '0.4rem', fontWeight: 500 }}>
                 Course *
@@ -608,25 +653,70 @@ export function StudentProfile() {
                   boxSizing: 'border-box',
                 }}
               >
-                {modulesList.length > 0 ? (
-                  modulesList.map((mod) => (
-                    <option key={mod._id || mod.id} value={mod.title || mod.name}>
-                      {mod.title || mod.name}
-                    </option>
-                  ))
-                ) : (
-                  <>
-                    <option value="Arabic for Beginners">Arabic for Beginners</option>
-                    <option value="Intermediate Arabic">Intermediate Arabic</option>
-                    <option value="Advanced Classical & Quranic Arabic">Advanced Classical & Quranic Arabic</option>
-                    <option value="Conversational Arabic">Conversational Arabic</option>
-                    <option value="Arabic Grammar & Morphology">Arabic Grammar & Morphology</option>
-                  </>
-                )}
+                <option value="Modern Standard Arabic">Modern Standard Arabic</option>
+                <option value="Arabic For Kids">Arabic For Kids</option>
+                <option value="Arabic Training (MENA)">Arabic Training (MENA)</option>
               </select>
             </div>
 
-            {/* 13. Days */}
+            {/* Dynamic Modules Options based on Course */}
+            {formData.course === 'Modern Standard Arabic' && (
+              <div>
+                <label style={{ display: 'block', fontSize: '0.85rem', color: '#cbd5e1', marginBottom: '0.4rem', fontWeight: 500 }}>
+                  Modules (Options) *
+                </label>
+                <select
+                  required
+                  name="selected_module"
+                  value={formData.selected_module || 'All 4 Modules Included'}
+                  onChange={handleChange}
+                  style={{
+                    width: '100%',
+                    padding: '0.75rem',
+                    borderRadius: '8px',
+                    border: '1px solid rgba(255, 255, 255, 0.15)',
+                    background: 'rgba(15, 23, 42, 0.8)',
+                    color: '#f8fafc',
+                    outline: 'none',
+                    boxSizing: 'border-box',
+                  }}
+                >
+                  <option value="All 4 Modules Included">All 4 Modules Included</option>
+                  <option value="Module 1: Foundation (A1)">Module 1: Foundation (A1)</option>
+                  <option value="Module 2: Elementary (A2)">Module 2: Elementary (A2)</option>
+                  <option value="Module 3: Intermediate (B1)">Module 3: Intermediate (B1)</option>
+                  <option value="Module 4: Advanced (B2)">Module 4: Advanced (B2)</option>
+                </select>
+              </div>
+            )}
+
+            {formData.course === 'Arabic Training (MENA)' && (
+              <div>
+                <label style={{ display: 'block', fontSize: '0.85rem', color: '#cbd5e1', marginBottom: '0.4rem', fontWeight: 500 }}>
+                  Module / Training Track *
+                </label>
+                <select
+                  name="selected_module"
+                  value="Team Training"
+                  disabled
+                  style={{
+                    width: '100%',
+                    padding: '0.75rem',
+                    borderRadius: '8px',
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    background: 'rgba(15, 23, 42, 0.5)',
+                    color: 'var(--color-primary)',
+                    fontWeight: 600,
+                    cursor: 'not-allowed',
+                    boxSizing: 'border-box',
+                  }}
+                >
+                  <option value="Team Training">Team Training</option>
+                </select>
+              </div>
+            )}
+
+            {/* Days */}
             <div>
               <label style={{ display: 'block', fontSize: '0.85rem', color: '#cbd5e1', marginBottom: '0.4rem', fontWeight: 500 }}>
                 Days *
@@ -649,15 +739,36 @@ export function StudentProfile() {
               >
                 <option value="Weekdays">Weekdays</option>
                 <option value="Weekend">Weekend</option>
+                {formData.course === 'Arabic Training (MENA)' && (
+                  <option value="Custom Schedule">Custom Schedule (Team / Corporate)</option>
+                )}
               </select>
             </div>
 
-            {/* Conditional Class Type based on Days */}
+            {/* Class Type: for Modern Standard Arabic & Arabic For Kids */}
             <div>
               <label style={{ display: 'block', fontSize: '0.85rem', color: '#cbd5e1', marginBottom: '0.4rem', fontWeight: 500 }}>
                 Class Type *
               </label>
-              {formData.preferred_days === 'Weekdays' ? (
+              {formData.course === 'Arabic Training (MENA)' ? (
+                <select
+                  value="Team Training"
+                  disabled
+                  style={{
+                    width: '100%',
+                    padding: '0.75rem',
+                    borderRadius: '8px',
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    background: 'rgba(15, 23, 42, 0.5)',
+                    color: 'var(--color-primary)',
+                    fontWeight: 600,
+                    cursor: 'not-allowed',
+                    boxSizing: 'border-box',
+                  }}
+                >
+                  <option value="Team Training">Team Training</option>
+                </select>
+              ) : formData.preferred_days === 'Weekdays' ? (
                 <select
                   value="1 on 1"
                   disabled
@@ -697,16 +808,18 @@ export function StudentProfile() {
               )}
             </div>
 
-            {/* 14. Preferred Time Slot */}
-            <div>
+            {/* Preferred Time Slot (Student's suggestion) */}
+            <div style={{ gridColumn: '1 / -1' }}>
               <label style={{ display: 'block', fontSize: '0.85rem', color: '#cbd5e1', marginBottom: '0.4rem', fontWeight: 500 }}>
-                Preferred Time Slot *
+                Preferred Time Slot (Your Suggestion) *
               </label>
-              <select
+              <input
+                type="text"
                 required
                 name="preferred_time_slot"
                 value={formData.preferred_time_slot}
                 onChange={handleChange}
+                placeholder="e.g. 06:00 PM - 07:00 PM (PKT) / After 5 PM / Flexible"
                 style={{
                   width: '100%',
                   padding: '0.75rem',
@@ -717,25 +830,35 @@ export function StudentProfile() {
                   outline: 'none',
                   boxSizing: 'border-box',
                 }}
-              >
-                {slotsList.length > 0 ? (
-                  slotsList.map((slot) => {
-                    const slotLabel = slot.title || slot.name || slot.time_window || `${slot.start_time || ''} - ${slot.end_time || ''}`;
-                    return (
-                      <option key={slot._id || slot.id} value={slotLabel}>
-                        {slotLabel}
-                      </option>
-                    );
-                  })
-                ) : (
-                  <>
-                    <option value="Morning (08:00 AM - 12:00 PM)">Morning (08:00 AM - 12:00 PM)</option>
-                    <option value="Afternoon (12:00 PM - 05:00 PM)">Afternoon (12:00 PM - 05:00 PM)</option>
-                    <option value="Evening (05:00 PM - 09:00 PM)">Evening (05:00 PM - 09:00 PM)</option>
-                    <option value="Night (09:00 PM - 12:00 AM)">Night (09:00 PM - 12:00 AM)</option>
-                  </>
-                )}
-              </select>
+              />
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', marginTop: '0.5rem', alignItems: 'center' }}>
+                <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Quick suggestions:</span>
+                {[
+                  'Morning (08:00 AM - 12:00 PM)',
+                  'Afternoon (12:00 PM - 05:00 PM)',
+                  'Evening (05:00 PM - 09:00 PM)',
+                  'Night (09:00 PM - 12:00 AM)',
+                  'Flexible / Any Time',
+                ].map((sug) => (
+                  <button
+                    key={sug}
+                    type="button"
+                    onClick={() => setFormData((prev) => ({ ...prev, preferred_time_slot: sug }))}
+                    style={{
+                      fontSize: '0.72rem',
+                      padding: '3px 9px',
+                      borderRadius: '12px',
+                      background: formData.preferred_time_slot === sug ? 'rgba(197, 229, 232, 0.25)' : 'rgba(255, 255, 255, 0.05)',
+                      color: formData.preferred_time_slot === sug ? 'var(--color-primary)' : '#cbd5e1',
+                      border: formData.preferred_time_slot === sug ? '1px solid var(--color-primary)' : '1px solid rgba(255, 255, 255, 0.1)',
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease',
+                    }}
+                  >
+                    {sug}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         </div>
