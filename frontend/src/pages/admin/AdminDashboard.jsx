@@ -41,8 +41,9 @@ export function AdminDashboard({ onLogout }) {
   const [slotFormSuccess, setSlotFormSuccess] = useState('');
   const [slotFormError, setSlotFormError] = useState('');
 
-  // Assign modal state
+  // Assign & Profile View modal state
   const [selectedStudent, setSelectedStudent] = useState(null);
+  const [viewingStudent, setViewingStudent] = useState(null);
   const [assignSlot, setAssignSlot] = useState('');
   const [assignInst, setAssignInst] = useState('');
 
@@ -587,24 +588,79 @@ export function AdminDashboard({ onLogout }) {
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
                   <tr>
+                    <th style={tableHeaderStyle}>Student ID</th>
                     <th style={tableHeaderStyle}>Name</th>
-                    <th style={tableHeaderStyle}>Email</th>
-                    <th style={tableHeaderStyle}>Phone</th>
-                    <th style={tableHeaderStyle}>Slot</th>
-                    <th style={tableHeaderStyle}>Instructor</th>
-                    <th style={tableHeaderStyle}>Action</th>
+                    <th style={tableHeaderStyle}>Email / Phone</th>
+                    <th style={tableHeaderStyle}>Course Preferences</th>
+                    <th style={tableHeaderStyle}>Assigned Class</th>
+                    <th style={tableHeaderStyle}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {students.map(std => (
                     <tr key={std._id}>
-                      <td style={tableCellStyle}>{std.first_name} {std.last_name}</td>
-                      <td style={tableCellStyle}>{std.email}</td>
-                      <td style={tableCellStyle}>{std.phone}</td>
-                      <td style={tableCellStyle}>{std.slot || <span style={{ color: '#777' }}>Not Assigned</span>}</td>
-                      <td style={tableCellStyle}>{std.instructor || <span style={{ color: '#777' }}>Not Assigned</span>}</td>
                       <td style={tableCellStyle}>
-                        <button onClick={() => setSelectedStudent(std)} className="btn-primary" style={{ padding: '6px 12px', fontSize: '0.85rem' }}>Assign/Edit</button>
+                        <span style={{ fontWeight: '700', color: 'var(--color-primary)', fontSize: '0.85rem' }}>
+                          {std.student_code || 'PENDING'}
+                        </span>
+                      </td>
+                      <td style={tableCellStyle}>
+                        <div style={{ fontWeight: '600', color: '#fff' }}>{std.first_name} {std.last_name || std.name || ''}</div>
+                        {std.city && std.country && (
+                          <div style={{ fontSize: '0.75rem', color: '#8892b0' }}>{std.city}, {std.country}</div>
+                        )}
+                      </td>
+                      <td style={tableCellStyle}>
+                        <div style={{ fontSize: '0.85rem' }}>{std.email}</div>
+                        <div style={{ fontSize: '0.78rem', color: '#aaa' }}>{std.phone || 'No phone'}</div>
+                      </td>
+                      <td style={tableCellStyle}>
+                        <div style={{ fontWeight: '600', color: 'var(--color-primary)', fontSize: '0.85rem' }}>
+                          {std.course || std.preferred_course || 'Modern Standard Arabic'}
+                        </div>
+                        {(std.selected_module || std.module) && (
+                          <div style={{ fontSize: '0.75rem', color: '#cbd5e1' }}>
+                            Track: {std.selected_module || std.module}
+                          </div>
+                        )}
+                        <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
+                          {std.preferred_days || 'Weekdays'} • {std.preferred_class_type || '1 on 1'}
+                        </div>
+                        {std.preferred_time_slot && (
+                          <div style={{ fontSize: '0.72rem', color: '#f39c12' }} title="Suggested Slot">
+                            🕒 {std.preferred_time_slot}
+                          </div>
+                        )}
+                      </td>
+                      <td style={tableCellStyle}>
+                        <div style={{ fontSize: '0.85rem', color: std.slot ? '#fff' : '#777' }}>
+                          {std.slot || 'No Slot'}
+                        </div>
+                        <div style={{ fontSize: '0.78rem', color: std.instructor ? 'var(--color-primary)' : '#777' }}>
+                          {std.instructor ? `👨‍🏫 ${std.instructor}` : 'Unassigned'}
+                        </div>
+                      </td>
+                      <td style={tableCellStyle}>
+                        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                          <button
+                            onClick={() => setViewingStudent(std)}
+                            className="glass-panel"
+                            style={{ padding: '6px 10px', fontSize: '0.8rem', border: '1px solid rgba(197, 229, 232, 0.25)', color: 'var(--color-primary)', cursor: 'pointer' }}
+                          >
+                            View Profile
+                          </button>
+                          <button
+                            onClick={() => {
+                              setSelectedStudent(std);
+                              setAssignSlot(std.slot || '');
+                              setAssignInst(std.instructor || '');
+                            }}
+                            className="btn-primary"
+                            style={{ padding: '6px 10px', fontSize: '0.8rem', cursor: 'pointer' }}
+                          >
+                            Assign/Edit
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -614,14 +670,28 @@ export function AdminDashboard({ onLogout }) {
 
             {/* Assign Modal Overlay */}
             {selectedStudent && (
-              <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 200 }}>
-                <div className="glass-panel" style={{ padding: '2.5rem', maxWidth: '400px', width: '90%' }}>
-                  <h3 style={{ color: 'var(--color-white)', marginBottom: '1.5rem' }}>Assign Class Details</h3>
-                  <p style={{ color: '#aaa', marginBottom: '1.5rem' }}>Student: {selectedStudent.first_name} {selectedStudent.last_name}</p>
-                  <form onSubmit={handleAssignSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 200, padding: '1rem' }}>
+                <div className="glass-panel" style={{ padding: '2rem', maxWidth: '440px', width: '100%', maxHeight: '90vh', overflowY: 'auto' }}>
+                  <h3 style={{ color: 'var(--color-white)', marginBottom: '0.5rem', fontSize: '1.25rem' }}>Assign Class Details</h3>
+                  <p style={{ color: '#cbd5e1', fontSize: '0.9rem', marginBottom: '1rem' }}>
+                    Student: <strong style={{ color: '#fff' }}>{selectedStudent.first_name} {selectedStudent.last_name || selectedStudent.name || ''}</strong> ({selectedStudent.student_code || 'ID Pending'})
+                  </p>
+
+                  {/* Student's Saved Preferences Notice for Admin */}
+                  <div style={{ backgroundColor: 'rgba(197, 229, 232, 0.08)', border: '1px solid rgba(197, 229, 232, 0.2)', borderRadius: '8px', padding: '0.85rem', marginBottom: '1.25rem', fontSize: '0.82rem', color: '#b0c4c6' }}>
+                    <div style={{ fontWeight: '700', color: 'var(--color-primary)', marginBottom: '0.35rem' }}>📌 Student's Saved Preferences:</div>
+                    <div>• <strong>Course:</strong> {selectedStudent.course || selectedStudent.preferred_course || 'Modern Standard Arabic'}</div>
+                    {(selectedStudent.selected_module || selectedStudent.module) && (
+                      <div>• <strong>Module / Track:</strong> {selectedStudent.selected_module || selectedStudent.module}</div>
+                    )}
+                    <div>• <strong>Format:</strong> {selectedStudent.preferred_days || 'Weekdays'} ({selectedStudent.preferred_class_type || '1 on 1'})</div>
+                    <div>• <strong>Suggested Time:</strong> <span style={{ color: '#f39c12', fontWeight: '600' }}>{selectedStudent.preferred_time_slot || 'Not specified'}</span></div>
+                  </div>
+
+                  <form onSubmit={handleAssignSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                     <div>
-                      <label style={{ display: 'block', color: 'var(--color-primary)', marginBottom: '0.5rem' }}>Select Slot/Time</label>
-                      <select required value={assignSlot} onChange={e => setAssignSlot(e.target.value)} style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.4)', color: 'white' }}>
+                      <label style={{ display: 'block', color: 'var(--color-primary)', marginBottom: '0.4rem', fontSize: '0.85rem' }}>Assign Class Slot *</label>
+                      <select required value={assignSlot} onChange={e => setAssignSlot(e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(0,0,0,0.5)', color: 'white', fontSize: '0.9rem' }}>
                         <option value="" disabled>Choose Slot...</option>
                         {slots.filter(s => s.status === 'Active' || (selectedStudent && selectedStudent.slot && (selectedStudent.slot === `${s.days} — ${s.time}` || selectedStudent.slot === `${s.days} ${s.time}`))).map(s => {
                           const val = `${s.days} — ${s.time}`;
@@ -633,19 +703,124 @@ export function AdminDashboard({ onLogout }) {
                       </select>
                     </div>
                     <div>
-                      <label style={{ display: 'block', color: 'var(--color-primary)', marginBottom: '0.5rem' }}>Select Instructor</label>
-                      <select required value={assignInst} onChange={e => setAssignInst(e.target.value)} style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.4)', color: 'white' }}>
+                      <label style={{ display: 'block', color: 'var(--color-primary)', marginBottom: '0.4rem', fontSize: '0.85rem' }}>Assign Instructor *</label>
+                      <select required value={assignInst} onChange={e => setAssignInst(e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(0,0,0,0.5)', color: 'white', fontSize: '0.9rem' }}>
                         <option value="" disabled>Choose Instructor...</option>
                         {instructors.map(inst => (
                           <option key={inst._id} value={inst.name}>{inst.name} ({inst.specialty})</option>
                         ))}
                       </select>
                     </div>
-                    <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
-                      <button type="submit" className="btn-primary" style={{ flex: 1, padding: '12px' }}>Confirm</button>
-                      <button type="button" onClick={() => setSelectedStudent(null)} className="glass-panel" style={{ flex: 1, padding: '12px', border: 'none' }}>Cancel</button>
+                    <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
+                      <button type="submit" className="btn-primary" style={{ flex: 1, padding: '10px' }}>Confirm Assignment</button>
+                      <button type="button" onClick={() => setSelectedStudent(null)} className="glass-panel" style={{ flex: 1, padding: '10px', border: 'none', color: '#cbd5e1' }}>Cancel</button>
                     </div>
                   </form>
+                </div>
+              </div>
+            )}
+
+            {/* View Full Student Profile Modal */}
+            {viewingStudent && (
+              <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 200, padding: '1.5rem' }}>
+                <div className="glass-panel" style={{ padding: '2rem', maxWidth: '600px', width: '100%', maxHeight: '90vh', overflowY: 'auto', borderRadius: '16px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.25rem', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '0.75rem' }}>
+                    <div>
+                      <h3 style={{ color: 'var(--color-white)', fontSize: '1.35rem', fontWeight: 700 }}>
+                        {viewingStudent.first_name} {viewingStudent.last_name || viewingStudent.name || ''}
+                      </h3>
+                      <div style={{ fontSize: '0.85rem', color: 'var(--color-primary)', fontWeight: 600 }}>
+                        Student ID: {viewingStudent.student_code || 'PENDING'} • Status: {viewingStudent.status || 'Active'}
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setViewingStudent(null)}
+                      className="glass-panel"
+                      style={{ padding: '6px 12px', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: '0.9rem' }}
+                    >
+                      ✕ Close
+                    </button>
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem', fontSize: '0.88rem', color: '#b0c4c6' }}>
+                    {/* Contact & Personal */}
+                    <div style={{ backgroundColor: 'rgba(255,255,255,0.03)', padding: '1rem', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                      <div style={{ color: 'var(--color-primary)', fontWeight: 700, marginBottom: '0.5rem', fontSize: '0.92rem' }}>👤 Personal & Contact Details</div>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.5rem' }}>
+                        <div><strong style={{ color: '#fff' }}>Email:</strong> {viewingStudent.email || 'N/A'}</div>
+                        <div><strong style={{ color: '#fff' }}>Phone:</strong> {viewingStudent.phone || 'N/A'}</div>
+                        <div><strong style={{ color: '#fff' }}>Date of Birth:</strong> {viewingStudent.date_of_birth ? viewingStudent.date_of_birth.substring(0, 10) : 'N/A'}</div>
+                        <div><strong style={{ color: '#fff' }}>Education:</strong> {viewingStudent.education || 'N/A'}</div>
+                        <div><strong style={{ color: '#fff' }}>Country:</strong> {viewingStudent.country || 'N/A'}</div>
+                        <div><strong style={{ color: '#fff' }}>City:</strong> {viewingStudent.city || 'N/A'}</div>
+                        <div style={{ gridColumn: '1 / -1' }}><strong style={{ color: '#fff' }}>Address:</strong> {viewingStudent.address || 'N/A'}</div>
+                        <div><strong style={{ color: '#fff' }}>Referral Source:</strong> {viewingStudent.referral_source || 'N/A'}</div>
+                      </div>
+                    </div>
+
+                    {/* Guardian Info */}
+                    <div style={{ backgroundColor: 'rgba(255,255,255,0.03)', padding: '1rem', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                      <div style={{ color: 'var(--color-primary)', fontWeight: 700, marginBottom: '0.5rem', fontSize: '0.92rem' }}>🛡️ Father / Guardian Details</div>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.5rem' }}>
+                        <div><strong style={{ color: '#fff' }}>Father / Guardian Name:</strong> {viewingStudent.guardian_name || viewingStudent.father_name || 'Not provided'}</div>
+                        <div><strong style={{ color: '#fff' }}>Father / Guardian Phone:</strong> {viewingStudent.guardian_phone || viewingStudent.father_phone || 'Not provided'}</div>
+                      </div>
+                    </div>
+
+                    {/* Course & Preferences */}
+                    <div style={{ backgroundColor: 'rgba(255,255,255,0.03)', padding: '1rem', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                      <div style={{ color: 'var(--color-primary)', fontWeight: 700, marginBottom: '0.5rem', fontSize: '0.92rem' }}>📚 Course & Class Preferences</div>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.5rem' }}>
+                        <div><strong style={{ color: '#fff' }}>Selected Course:</strong> {viewingStudent.course || viewingStudent.preferred_course || 'Modern Standard Arabic'}</div>
+                        <div><strong style={{ color: '#fff' }}>Module / Track:</strong> {viewingStudent.selected_module || viewingStudent.module || 'All 4 Modules Included'}</div>
+                        <div><strong style={{ color: '#fff' }}>Preferred Days:</strong> {viewingStudent.preferred_days || 'Weekdays'}</div>
+                        <div><strong style={{ color: '#fff' }}>Class Type:</strong> {viewingStudent.preferred_class_type || '1 on 1'}</div>
+                        <div style={{ gridColumn: '1 / -1' }}>
+                          <strong style={{ color: '#fff' }}>Suggested Time Slot:</strong> <span style={{ color: '#f39c12', fontWeight: 600 }}>{viewingStudent.preferred_time_slot || 'Not specified'}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Assigned LMS Class */}
+                    <div style={{ backgroundColor: 'rgba(255,255,255,0.03)', padding: '1rem', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                      <div style={{ color: 'var(--color-primary)', fontWeight: 700, marginBottom: '0.5rem', fontSize: '0.92rem' }}>🎓 Current Class Assignment</div>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.5rem' }}>
+                        <div><strong style={{ color: '#fff' }}>Assigned Slot:</strong> {viewingStudent.slot || 'Not Assigned'}</div>
+                        <div><strong style={{ color: '#fff' }}>Assigned Instructor:</strong> {viewingStudent.instructor || 'Not Assigned'}</div>
+                      </div>
+                    </div>
+
+                    {/* Bio */}
+                    {viewingStudent.bio && (
+                      <div style={{ backgroundColor: 'rgba(255,255,255,0.03)', padding: '1rem', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                        <div style={{ color: 'var(--color-primary)', fontWeight: 700, marginBottom: '0.3rem', fontSize: '0.92rem' }}>📝 Academic Bio & Goals</div>
+                        <div style={{ color: '#e0e0e0', lineHeight: '1.5' }}>{viewingStudent.bio}</div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1.5rem', gap: '0.75rem' }}>
+                    <button
+                      onClick={() => {
+                        const s = viewingStudent;
+                        setViewingStudent(null);
+                        setSelectedStudent(s);
+                        setAssignSlot(s.slot || '');
+                        setAssignInst(s.instructor || '');
+                      }}
+                      className="btn-primary"
+                      style={{ padding: '8px 18px', fontSize: '0.85rem' }}
+                    >
+                      Assign Slot / Instructor
+                    </button>
+                    <button
+                      onClick={() => setViewingStudent(null)}
+                      className="glass-panel"
+                      style={{ padding: '8px 16px', border: 'none', color: '#cbd5e1' }}
+                    >
+                      Close
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
