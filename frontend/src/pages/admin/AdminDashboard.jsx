@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Plus, Trash2, LogOut } from 'lucide-react';
+import { Plus, Trash2, LogOut, Bell, CheckCircle2 } from 'lucide-react';
 import { API_BASE, getAvatarUrl } from '../../api/client';
 import { inputStyle } from '../../components/common/styles';
 
@@ -12,6 +12,8 @@ export function AdminDashboard({ onLogout }) {
   const [modules, setModules] = useState([]);
   const [slots, setSlots] = useState([]);
   const [contacts, setContacts] = useState([]);
+  const [notifications, setNotifications] = useState([]);
+  const [unreadNotifsCount, setUnreadNotifsCount] = useState(0);
 
   // Instructor Form State
   const [newInstName, setNewInstName] = useState('');
@@ -109,16 +111,49 @@ export function AdminDashboard({ onLogout }) {
     } catch (e) { console.error(e); }
   };
 
+  const fetchNotifications = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/notifications/`, { headers });
+      if (res.ok) {
+        const data = await res.json();
+        const list = Array.isArray(data) ? data : [];
+        setNotifications(list);
+        setUnreadNotifsCount(list.filter(n => !n.is_read).length);
+      }
+    } catch (e) { console.error(e); }
+  };
+
+  const handleMarkAllNotifsRead = async () => {
+    try {
+      await fetch(`${API_BASE}/notifications/read-all`, { method: 'PATCH', headers });
+      fetchNotifications();
+    } catch (e) { console.error(e); }
+  };
+
+  const handleMarkSingleNotifRead = async (id) => {
+    try {
+      await fetch(`${API_BASE}/notifications/${id}/read`, { method: 'PATCH', headers });
+      fetchNotifications();
+    } catch (e) { console.error(e); }
+  };
+
   useEffect(() => {
     fetchStats();
     fetchInstructors();
     fetchSlots();
+    fetchNotifications();
+
+    const notifTimer = setInterval(fetchNotifications, 25000);
+
     if (activeTab === 'admissions') fetchAdmissions();
     if (activeTab === 'students') { fetchStudents(); fetchInstructors(); fetchSlots(); }
     if (activeTab === 'instructors') fetchInstructors();
     if (activeTab === 'modules') fetchModules();
     if (activeTab === 'slots') fetchSlots();
     if (activeTab === 'contacts') fetchContacts();
+    if (activeTab === 'notifications') fetchNotifications();
+
+    return () => clearInterval(notifTimer);
   }, [activeTab]);
 
   const handleSendFeeEmail = async (id) => {
@@ -378,15 +413,31 @@ export function AdminDashboard({ onLogout }) {
       {/* Mobile Top Header */}
       <div className="admin-mobile-header">
         <h3 style={{ color: 'var(--color-white)', fontWeight: 'bold', margin: 0, fontSize: '1.2rem' }} className="gradient-text">LMS Panel</h3>
-        <button className="glass-panel" style={{ padding: '6px 12px', border: 'none', display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#ff6b6b', fontSize: '0.85rem' }} onClick={onLogout}>
-          <LogOut size={14} /> Logout
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <button 
+            className="glass-panel" 
+            style={{ padding: '6px 10px', border: 'none', display: 'flex', alignItems: 'center', gap: '0.3rem', color: unreadNotifsCount > 0 ? 'var(--color-primary)' : '#aaa', fontSize: '0.85rem' }} 
+            onClick={() => setActiveTab('notifications')}
+            title="Notifications"
+          >
+            <Bell size={15} />
+            {unreadNotifsCount > 0 && (
+              <span style={{ background: '#e74c3c', color: '#fff', borderRadius: '10px', padding: '1px 5px', fontSize: '0.65rem', fontWeight: 'bold' }}>
+                {unreadNotifsCount}
+              </span>
+            )}
+          </button>
+          <button className="glass-panel" style={{ padding: '6px 12px', border: 'none', display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#ff6b6b', fontSize: '0.85rem' }} onClick={onLogout}>
+            <LogOut size={14} /> Logout
+          </button>
+        </div>
       </div>
 
       {/* Mobile Horizontal Tab Navigation */}
       <div className="admin-mobile-tab-bar no-scrollbar">
         {[
           { id: 'overview', label: 'Overview' },
+          { id: 'notifications', label: unreadNotifsCount > 0 ? `Alerts (${unreadNotifsCount})` : 'Alerts' },
           { id: 'admissions', label: 'Admissions' },
           { id: 'students', label: 'Students' },
           { id: 'instructors', label: 'Instructors' },
@@ -408,6 +459,20 @@ export function AdminDashboard({ onLogout }) {
       <div className="admin-sidebar">
         <h3 style={{ color: 'var(--color-white)', fontWeight: 'bold', marginBottom: '1.5rem', textAlign: 'center' }} className="gradient-text">LMS Panel</h3>
         <button className={activeTab === 'overview' ? 'btn-primary' : 'glass-panel'} style={{ width: '100%', textAlign: 'left', padding: '10px 15px', border: 'none' }} onClick={() => setActiveTab('overview')}>Overview</button>
+        <button 
+          className={activeTab === 'notifications' ? 'btn-primary' : 'glass-panel'} 
+          style={{ width: '100%', textAlign: 'left', padding: '10px 15px', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }} 
+          onClick={() => setActiveTab('notifications')}
+        >
+          <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <Bell size={16} /> Notifications
+          </span>
+          {unreadNotifsCount > 0 && (
+            <span style={{ background: '#e74c3c', color: '#fff', padding: '2px 7px', borderRadius: '12px', fontSize: '0.72rem', fontWeight: 'bold' }}>
+              {unreadNotifsCount}
+            </span>
+          )}
+        </button>
         <button className={activeTab === 'admissions' ? 'btn-primary' : 'glass-panel'} style={{ width: '100%', textAlign: 'left', padding: '10px 15px', border: 'none' }} onClick={() => setActiveTab('admissions')}>Admissions</button>
         <button className={activeTab === 'students' ? 'btn-primary' : 'glass-panel'} style={{ width: '100%', textAlign: 'left', padding: '10px 15px', border: 'none' }} onClick={() => setActiveTab('students')}>Students</button>
         <button className={activeTab === 'instructors' ? 'btn-primary' : 'glass-panel'} style={{ width: '100%', textAlign: 'left', padding: '10px 15px', border: 'none' }} onClick={() => setActiveTab('instructors')}>Instructors</button>
@@ -1127,6 +1192,118 @@ export function AdminDashboard({ onLogout }) {
                 </tbody>
               </table>
             </div>
+          </div>
+        )}
+
+        {activeTab === 'notifications' && (
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+              <div>
+                <h2 style={{ color: 'var(--color-white)', margin: 0, fontSize: '1.6rem' }}>Live System Alerts & Notifications</h2>
+                <p style={{ color: '#aaa', margin: '4px 0 0 0', fontSize: '0.9rem' }}>
+                  Real-time notifications for student profile completions, registrations, and updates.
+                </p>
+              </div>
+              {unreadNotifsCount > 0 && (
+                <button
+                  onClick={handleMarkAllNotifsRead}
+                  className="glass-panel"
+                  style={{ padding: '8px 16px', color: 'var(--color-primary)', borderColor: 'var(--color-primary)', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', cursor: 'pointer' }}
+                >
+                  <CheckCircle2 size={16} /> Mark All as Read
+                </button>
+              )}
+            </div>
+
+            {notifications.length === 0 ? (
+              <div className="glass-panel" style={{ padding: '3.5rem 2rem', textAlign: 'center', color: '#888' }}>
+                <Bell size={44} style={{ margin: '0 auto 1rem auto', opacity: 0.35, color: 'var(--color-primary)' }} />
+                <p style={{ fontSize: '1.15rem', color: '#e0e0e0', margin: 0, fontWeight: '500' }}>No notifications yet</p>
+                <p style={{ fontSize: '0.88rem', marginTop: '0.5rem', color: '#888' }}>
+                  When a student completes their profile or registers, instant alerts will appear here.
+                </p>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                {notifications.map((notif) => {
+                  const isUnread = !notif.is_read;
+                  const isProfileCompleted = notif.notification_type === 'student_profile_completed';
+                  return (
+                    <div
+                      key={notif._id || notif.id}
+                      className="glass-panel"
+                      style={{
+                        padding: '1.25rem 1.5rem',
+                        borderLeft: isUnread ? '4px solid var(--color-primary)' : '4px solid rgba(255,255,255,0.1)',
+                        background: isUnread ? 'rgba(0, 168, 150, 0.08)' : 'rgba(255, 255, 255, 0.03)',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'flex-start',
+                        gap: '1rem',
+                        flexWrap: 'wrap',
+                        transition: 'all 0.2s ease'
+                      }}
+                    >
+                      <div style={{ flex: 1, minWidth: '240px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.35rem' }}>
+                          <span style={{
+                            fontSize: '0.75rem',
+                            fontWeight: '600',
+                            textTransform: 'uppercase',
+                            padding: '2px 8px',
+                            borderRadius: '4px',
+                            background: isUnread ? 'rgba(0, 168, 150, 0.25)' : 'rgba(255,255,255,0.1)',
+                            color: isUnread ? 'var(--color-primary)' : '#aaa'
+                          }}>
+                            {isProfileCompleted ? 'Profile Completed' : (notif.notification_type || 'Alert')}
+                          </span>
+                          <span style={{ fontSize: '0.8rem', color: '#777' }}>
+                            {notif.created_at ? new Date(notif.created_at).toLocaleString() : ''}
+                          </span>
+                          {isUnread && (
+                            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--color-primary)' }} title="Unread" />
+                          )}
+                        </div>
+                        <h4 style={{ color: 'var(--color-white)', margin: '0 0 0.4rem 0', fontSize: '1.05rem', fontWeight: '600' }}>
+                          {notif.title}
+                        </h4>
+                        <p style={{ color: '#ccc', margin: 0, fontSize: '0.92rem', lineHeight: '1.4' }}>
+                          {notif.message}
+                        </p>
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                        {isProfileCompleted && (
+                          <button
+                            onClick={() => {
+                              setActiveTab('students');
+                              if (notif.related_entity_id) {
+                                const found = students.find(s => String(s._id) === String(notif.related_entity_id));
+                                if (found) setViewingStudent(found);
+                              }
+                            }}
+                            className="glass-panel"
+                            style={{ padding: '6px 12px', fontSize: '0.85rem', color: 'var(--color-primary)', borderColor: 'var(--color-primary)', cursor: 'pointer' }}
+                          >
+                            View Student Profile
+                          </button>
+                        )}
+                        {isUnread && (
+                          <button
+                            onClick={() => handleMarkSingleNotifRead(notif._id || notif.id)}
+                            className="glass-panel"
+                            style={{ padding: '6px 12px', fontSize: '0.85rem', color: '#aaa', cursor: 'pointer' }}
+                            title="Mark as read"
+                          >
+                            Mark Read
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         )}
       </div>

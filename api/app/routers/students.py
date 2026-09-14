@@ -102,6 +102,43 @@ async def update_my_profile(
         {"$set": {"profile_completed": True, "updated_at": datetime.utcnow()}}
     )
 
+    # Notify all Admin users regarding completed profile
+    try:
+        student_name = f"{student.get('first_name', '')} {student.get('last_name', '')}".strip() or student.get("name") or current_user.get("username", "Student")
+        student_code = student.get("student_code", "ID Pending")
+        chosen_course = update_dict.get("course") or student.get("course") or "Modern Standard Arabic"
+        chosen_module = update_dict.get("selected_module") or update_dict.get("module") or student.get("selected_module") or "Standard"
+        suggested_slot = update_dict.get("preferred_time_slot") or student.get("preferred_time_slot") or "Not specified"
+
+        admin_cursor = db.users.find({"role": "admin"})
+        async for admin in admin_cursor:
+            await create_notification(
+                db=db,
+                recipient_user_id=admin["_id"],
+                title="Student Profile Completed",
+                message=f"{student_name} ({student_code}) has completed their profile for {chosen_course} ({chosen_module}) • Suggested Slot: {suggested_slot}.",
+                notification_type="student_profile_completed",
+                related_entity_type="student",
+                related_entity_id=str(student["_id"])
+            )
+
+        # Also notify assigned instructor if one is already assigned
+        if student.get("instructor_id") or student.get("instructor"):
+            inst_query = {"_id": student["instructor_id"]} if student.get("instructor_id") else {"name": student.get("instructor")}
+            inst_doc = await db.instructors.find_one(inst_query)
+            if inst_doc and inst_doc.get("user_id"):
+                await create_notification(
+                    db=db,
+                    recipient_user_id=inst_doc["user_id"],
+                    title="Assigned Student Profile Updated",
+                    message=f"Student {student_name} ({student_code}) updated their profile and preferences.",
+                    notification_type="student_profile_completed",
+                    related_entity_type="student",
+                    related_entity_id=str(student["_id"])
+                )
+    except Exception as notif_err:
+        print(f"[NOTIFICATION ERROR] Failed to dispatch admin/instructor profile notification: {notif_err}")
+
     return {"message": "Profile updated successfully. Onboarding completed!"}
 
 
