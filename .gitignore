@@ -47,3 +47,5 @@ Thumbs.db
 # Uploads
 uploads/*
 !uploads/.gitkeep
+.vercel
+.env*
