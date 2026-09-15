@@ -13,9 +13,22 @@ export class ErrorBoundary extends React.Component {
 
   componentDidCatch(error, errorInfo) {
     console.error('Unhandled React error captured by ErrorBoundary:', error, errorInfo);
+    const msg = error?.message || '';
+    if (
+      msg.includes('Failed to fetch dynamically imported module') ||
+      msg.includes('Importing a module script failed') ||
+      msg.includes('error loading dynamically imported module')
+    ) {
+      const hasRetried = sessionStorage.getItem('chunk_load_retried');
+      if (!hasRetried) {
+        sessionStorage.setItem('chunk_load_retried', 'true');
+        window.location.reload();
+      }
+    }
   }
 
   handleReset = () => {
+    sessionStorage.removeItem('chunk_load_retried');
     this.setState({ hasError: false, error: null });
     window.location.reload();
   };
