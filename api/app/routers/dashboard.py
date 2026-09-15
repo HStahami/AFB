@@ -20,6 +20,8 @@ async def get_dashboard_stats(admin_user: dict = Depends(require_admin)):
         approved = await db.admissions.count_documents({"status": "Approved"})
         canceled = await db.admissions.count_documents({"status": "Canceled"})
         total_students = await db.students.count_documents({})
+        active_students = await db.students.count_documents({"status": {"$ne": "Cancelled"}})
+        canceled_students = await db.students.count_documents({"status": "Cancelled"})
         total_instructors = await db.instructors.count_documents({})
         active_instructors = await db.instructors.count_documents({"is_active": {"$ne": False}})
         total_modules = await db.modules.count_documents({})
@@ -30,6 +32,8 @@ async def get_dashboard_stats(admin_user: dict = Depends(require_admin)):
             "approved": approved,
             "canceled": canceled,
             "total_students": total_students,
+            "active_students": active_students,
+            "canceled_students": canceled_students,
             "total_instructors": total_instructors,
             "active_instructors": active_instructors,
             "total_modules": total_modules,
@@ -39,6 +43,7 @@ async def get_dashboard_stats(admin_user: dict = Depends(require_admin)):
         print(f"ERROR fetching dashboard stats: {e}")
         return {
             "total": 0, "pending": 0, "approved": 0, "canceled": 0,
-            "total_students": 0, "total_instructors": 0, "active_instructors": 0,
+            "total_students": 0, "active_students": 0, "canceled_students": 0,
+            "total_instructors": 0, "active_instructors": 0,
             "total_modules": 0, "total_slots": 0
         }

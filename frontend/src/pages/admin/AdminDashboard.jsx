@@ -8,6 +8,8 @@ export function AdminDashboard({ onLogout }) {
   const [stats, setStats] = useState({ total: 0, pending: 0, approved: 0, canceled: 0, total_students: 0, total_instructors: 0, total_modules: 0 });
   const [admissions, setAdmissions] = useState([]);
   const [students, setStudents] = useState([]);
+  const [studentFilter, setStudentFilter] = useState('all'); // 'all', 'active', 'cancelled'
+  const [studentSearch, setStudentSearch] = useState('');
   const [instructors, setInstructors] = useState([]);
   const [modules, setModules] = useState([]);
   const [slots, setSlots] = useState([]);
@@ -183,6 +185,34 @@ export function AdminDashboard({ onLogout }) {
       fetchAdmissions();
       fetchStats();
     } catch (e) { alert("Failed to cancel"); }
+  };
+
+  const handleCancelStudent = async (id, name) => {
+    if (!confirm(`Are you sure you want to cancel the admission for ${name || 'this student'}? Their portal access will be revoked immediately.`)) return;
+    try {
+      const res = await fetch(`${API_BASE}/students/${id}/cancel`, { method: 'PATCH', headers });
+      if (!res.ok) throw new Error();
+      alert("Student admission has been cancelled. Portal login is now disabled.");
+      fetchStudents();
+      fetchStats();
+      if (viewingStudent && (String(viewingStudent._id) === String(id) || String(viewingStudent.id) === String(id))) {
+        setViewingStudent(prev => ({ ...prev, status: 'Cancelled' }));
+      }
+    } catch (e) { alert("Failed to cancel student admission"); }
+  };
+
+  const handleReactivateStudent = async (id, name) => {
+    if (!confirm(`Are you sure you want to reactivate admission for ${name || 'this student'}?`)) return;
+    try {
+      const res = await fetch(`${API_BASE}/students/${id}/reactivate`, { method: 'PATCH', headers });
+      if (!res.ok) throw new Error();
+      alert("Student admission has been reactivated.");
+      fetchStudents();
+      fetchStats();
+      if (viewingStudent && (String(viewingStudent._id) === String(id) || String(viewingStudent.id) === String(id))) {
+        setViewingStudent(prev => ({ ...prev, status: 'Active' }));
+      }
+    } catch (e) { alert("Failed to reactivate student"); }
   };
 
   const handleAddOrUpdateInstructor = async (e) => {
@@ -726,7 +756,60 @@ export function AdminDashboard({ onLogout }) {
 
         {activeTab === 'students' && (
           <div>
-            <h2 style={{ color: 'var(--color-white)', marginBottom: '1.5rem', fontSize: '1.6rem' }}>Active Students</h2>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+              <div>
+                <h2 style={{ color: 'var(--color-white)', margin: 0, fontSize: '1.6rem' }}>Students & Enrolled Admissions</h2>
+                <p style={{ color: '#aaa', margin: '4px 0 0 0', fontSize: '0.9rem' }}>
+                  Manage enrolled students, class assignments, and admission status.
+                </p>
+              </div>
+
+              {/* Search and Filters */}
+              <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                <input
+                  type="text"
+                  placeholder="Search student, email, ID..."
+                  value={studentSearch}
+                  onChange={e => setStudentSearch(e.target.value)}
+                  style={{
+                    padding: '8px 14px',
+                    borderRadius: '8px',
+                    border: '1px solid rgba(255, 255, 255, 0.15)',
+                    background: 'rgba(0, 0, 0, 0.4)',
+                    color: '#fff',
+                    fontSize: '0.85rem',
+                    minWidth: '220px'
+                  }}
+                />
+
+                <div style={{ display: 'flex', gap: '4px', background: 'rgba(0,0,0,0.3)', padding: '3px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)' }}>
+                  {[
+                    { key: 'all', label: `All (${students.length})` },
+                    { key: 'active', label: `Active (${students.filter(s => s.status !== 'Cancelled').length})` },
+                    { key: 'cancelled', label: `Cancelled (${students.filter(s => s.status === 'Cancelled').length})` }
+                  ].map(tab => (
+                    <button
+                      key={tab.key}
+                      onClick={() => setStudentFilter(tab.key)}
+                      style={{
+                        padding: '6px 12px',
+                        borderRadius: '6px',
+                        border: 'none',
+                        fontSize: '0.8rem',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        background: studentFilter === tab.key ? 'var(--color-primary)' : 'transparent',
+                        color: studentFilter === tab.key ? '#072224' : '#aaa'
+                      }}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Students Table */}
             <div className="table-responsive-container">
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
@@ -736,77 +819,135 @@ export function AdminDashboard({ onLogout }) {
                     <th style={tableHeaderStyle}>Email / Phone</th>
                     <th style={tableHeaderStyle}>Course Preferences</th>
                     <th style={tableHeaderStyle}>Assigned Class</th>
+                    <th style={tableHeaderStyle}>Status</th>
                     <th style={tableHeaderStyle}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {students.map(std => (
-                    <tr key={std._id}>
-                      <td style={tableCellStyle}>
-                        <span style={{ fontWeight: '700', color: 'var(--color-primary)', fontSize: '0.85rem' }}>
-                          {std.student_code || 'PENDING'}
-                        </span>
-                      </td>
-                      <td style={tableCellStyle}>
-                        <div style={{ fontWeight: '600', color: '#fff' }}>{std.first_name} {std.last_name || std.name || ''}</div>
-                        {std.city && std.country && (
-                          <div style={{ fontSize: '0.75rem', color: '#8892b0' }}>{std.city}, {std.country}</div>
-                        )}
-                      </td>
-                      <td style={tableCellStyle}>
-                        <div style={{ fontSize: '0.85rem' }}>{std.email}</div>
-                        <div style={{ fontSize: '0.78rem', color: '#aaa' }}>{std.phone || 'No phone'}</div>
-                      </td>
-                      <td style={tableCellStyle}>
-                        <div style={{ fontWeight: '600', color: 'var(--color-primary)', fontSize: '0.85rem' }}>
-                          {std.course || std.preferred_course || 'Modern Standard Arabic'}
-                        </div>
-                        {(std.selected_module || std.module) && (
-                          <div style={{ fontSize: '0.75rem', color: '#cbd5e1' }}>
-                            Track: {std.selected_module || std.module}
+                  {students.filter(s => {
+                    const isCancelled = s.status === 'Cancelled';
+                    if (studentFilter === 'active' && isCancelled) return false;
+                    if (studentFilter === 'cancelled' && !isCancelled) return false;
+                    if (studentSearch.trim()) {
+                      const q = studentSearch.toLowerCase();
+                      const name = `${s.first_name || ''} ${s.last_name || ''} ${s.name || ''}`.toLowerCase();
+                      const email = (s.email || '').toLowerCase();
+                      const code = (s.student_code || '').toLowerCase();
+                      const course = (s.course || s.preferred_course || '').toLowerCase();
+                      return name.includes(q) || email.includes(q) || code.includes(q) || course.includes(q);
+                    }
+                    return true;
+                  }).map(std => {
+                    const isCancelled = std.status === 'Cancelled';
+                    return (
+                      <tr key={std._id || std.id} style={{ opacity: isCancelled ? 0.75 : 1 }}>
+                        <td style={tableCellStyle}>
+                          <span style={{ fontWeight: '700', color: isCancelled ? '#e74c3c' : 'var(--color-primary)', fontSize: '0.85rem' }}>
+                            {std.student_code || 'PENDING'}
+                          </span>
+                        </td>
+                        <td style={tableCellStyle}>
+                          <div style={{ fontWeight: '600', color: '#fff' }}>{std.first_name} {std.last_name || std.name || ''}</div>
+                          {std.city && std.country && (
+                            <div style={{ fontSize: '0.75rem', color: '#8892b0' }}>{std.city}, {std.country}</div>
+                          )}
+                        </td>
+                        <td style={tableCellStyle}>
+                          <div style={{ fontSize: '0.85rem' }}>{std.email}</div>
+                          <div style={{ fontSize: '0.78rem', color: '#aaa' }}>{std.phone || 'No phone'}</div>
+                        </td>
+                        <td style={tableCellStyle}>
+                          <div style={{ fontWeight: '600', color: 'var(--color-primary)', fontSize: '0.85rem' }}>
+                            {std.course || std.preferred_course || 'Modern Standard Arabic'}
                           </div>
-                        )}
-                        <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
-                          {std.preferred_days || 'Weekdays'} • {std.preferred_class_type || '1 on 1'}
-                        </div>
-                        {std.preferred_time_slot && (
-                          <div style={{ fontSize: '0.72rem', color: '#f39c12' }} title="Suggested Slot">
-                            Suggested: {std.preferred_time_slot}
+                          {(std.selected_module || std.module) && (
+                            <div style={{ fontSize: '0.75rem', color: '#cbd5e1' }}>
+                              Track: {std.selected_module || std.module}
+                            </div>
+                          )}
+                          <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
+                            {std.preferred_days || 'Weekdays'} • {std.preferred_class_type || '1 on 1'}
                           </div>
-                        )}
-                      </td>
-                      <td style={tableCellStyle}>
-                        <div style={{ fontSize: '0.85rem', color: std.slot ? '#fff' : '#777' }}>
-                          {std.slot || 'No Slot'}
-                        </div>
-                        <div style={{ fontSize: '0.78rem', color: std.instructor ? 'var(--color-primary)' : '#777' }}>
-                          {std.instructor ? std.instructor : 'Unassigned'}
-                        </div>
-                      </td>
-                      <td style={tableCellStyle}>
-                        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                          <button
-                            onClick={() => setViewingStudent(std)}
-                            className="glass-panel"
-                            style={{ padding: '6px 10px', fontSize: '0.8rem', border: '1px solid rgba(197, 229, 232, 0.25)', color: 'var(--color-primary)', cursor: 'pointer' }}
-                          >
-                            View Profile
-                          </button>
-                          <button
-                            onClick={() => {
-                              setSelectedStudent(std);
-                              setAssignSlot(std.slot || '');
-                              setAssignInst(std.instructor || '');
-                            }}
-                            className="btn-primary"
-                            style={{ padding: '6px 10px', fontSize: '0.8rem', cursor: 'pointer' }}
-                          >
-                            Assign/Edit
-                          </button>
-                        </div>
+                          {std.preferred_time_slot && (
+                            <div style={{ fontSize: '0.72rem', color: '#f39c12' }} title="Suggested Slot">
+                              Suggested: {std.preferred_time_slot}
+                            </div>
+                          )}
+                        </td>
+                        <td style={tableCellStyle}>
+                          <div style={{ fontSize: '0.85rem', color: std.slot ? '#fff' : '#777' }}>
+                            {std.slot || 'No Slot'}
+                          </div>
+                          <div style={{ fontSize: '0.78rem', color: std.instructor ? 'var(--color-primary)' : '#777' }}>
+                            {std.instructor ? std.instructor : 'Unassigned'}
+                          </div>
+                        </td>
+                        <td style={tableCellStyle}>
+                          <span style={{
+                            padding: '3px 8px',
+                            borderRadius: '4px',
+                            fontSize: '0.78rem',
+                            fontWeight: '600',
+                            background: isCancelled ? 'rgba(231, 76, 60, 0.2)' : 'rgba(46, 204, 113, 0.2)',
+                            color: isCancelled ? '#e74c3c' : '#2ecc71',
+                            border: isCancelled ? '1px solid rgba(231, 76, 60, 0.3)' : '1px solid rgba(46, 204, 113, 0.3)'
+                          }}>
+                            {isCancelled ? 'Cancelled' : (std.status || 'Active')}
+                          </span>
+                        </td>
+                        <td style={tableCellStyle}>
+                          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                            <button
+                              onClick={() => setViewingStudent(std)}
+                              className="glass-panel"
+                              style={{ padding: '6px 10px', fontSize: '0.8rem', border: '1px solid rgba(197, 229, 232, 0.25)', color: 'var(--color-primary)', cursor: 'pointer' }}
+                            >
+                              View Profile
+                            </button>
+                            {!isCancelled ? (
+                              <>
+                                <button
+                                  onClick={() => {
+                                    setSelectedStudent(std);
+                                    setAssignSlot(std.slot || '');
+                                    setAssignInst(std.instructor || '');
+                                  }}
+                                  className="btn-primary"
+                                  style={{ padding: '6px 10px', fontSize: '0.8rem', cursor: 'pointer' }}
+                                >
+                                  Assign/Edit
+                                </button>
+                                <button
+                                  onClick={() => handleCancelStudent(std._id || std.id, `${std.first_name} ${std.last_name || std.name || ''}`)}
+                                  className="glass-panel"
+                                  style={{ padding: '6px 10px', fontSize: '0.8rem', color: '#e74c3c', border: '1px solid rgba(231, 76, 60, 0.4)', cursor: 'pointer' }}
+                                  title="Cancel/Drop student admission & revoke login"
+                                >
+                                  Cancel Admission
+                                </button>
+                              </>
+                            ) : (
+                              <button
+                                onClick={() => handleReactivateStudent(std._id || std.id, `${std.first_name} ${std.last_name || std.name || ''}`)}
+                                className="glass-panel"
+                                style={{ padding: '6px 10px', fontSize: '0.8rem', color: '#2ecc71', border: '1px solid rgba(46, 204, 113, 0.4)', cursor: 'pointer' }}
+                                title="Reactivate student account"
+                              >
+                                Reactivate
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                  {students.length === 0 && (
+                    <tr>
+                      <td colSpan={7} style={{ padding: '2.5rem', textAlign: 'center', color: '#aaa' }}>
+                        No students enrolled yet.
                       </td>
                     </tr>
-                  ))}
+                  )}
                 </tbody>
               </table>
             </div>
@@ -873,7 +1014,7 @@ export function AdminDashboard({ onLogout }) {
                         {viewingStudent.first_name} {viewingStudent.last_name || viewingStudent.name || ''}
                       </h3>
                       <div style={{ fontSize: '0.85rem', color: 'var(--color-primary)', fontWeight: 600 }}>
-                        Student ID: {viewingStudent.student_code || 'PENDING'} • Status: {viewingStudent.status || 'Active'}
+                        Student ID: {viewingStudent.student_code || 'PENDING'} • Status: <span style={{ color: viewingStudent.status === 'Cancelled' ? '#e74c3c' : '#2ecc71', fontWeight: 'bold' }}>{viewingStudent.status || 'Active'}</span>
                       </div>
                     </div>
                     <button
@@ -942,24 +1083,43 @@ export function AdminDashboard({ onLogout }) {
                     )}
                   </div>
 
-                  <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1.5rem', gap: '0.75rem' }}>
-                    <button
-                      onClick={() => {
-                        const s = viewingStudent;
-                        setViewingStudent(null);
-                        setSelectedStudent(s);
-                        setAssignSlot(s.slot || '');
-                        setAssignInst(s.instructor || '');
-                      }}
-                      className="btn-primary"
-                      style={{ padding: '8px 18px', fontSize: '0.85rem' }}
-                    >
-                      Assign Slot / Instructor
-                    </button>
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1.5rem', gap: '0.75rem', flexWrap: 'wrap' }}>
+                    {viewingStudent.status !== 'Cancelled' ? (
+                      <>
+                        <button
+                          onClick={() => {
+                            const s = viewingStudent;
+                            setViewingStudent(null);
+                            setSelectedStudent(s);
+                            setAssignSlot(s.slot || '');
+                            setAssignInst(s.instructor || '');
+                          }}
+                          className="btn-primary"
+                          style={{ padding: '8px 18px', fontSize: '0.85rem' }}
+                        >
+                          Assign Slot / Instructor
+                        </button>
+                        <button
+                          onClick={() => handleCancelStudent(viewingStudent._id || viewingStudent.id, `${viewingStudent.first_name} ${viewingStudent.last_name || viewingStudent.name || ''}`)}
+                          className="glass-panel"
+                          style={{ padding: '8px 16px', border: '1px solid rgba(231, 76, 60, 0.4)', color: '#e74c3c', cursor: 'pointer', fontSize: '0.85rem' }}
+                        >
+                          Cancel Admission
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        onClick={() => handleReactivateStudent(viewingStudent._id || viewingStudent.id, `${viewingStudent.first_name} ${viewingStudent.last_name || viewingStudent.name || ''}`)}
+                        className="glass-panel"
+                        style={{ padding: '8px 16px', border: '1px solid rgba(46, 204, 113, 0.4)', color: '#2ecc71', cursor: 'pointer', fontSize: '0.85rem' }}
+                      >
+                        Reactivate Student
+                      </button>
+                    )}
                     <button
                       onClick={() => setViewingStudent(null)}
                       className="glass-panel"
-                      style={{ padding: '8px 16px', border: 'none', color: '#cbd5e1' }}
+                      style={{ padding: '8px 16px', border: 'none', color: '#cbd5e1', cursor: 'pointer', fontSize: '0.85rem' }}
                     >
                       Close
                     </button>

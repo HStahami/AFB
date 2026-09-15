@@ -327,6 +327,153 @@ AlArabia Fi Buyutikum Team
         raise HTTPException(status_code=500, detail="Could not assign slot/instructor.")
 
 
+@router.patch("/{student_id}/cancel", summary="Cancel/Drop an enrolled student's admission (Admin Only)")
+async def cancel_enrolled_student(
+    student_id: str,
+    admin_user: dict = Depends(require_admin)
+):
+    """
+    Cancels an enrolled student's admission:
+    - Marks student document status as 'Cancelled'
+    - Deactivates user account (is_active = False, status = 'cancelled') to immediately revoke portal access
+    - Updates active enrollments to 'cancelled'
+    - Updates linked admission record status to 'Canceled'
+    """
+    db = get_db()
+    try:
+        student_oid = ObjectId(student_id)
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid student ID format.")
+
+    student = await db.students.find_one({"_id": student_oid})
+    if not student:
+        raise HTTPException(status_code=404, detail="Student record not found.")
+
+    # 1. Update Student status
+    await db.students.update_one(
+        {"_id": student_oid},
+        {
+            "$set": {
+                "status": "Cancelled",
+                "cancelled_at": datetime.utcnow(),
+                "updated_at": datetime.utcnow()
+            }
+        }
+    )
+
+    # 2. Deactivate User Account (Revoke LMS Portal Access)
+    user_query = {}
+    if student.get("user_id"):
+        user_query = {"_id": student["user_id"]}
+    elif student.get("email"):
+        user_query = {"email": student["email"]}
+
+    if user_query:
+        await db.users.update_one(
+            user_query,
+            {
+                "$set": {
+                    "is_active": False,
+                    "status": "cancelled",
+                    "updated_at": datetime.utcnow()
+                }
+            }
+        )
+
+    # 3. Update Enrollments
+    await db.enrollments.update_many(
+        {"student_id": student_oid},
+        {
+            "$set": {
+                "status": "cancelled",
+                "updated_at": datetime.utcnow()
+            }
+        }
+    )
+
+    # 4. Sync linked Admission Form if exists
+    if student.get("email"):
+        await db.admissions.update_many(
+            {"email": student["email"]},
+            {"$set": {"status": "Canceled"}}
+        )
+
+    return {"message": f"Admission for student {student.get('first_name', '')} {student.get('last_name', '') or student.get('name', 'Student')} has been cancelled. Portal login is now disabled."}
+
+
+@router.patch("/{student_id}/reactivate", summary="Reactivate a cancelled enrolled student (Admin Only)")
+async def reactivate_enrolled_student(
+    student_id: str,
+    admin_user: dict = Depends(require_admin)
+):
+    """
+    Reactivates a previously cancelled student:
+    - Marks student document status as 'Active'
+    - Reactivates user account (is_active = True, status = 'active')
+    - Updates linked admission record status to 'Approved'
+    """
+    db = get_db()
+    try:
+        student_oid = ObjectId(student_id)
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid student ID format.")
+
+    student = await db.students.find_one({"_id": student_oid})
+    if not student:
+        raise HTTPException(status_code=404, detail="Student record not found.")
+
+    # 1. Update Student status
+    await db.students.update_one(
+        {"_id": student_oid},
+        {
+            "$set": {
+                "status": "Active",
+                "reactivated_at": datetime.utcnow(),
+                "updated_at": datetime.utcnow()
+            }
+        }
+    )
+
+    # 2. Reactivate User Account
+    user_query = {}
+    if student.get("user_id"):
+        user_query = {"_id": student["user_id"]}
+    elif student.get("email"):
+        user_query = {"email": student["email"]}
+
+    if user_query:
+        await db.users.update_one(
+            user_query,
+            {
+                "$set": {
+                    "is_active": True,
+                    "status": "active",
+                    "updated_at": datetime.utcnow()
+                }
+            }
+        )
+
+    # 3. Update Enrollments
+    await db.enrollments.update_many(
+        {"student_id": student_oid, "status": "cancelled"},
+        {
+            "$set": {
+                "status": "active",
+                "updated_at": datetime.utcnow()
+            }
+        }
+    )
+
+    # 4. Sync linked Admission Form
+    if student.get("email"):
+        await db.admissions.update_many(
+            {"email": student["email"]},
+            {"$set": {"status": "Approved"}}
+        )
+
+    return {"message": f"Student {student.get('first_name', '')} {student.get('last_name', '') or student.get('name', 'Student')} has been reactivated successfully."}
+
+
 @router.get("/dashboard-summary", summary="Get comprehensive student dashboard data")
 async def get_student_dashboard_summary(current_user: dict = Depends(get_current_user)):
     """
