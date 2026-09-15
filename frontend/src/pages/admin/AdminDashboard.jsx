@@ -554,6 +554,7 @@ export function AdminDashboard({ onLogout }) {
     } catch (e) { alert("Failed to assign"); }
   };
 
+  const tableStyle = { width: '100%', borderCollapse: 'collapse' };
   const tableHeaderStyle = { padding: '12px', borderBottom: '1px solid rgba(255,255,255,0.1)', color: 'var(--color-primary)', textAlign: 'left' };
   const tableCellStyle = { padding: '12px', borderBottom: '1px solid rgba(255,255,255,0.05)', color: '#e0e0e0' };
 
