@@ -767,3 +767,86 @@ async def get_student_courses(current_user: dict = Depends(get_current_user)):
         })
 
     return courses
+
+
+@router.post("/request-update", summary="Request profile update from Admin (Student)")
+@router.patch("/request-update", summary="Request profile update from Admin (Student)")
+async def request_profile_update(
+    payload: dict,
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Allows a student whose profile is locked to submit an update request to Administration.
+    Dispatches a notification to all Admin users.
+    """
+    db = get_db()
+    reason = payload.get("reason") or payload.get("note") or payload.get("message") or "Profile info update requested."
+    
+    student = await db.students.find_one({"user_id": current_user["_id"]})
+    if not student:
+        student = await db.students.find_one({"email": current_user.get("email")})
+        
+    if not student:
+        raise HTTPException(status_code=404, detail="Student record not found.")
+
+    student_oid = student["_id"]
+
+    await db.students.update_one(
+        {"_id": student_oid},
+        {
+            "$set": {
+                "update_requested": True,
+                "update_request_note": reason.strip(),
+                "update_requested_at": datetime.utcnow(),
+                "updated_at": datetime.utcnow()
+            }
+        }
+    )
+
+    student_name = f"{student.get('first_name', '')} {student.get('last_name', '')}".strip() or student.get("name") or current_user.get("username", "Student")
+    student_code = student.get("student_code", "ID Pending")
+
+    try:
+        admin_cursor = db.users.find({"role": "admin"})
+        async for admin in admin_cursor:
+            await create_notification(
+                db=db,
+                recipient_user_id=admin["_id"],
+                title="Student Profile Update Requested",
+                message=f"{student_name} ({student_code}) requested a profile update: \"{reason.strip()}\".",
+                notification_type="student_update_request",
+                related_entity_type="student",
+                related_entity_id=str(student_oid)
+            )
+    except Exception as notif_err:
+        print(f"[NOTIFICATION ERROR] Update request notification error: {notif_err}")
+
+    return {"message": "Profile update request submitted successfully to Administration."}
+
+
+@router.patch("/{student_id}/dismiss-update-request", summary="Dismiss or clear profile update request (Admin Only)")
+async def dismiss_update_request(
+    student_id: str,
+    admin_user: dict = Depends(require_admin)
+):
+    """
+    Clears the update_requested flag on a student's profile once reviewed by Admin.
+    """
+    db = get_db()
+    try:
+        student_oid = ObjectId(student_id)
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid student ID format.")
+
+    await db.students.update_one(
+        {"_id": student_oid},
+        {
+            "$set": {
+                "update_requested": False,
+                "update_request_note": None,
+                "updated_at": datetime.utcnow()
+            }
+        }
+    )
+
+    return {"message": "Update request dismissed."}

@@ -257,6 +257,24 @@ export function AdminDashboard({ onLogout }) {
     }
   };
 
+  const handleDismissUpdateRequest = async (studentId) => {
+    try {
+      const res = await fetch(`${API_BASE}/students/${studentId}/dismiss-update-request`, {
+        method: 'PATCH',
+        headers
+      });
+      if (res.ok) {
+        if (viewingStudent && (viewingStudent._id === studentId || viewingStudent.id === studentId)) {
+          setViewingStudent(prev => prev ? { ...prev, update_requested: false, update_request_note: null } : null);
+        }
+        fetchStudents();
+        fetchNotifications();
+      }
+    } catch (err) {
+      console.error('Error dismissing update request:', err);
+    }
+  };
+
   useEffect(() => {
     fetchStats();
     fetchInstructors();
@@ -1005,17 +1023,32 @@ export function AdminDashboard({ onLogout }) {
                           </div>
                         </td>
                         <td style={tableCellStyle}>
-                          <span style={{
-                            padding: '3px 8px',
-                            borderRadius: '4px',
-                            fontSize: '0.78rem',
-                            fontWeight: '600',
-                            background: isCancelled ? 'rgba(231, 76, 60, 0.2)' : 'rgba(46, 204, 113, 0.2)',
-                            color: isCancelled ? '#e74c3c' : '#2ecc71',
-                            border: isCancelled ? '1px solid rgba(231, 76, 60, 0.3)' : '1px solid rgba(46, 204, 113, 0.3)'
-                          }}>
-                            {isCancelled ? 'Cancelled' : (std.status || 'Active')}
-                          </span>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'flex-start' }}>
+                            <span style={{
+                              padding: '3px 8px',
+                              borderRadius: '4px',
+                              fontSize: '0.78rem',
+                              fontWeight: '600',
+                              background: isCancelled ? 'rgba(231, 76, 60, 0.2)' : 'rgba(46, 204, 113, 0.2)',
+                              color: isCancelled ? '#e74c3c' : '#2ecc71',
+                              border: isCancelled ? '1px solid rgba(231, 76, 60, 0.3)' : '1px solid rgba(46, 204, 113, 0.3)'
+                            }}>
+                              {isCancelled ? 'Cancelled' : (std.status || 'Active')}
+                            </span>
+                            {std.update_requested && (
+                              <span style={{
+                                padding: '2px 7px',
+                                borderRadius: '4px',
+                                fontSize: '0.72rem',
+                                fontWeight: '700',
+                                background: 'rgba(243, 156, 18, 0.2)',
+                                color: '#f39c12',
+                                border: '1px solid rgba(243, 156, 18, 0.4)'
+                              }}>
+                                Update Requested
+                              </span>
+                            )}
+                          </div>
                         </td>
                         <td style={tableCellStyle}>
                           <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
@@ -1147,6 +1180,23 @@ export function AdminDashboard({ onLogout }) {
                       Close
                     </button>
                   </div>
+
+                  {viewingStudent.update_requested && (
+                    <div style={{ backgroundColor: 'rgba(243, 156, 18, 0.15)', border: '1px solid rgba(243, 156, 18, 0.4)', padding: '1rem', borderRadius: '10px', marginBottom: '1.25rem', color: '#f39c12' }}>
+                      <div style={{ fontWeight: 700, fontSize: '0.95rem', marginBottom: '0.35rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem' }}>
+                        <span>Student Requested Profile Update</span>
+                        <button
+                          onClick={() => handleDismissUpdateRequest(viewingStudent._id || viewingStudent.id)}
+                          style={{ padding: '5px 12px', fontSize: '0.78rem', background: 'rgba(255,255,255,0.12)', color: '#fff', border: '1px solid rgba(255,255,255,0.25)', borderRadius: '6px', cursor: 'pointer', fontWeight: 600 }}
+                        >
+                          Dismiss Request
+                        </button>
+                      </div>
+                      <p style={{ margin: 0, fontSize: '0.88rem', color: '#fef08a' }}>
+                        "{viewingStudent.update_request_note || 'Student submitted request to change profile details.'}"
+                      </p>
+                    </div>
+                  )}
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem', fontSize: '0.88rem', color: '#b0c4c6' }}>
                     {/* Contact & Personal */}
@@ -1612,10 +1662,10 @@ export function AdminDashboard({ onLogout }) {
                             textTransform: 'uppercase',
                             padding: '2px 8px',
                             borderRadius: '4px',
-                            background: isUnread ? 'rgba(0, 168, 150, 0.25)' : 'rgba(255,255,255,0.1)',
-                            color: isUnread ? 'var(--color-primary)' : '#aaa'
+                            background: notif.notification_type === 'student_update_request' ? 'rgba(243, 156, 18, 0.25)' : (isUnread ? 'rgba(0, 168, 150, 0.25)' : 'rgba(255,255,255,0.1)'),
+                            color: notif.notification_type === 'student_update_request' ? '#f39c12' : (isUnread ? 'var(--color-primary)' : '#aaa')
                           }}>
-                            {isProfileCompleted ? 'Profile Completed' : (notif.notification_type || 'Alert')}
+                            {notif.notification_type === 'student_update_request' ? 'Update Request' : isProfileCompleted ? 'Profile Completed' : (notif.notification_type || 'Alert')}
                           </span>
                           <span style={{ fontSize: '0.8rem', color: '#777' }}>
                             {notif.created_at ? new Date(notif.created_at).toLocaleString() : ''}
@@ -1633,17 +1683,27 @@ export function AdminDashboard({ onLogout }) {
                       </div>
 
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                        {isProfileCompleted && (
+                        {(isProfileCompleted || notif.notification_type === 'student_update_request') && (
                           <button
-                            onClick={() => {
+                            onClick={async () => {
                               setActiveTab('students');
                               if (notif.related_entity_id) {
-                                const found = students.find(s => String(s._id) === String(notif.related_entity_id));
+                                let found = students.find(s => String(s._id || s.id) === String(notif.related_entity_id));
+                                if (!found) {
+                                  try {
+                                    const res = await fetch(`${API_BASE}/students/`, { headers });
+                                    const data = await res.json();
+                                    if (Array.isArray(data)) {
+                                      setStudents(data);
+                                      found = data.find(s => String(s._id || s.id) === String(notif.related_entity_id));
+                                    }
+                                  } catch (e) { console.error(e); }
+                                }
                                 if (found) setViewingStudent(found);
                               }
                             }}
                             className="glass-panel"
-                            style={{ padding: '6px 12px', fontSize: '0.85rem', color: 'var(--color-primary)', borderColor: 'var(--color-primary)', cursor: 'pointer' }}
+                            style={{ padding: '6px 12px', fontSize: '0.85rem', color: notif.notification_type === 'student_update_request' ? '#f39c12' : 'var(--color-primary)', borderColor: notif.notification_type === 'student_update_request' ? '#f39c12' : 'var(--color-primary)', cursor: 'pointer' }}
                           >
                             View Student Profile
                           </button>

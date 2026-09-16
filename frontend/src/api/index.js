@@ -128,6 +128,24 @@ export const studentsApi = {
     );
     if (!res.ok) throw new Error("Failed to assign class details");
     return res.json();
+  },
+  requestUpdate: async (reason) => {
+    const res = await apiClient("/students/request-update", {
+      method: "POST",
+      body: JSON.stringify({ reason }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ detail: "Failed to submit update request" }));
+      throw new Error(err.detail || "Failed to submit update request");
+    }
+    return res.json();
+  },
+  dismissUpdateRequest: async (studentId) => {
+    const res = await apiClient(`/students/${studentId}/dismiss-update-request`, {
+      method: "PATCH",
+    });
+    if (!res.ok) throw new Error("Failed to dismiss update request");
+    return res.json();
   }
 };
 

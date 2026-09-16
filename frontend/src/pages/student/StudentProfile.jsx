@@ -9,6 +9,11 @@ export function StudentProfile() {
   const [profile, setProfile] = useState(null);
   const [modulesList, setModulesList] = useState([]);
   const [slotsList, setSlotsList] = useState([]);
+  const [showUpdateRequestModal, setShowUpdateRequestModal] = useState(false);
+  const [updateReason, setUpdateReason] = useState('');
+  const [sendingRequest, setSendingRequest] = useState(false);
+  const [requestSuccessMsg, setRequestSuccessMsg] = useState('');
+  const [requestErrorMsg, setRequestErrorMsg] = useState('');
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -220,6 +225,28 @@ export function StudentProfile() {
     }
   };
 
+  const handleRequestUpdateSubmit = async (e) => {
+    e.preventDefault();
+    if (!updateReason || !updateReason.trim()) {
+      setRequestErrorMsg('Please describe what information you would like to update.');
+      return;
+    }
+    try {
+      setSendingRequest(true);
+      setRequestErrorMsg('');
+      await studentsApi.requestUpdate(updateReason.trim());
+      setRequestSuccessMsg('Your profile update request has been sent to the administration!');
+      setShowUpdateRequestModal(false);
+      setUpdateReason('');
+      await loadProfileAndData();
+    } catch (err) {
+      console.error('Failed to submit update request:', err);
+      setRequestErrorMsg(err.response?.data?.detail || err.message || 'Failed to submit request.');
+    } finally {
+      setSendingRequest(false);
+    }
+  };
+
   if (loading) {
     return (
       <div style={{ textAlign: 'center', padding: '4rem 1rem', color: '#8892b0' }}>
@@ -232,6 +259,8 @@ export function StudentProfile() {
   const fullName = formData.name || profile?.name || user?.username || 'Student';
   const email = formData.email || profile?.email || user?.email || 'N/A';
   const status = profile?.status || 'Active';
+  const isCompleted = Boolean(profile?.profile_completed || user?.profile_completed || profile?.onboarding_status === 'completed');
+  const hasRequestedUpdate = Boolean(profile?.update_requested);
 
   return (
     <div style={{ maxWidth: '960px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
@@ -319,7 +348,66 @@ export function StudentProfile() {
         </div>
       </div>
 
+      {/* Profile Locked Banner */}
+      {isCompleted && (
+        <div
+          style={{
+            padding: '1.25rem',
+            borderRadius: '12px',
+            background: 'rgba(16, 185, 129, 0.12)',
+            border: '1px solid rgba(16, 185, 129, 0.3)',
+            color: '#e2e8f0',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.5rem',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 700, color: '#34d399', fontSize: '1.05rem' }}>
+              Profile Details Locked & Verified
+            </div>
+            {hasRequestedUpdate ? (
+              <span style={{ fontSize: '0.8rem', padding: '4px 10px', borderRadius: '20px', background: 'rgba(243, 156, 18, 0.2)', color: '#f39c12', border: '1px solid rgba(243, 156, 18, 0.4)', fontWeight: 600 }}>
+                Update Request Pending Review
+              </span>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setShowUpdateRequestModal(true)}
+                className="btn-primary"
+                style={{ padding: '0.45rem 1rem', fontSize: '0.85rem', cursor: 'pointer', background: 'linear-gradient(135deg, #f59e0b, #d97706)', border: 'none' }}
+              >
+                Request Profile Update
+              </button>
+            )}
+          </div>
+          <p style={{ margin: 0, fontSize: '0.88rem', color: '#94a3b8' }}>
+            Your profile details are saved and locked to prevent unauthorized changes. If you need to make updates, click "Request Profile Update" to send a note to administration.
+          </p>
+          {hasRequestedUpdate && profile?.update_request_note && (
+            <div style={{ marginTop: '0.4rem', fontSize: '0.85rem', color: '#facc15', background: 'rgba(0,0,0,0.3)', padding: '0.6rem 0.8rem', borderRadius: '6px' }}>
+              <strong>Your Pending Request Note:</strong> "{profile.update_request_note}"
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Alerts */}
+      {requestSuccessMsg && (
+        <div
+          style={{
+            padding: '1rem 1.25rem',
+            borderRadius: '10px',
+            background: 'rgba(16, 185, 129, 0.15)',
+            border: '1px solid rgba(16, 185, 129, 0.3)',
+            color: '#34d399',
+            fontSize: '0.95rem',
+          }}
+        >
+          {requestSuccessMsg}
+        </div>
+      )}
+
       {message && (
         <div
           style={{
@@ -393,6 +481,7 @@ export function StudentProfile() {
               <input
                 type="text"
                 required
+                disabled={isCompleted}
                 name="guardian_name"
                 value={formData.guardian_name}
                 onChange={handleChange}
@@ -441,6 +530,7 @@ export function StudentProfile() {
               <input
                 type="tel"
                 required
+                disabled={isCompleted}
                 name="phone"
                 value={formData.phone}
                 onChange={handleChange}
@@ -466,6 +556,7 @@ export function StudentProfile() {
               <input
                 type="tel"
                 required
+                disabled={isCompleted}
                 name="guardian_phone"
                 value={formData.guardian_phone}
                 onChange={handleChange}
@@ -491,6 +582,7 @@ export function StudentProfile() {
               <input
                 type="date"
                 required
+                disabled={isCompleted}
                 name="date_of_birth"
                 value={formData.date_of_birth}
                 onChange={handleChange}
@@ -515,6 +607,7 @@ export function StudentProfile() {
               <input
                 type="text"
                 required
+                disabled={isCompleted}
                 name="country"
                 value={formData.country}
                 onChange={handleChange}
@@ -540,6 +633,7 @@ export function StudentProfile() {
               <input
                 type="text"
                 required
+                disabled={isCompleted}
                 name="city"
                 value={formData.city}
                 onChange={handleChange}
@@ -565,6 +659,7 @@ export function StudentProfile() {
               <input
                 type="text"
                 required
+                disabled={isCompleted}
                 name="address"
                 value={formData.address}
                 onChange={handleChange}
@@ -597,6 +692,7 @@ export function StudentProfile() {
               </label>
               <select
                 required
+                disabled={isCompleted}
                 name="education"
                 value={formData.education}
                 onChange={handleChange}
@@ -629,6 +725,7 @@ export function StudentProfile() {
               </label>
               <select
                 required
+                disabled={isCompleted}
                 name="referral_source"
                 value={formData.referral_source}
                 onChange={handleChange}
@@ -668,6 +765,7 @@ export function StudentProfile() {
               </label>
               <select
                 required
+                disabled={isCompleted}
                 name="course"
                 value={formData.course}
                 onChange={handleChange}
@@ -696,6 +794,7 @@ export function StudentProfile() {
                 </label>
                 <select
                   required
+                  disabled={isCompleted}
                   name="selected_module"
                   value={formData.selected_module || 'All 4 Modules Included'}
                   onChange={handleChange}
@@ -752,6 +851,7 @@ export function StudentProfile() {
               </label>
               <select
                 required
+                disabled={isCompleted}
                 name="preferred_days"
                 value={formData.preferred_days}
                 onChange={handleChange}
@@ -818,6 +918,7 @@ export function StudentProfile() {
               ) : (
                 <select
                   name="preferred_class_type"
+                  disabled={isCompleted}
                   value={formData.preferred_class_type}
                   onChange={handleChange}
                   style={{
@@ -845,6 +946,7 @@ export function StudentProfile() {
               <input
                 type="text"
                 required
+                disabled={isCompleted}
                 name="preferred_time_slot"
                 value={formData.preferred_time_slot}
                 onChange={handleChange}
@@ -903,6 +1005,7 @@ export function StudentProfile() {
             </label>
             <textarea
               name="bio"
+              disabled={isCompleted}
               value={formData.bio}
               onChange={handleChange}
               rows={3}
@@ -923,44 +1026,114 @@ export function StudentProfile() {
         </div>
 
         {/* Actions */}
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
-          <button
-            type="button"
-            onClick={loadProfileAndData}
-            disabled={saving}
-            style={{
-              padding: '0.75rem 1.5rem',
-              borderRadius: '8px',
-              border: '1px solid rgba(255, 255, 255, 0.2)',
-              background: 'transparent',
-              color: '#cbd5e1',
-              cursor: saving ? 'not-allowed' : 'pointer',
-              fontWeight: 600,
-            }}
-          >
-            Reset Form
-          </button>
-          <button
-            type="submit"
-            disabled={saving}
-            className="btn-primary"
-            style={{
-              padding: '0.75rem 2rem',
-              borderRadius: '8px',
-              border: 'none',
-              cursor: saving ? 'not-allowed' : 'pointer',
-              fontWeight: 700,
-              background: 'linear-gradient(135deg, #10b981, #059669)',
-              color: '#fff',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-            }}
-          >
-            {saving ? 'Saving...' : 'Save Profile'}
-          </button>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', alignItems: 'center' }}>
+          {isCompleted ? (
+            hasRequestedUpdate ? (
+              <div style={{ fontSize: '0.9rem', color: '#f39c12', fontWeight: 600, padding: '0.6rem 1.25rem', borderRadius: '8px', background: 'rgba(243, 156, 18, 0.15)', border: '1px solid rgba(243, 156, 18, 0.3)' }}>
+                Update Request Sent to Administration (Pending Review)
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setShowUpdateRequestModal(true)}
+                className="btn-primary"
+                style={{
+                  padding: '0.75rem 2rem',
+                  borderRadius: '8px',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontWeight: 700,
+                  background: 'linear-gradient(135deg, #f59e0b, #d97706)',
+                  color: '#fff',
+                }}
+              >
+                Request Profile Update
+              </button>
+            )
+          ) : (
+            <>
+              <button
+                type="button"
+                onClick={loadProfileAndData}
+                disabled={saving}
+                style={{
+                  padding: '0.75rem 1.5rem',
+                  borderRadius: '8px',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  background: 'transparent',
+                  color: '#cbd5e1',
+                  cursor: saving ? 'not-allowed' : 'pointer',
+                  fontWeight: 600,
+                }}
+              >
+                Reset Form
+              </button>
+              <button
+                type="submit"
+                disabled={saving}
+                className="btn-primary"
+                style={{
+                  padding: '0.75rem 2rem',
+                  borderRadius: '8px',
+                  border: 'none',
+                  cursor: saving ? 'not-allowed' : 'pointer',
+                  fontWeight: 700,
+                  background: 'linear-gradient(135deg, #10b981, #059669)',
+                  color: '#fff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                }}
+              >
+                {saving ? 'Saving...' : 'Save Profile'}
+              </button>
+            </>
+          )}
         </div>
       </form>
+
+      {/* Request Profile Update Modal */}
+      {showUpdateRequestModal && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(3, 14, 15, 0.88)', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 999, padding: '1rem' }}>
+          <div style={{ padding: '2rem', maxWidth: '500px', width: '100%', borderRadius: '16px', backgroundColor: '#092528', border: '1px solid rgba(197, 229, 232, 0.25)', boxShadow: '0 25px 60px rgba(0, 0, 0, 0.95)' }}>
+            <h3 style={{ color: 'var(--color-white)', marginBottom: '0.5rem', fontSize: '1.25rem', fontWeight: 700 }}>Request Profile Update</h3>
+            <p style={{ color: '#94a3b8', fontSize: '0.88rem', marginBottom: '1.25rem', lineHeight: '1.4' }}>
+              Describe the specific information or details you need updated (e.g. phone number, address, preferred class slot). Administration will review your note and contact you.
+            </p>
+
+            {requestErrorMsg && (
+              <div style={{ padding: '0.75rem', borderRadius: '8px', background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.3)', color: '#f87171', fontSize: '0.85rem', marginBottom: '1rem' }}>
+                {requestErrorMsg}
+              </div>
+            )}
+
+            <form onSubmit={handleRequestUpdateSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+              <div>
+                <label style={{ display: 'block', color: 'var(--color-primary)', marginBottom: '0.4rem', fontSize: '0.85rem', fontWeight: 600 }}>
+                  Requested Changes / Reason *
+                </label>
+                <textarea
+                  required
+                  rows={4}
+                  value={updateReason}
+                  onChange={(e) => setUpdateReason(e.target.value)}
+                  placeholder="e.g. Please update my contact number to +92 331 1234567 and change my preferred time slot to Evening..."
+                  style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid rgba(255, 255, 255, 0.15)', background: 'rgba(0,0,0,0.5)', color: '#fff', fontSize: '0.9rem', resize: 'vertical', boxSizing: 'border-box' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
+                <button type="submit" disabled={sendingRequest} className="btn-primary" style={{ flex: 1, padding: '10px', background: 'linear-gradient(135deg, #10b981, #059669)', border: 'none', cursor: sendingRequest ? 'not-allowed' : 'pointer' }}>
+                  {sendingRequest ? 'Sending Request...' : 'Send Request'}
+                </button>
+                <button type="button" onClick={() => setShowUpdateRequestModal(false)} className="glass-panel" style={{ flex: 1, padding: '10px', border: 'none', color: '#cbd5e1', cursor: 'pointer' }}>
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

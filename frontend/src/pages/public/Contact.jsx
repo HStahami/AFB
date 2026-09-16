@@ -42,14 +42,14 @@ export function Contact() {
             <Phone size={32} color="var(--color-primary)" />
             <div>
               <h4 style={{ color: 'var(--color-white)', fontSize: '1.2rem', marginBottom: '0.2rem' }}>Phone</h4>
-              <p style={{ color: '#b0c4c6' }}>+92 331 8967534 </p>
+              <p style={{ color: '#b0c4c6' }}>+92 331 89675343</p>
             </div>
           </div>
           <div className="glass-panel" style={{ padding: '2rem', display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
             <MapPin size={32} color="var(--color-primary)" />
             <div>
               <h4 style={{ color: 'var(--color-white)', fontSize: '1.2rem', marginBottom: '0.2rem' }}>Location</h4>
-              <p style={{ color: '#b0c4c6' }}>AlArabia Fi Buyutikum, Pakistan</p>
+              <p style={{ color: '#b0c4c6' }}>Alarabia Fi Buyutikum, Pakistan</p>
             </div>
           </div>
         </div>

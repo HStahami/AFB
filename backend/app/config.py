@@ -19,12 +19,12 @@ class Settings(BaseSettings):
     SMTP_PORT: int = int(os.getenv("SMTP_PORT", 587))
     SMTP_USERNAME: str = os.getenv("SMTP_USERNAME", "")
     SMTP_PASSWORD: str = os.getenv("SMTP_PASSWORD", "")
-    EMAIL_FROM: str = os.getenv("EMAIL_FROM", "")
-    INSTITUTE_NOTIFICATION_EMAIL: str = os.getenv("INSTITUTE_NOTIFICATION_EMAIL", "")
+    EMAIL_FROM: str = os.getenv("EMAIL_FROM", "alarabiafi@gmail.com")
+    INSTITUTE_NOTIFICATION_EMAIL: str = os.getenv("INSTITUTE_NOTIFICATION_EMAIL", "alarabiafi@gmail.com")
     
     WHATSAPP_API_URL: str = os.getenv("WHATSAPP_API_URL", "")
     WHATSAPP_API_TOKEN: str = os.getenv("WHATSAPP_API_TOKEN", "")
-    INSTITUTE_WHATSAPP_NUMBER: str = os.getenv("INSTITUTE_WHATSAPP_NUMBER", "")
+    INSTITUTE_WHATSAPP_NUMBER: str = os.getenv("INSTITUTE_WHATSAPP_NUMBER", "+92 331 89675343")
     
     ENVIRONMENT: str = os.getenv("ENVIRONMENT", os.getenv("VERCEL_ENV", "development"))
 
@@ -48,13 +48,13 @@ class Settings(BaseSettings):
 
     # Institute Fee Payment Instructions Configuration
     FEE_BANK_NAME: str = os.getenv("FEE_BANK_NAME", "Meezan Bank")
-    FEE_ACCOUNT_TITLE: str = os.getenv("FEE_ACCOUNT_TITLE", "AlArabia Fi Buyutikum")
+    FEE_ACCOUNT_TITLE: str = os.getenv("FEE_ACCOUNT_TITLE", "Alarabia Fi Buyutikum")
     FEE_ACCOUNT_NUMBER: str = os.getenv("FEE_ACCOUNT_NUMBER", "01020108924018")
     FEE_IBAN: str = os.getenv("FEE_IBAN", "PK64MEZN0001020108924018")
-    FEE_RAAST_ID: str = os.getenv("FEE_RAAST_ID", "03001234567")
-    FEE_EASYPAISA_JAZZCASH: str = os.getenv("FEE_EASYPAISA_JAZZCASH", "03001234567 (AlArabia Fi Buyutikum)")
-    FEE_VERIFICATION_WHATSAPP: str = os.getenv("FEE_VERIFICATION_WHATSAPP", "+92 300 1234567")
-    FEE_VERIFICATION_EMAIL: str = os.getenv("FEE_VERIFICATION_EMAIL", "admissions@alarabia.edu")
+    FEE_RAAST_ID: str = os.getenv("FEE_RAAST_ID", "+92 331 89675343")
+    FEE_EASYPAISA_JAZZCASH: str = os.getenv("FEE_EASYPAISA_JAZZCASH", "+92 331 89675343 (Alarabia Fi Buyutikum)")
+    FEE_VERIFICATION_WHATSAPP: str = os.getenv("FEE_VERIFICATION_WHATSAPP", "+92 331 89675343")
+    FEE_VERIFICATION_EMAIL: str = os.getenv("FEE_VERIFICATION_EMAIL", "alarabiafi@gmail.com")
 
     class Config:
         env_file = _active_env

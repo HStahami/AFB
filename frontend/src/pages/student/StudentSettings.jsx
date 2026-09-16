@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Eye, EyeOff } from 'lucide-react';
 import { authApi } from '../../api';
 import { useAuth } from '../../context/AuthContext';
 
@@ -9,6 +10,9 @@ export function StudentSettings() {
     new_password: '',
     confirm_password: '',
   });
+  const [showCurrPass, setShowCurrPass] = useState(false);
+  const [showNewPass, setShowNewPass] = useState(false);
+  const [showConfirmPass, setShowConfirmPass] = useState(false);
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState(null);
   const [errorMessage, setErrorMessage] = useState(null);
@@ -196,74 +200,110 @@ export function StudentSettings() {
             <label style={{ display: 'block', fontSize: '0.85rem', color: '#cbd5e1', marginBottom: '0.4rem', fontWeight: 500 }}>
               Current Password
             </label>
-            <input
-              type="password"
-              name="current_password"
-              value={formData.current_password}
-              onChange={handleChange}
-              required
-              placeholder="••••••••••••"
-              style={{
-                width: '100%',
-                padding: '0.75rem 1rem',
-                borderRadius: '8px',
-                border: '1px solid rgba(255, 255, 255, 0.15)',
-                background: 'rgba(15, 23, 42, 0.5)',
-                color: '#f8fafc',
-                outline: 'none',
-                boxSizing: 'border-box',
-              }}
-            />
+            <div style={{ position: 'relative' }}>
+              <input
+                type={showCurrPass ? 'text' : 'password'}
+                name="current_password"
+                value={formData.current_password}
+                onChange={handleChange}
+                required
+                placeholder="••••••••••••"
+                style={{
+                  width: '100%',
+                  padding: '0.75rem 2.8rem 0.75rem 1rem',
+                  borderRadius: '8px',
+                  border: '1px solid rgba(255, 255, 255, 0.15)',
+                  background: 'rgba(15, 23, 42, 0.5)',
+                  color: '#f8fafc',
+                  outline: 'none',
+                  boxSizing: 'border-box',
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => setShowCurrPass(!showCurrPass)}
+                style={{
+                  position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)',
+                  background: 'none', border: 'none', color: 'var(--color-primary)', cursor: 'pointer', display: 'flex', alignItems: 'center'
+                }}
+              >
+                {showCurrPass ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
           </div>
 
           <div>
             <label style={{ display: 'block', fontSize: '0.85rem', color: '#cbd5e1', marginBottom: '0.4rem', fontWeight: 500 }}>
               New Password (minimum 8 characters)
             </label>
-            <input
-              type="password"
-              name="new_password"
-              value={formData.new_password}
-              onChange={handleChange}
-              required
-              minLength={8}
-              placeholder="••••••••••••"
-              style={{
-                width: '100%',
-                padding: '0.75rem 1rem',
-                borderRadius: '8px',
-                border: '1px solid rgba(255, 255, 255, 0.15)',
-                background: 'rgba(15, 23, 42, 0.5)',
-                color: '#f8fafc',
-                outline: 'none',
-                boxSizing: 'border-box',
-              }}
-            />
+            <div style={{ position: 'relative' }}>
+              <input
+                type={showNewPass ? 'text' : 'password'}
+                name="new_password"
+                value={formData.new_password}
+                onChange={handleChange}
+                required
+                minLength={8}
+                placeholder="••••••••••••"
+                style={{
+                  width: '100%',
+                  padding: '0.75rem 2.8rem 0.75rem 1rem',
+                  borderRadius: '8px',
+                  border: '1px solid rgba(255, 255, 255, 0.15)',
+                  background: 'rgba(15, 23, 42, 0.5)',
+                  color: '#f8fafc',
+                  outline: 'none',
+                  boxSizing: 'border-box',
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => setShowNewPass(!showNewPass)}
+                style={{
+                  position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)',
+                  background: 'none', border: 'none', color: 'var(--color-primary)', cursor: 'pointer', display: 'flex', alignItems: 'center'
+                }}
+              >
+                {showNewPass ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
           </div>
 
           <div>
             <label style={{ display: 'block', fontSize: '0.85rem', color: '#cbd5e1', marginBottom: '0.4rem', fontWeight: 500 }}>
               Confirm New Password
             </label>
-            <input
-              type="password"
-              name="confirm_password"
-              value={formData.confirm_password}
-              onChange={handleChange}
-              required
-              minLength={8}
-              placeholder="••••••••••••"
-              style={{
-                width: '100%',
-                padding: '0.75rem 1rem',
-                borderRadius: '8px',
-                border: '1px solid rgba(255, 255, 255, 0.15)',
-                background: 'rgba(15, 23, 42, 0.5)',
-                color: '#f8fafc',
-                outline: 'none',
-                boxSizing: 'border-box',
-              }}
-            />
+            <div style={{ position: 'relative' }}>
+              <input
+                type={showConfirmPass ? 'text' : 'password'}
+                name="confirm_password"
+                value={formData.confirm_password}
+                onChange={handleChange}
+                required
+                minLength={8}
+                placeholder="••••••••••••"
+                style={{
+                  width: '100%',
+                  padding: '0.75rem 2.8rem 0.75rem 1rem',
+                  borderRadius: '8px',
+                  border: '1px solid rgba(255, 255, 255, 0.15)',
+                  background: 'rgba(15, 23, 42, 0.5)',
+                  color: '#f8fafc',
+                  outline: 'none',
+                  boxSizing: 'border-box',
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPass(!showConfirmPass)}
+                style={{
+                  position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)',
+                  background: 'none', border: 'none', color: 'var(--color-primary)', cursor: 'pointer', display: 'flex', alignItems: 'center'
+                }}
+              >
+                {showConfirmPass ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
           </div>
 
           <div style={{ marginTop: '0.5rem', display: 'flex', justifyContent: 'flex-end' }}>
