@@ -36,6 +36,10 @@ async def init_database(db):
         await db.assessments.create_index("student_id")
         await db.notifications.create_index([("recipient_user_id", 1), ("is_read", 1)])
         await db.resources.create_index("module_id")
+        await db.messages.create_index("thread_id")
+        await db.messages.create_index("receiver_user_id")
+        await db.chat_threads.create_index("student_user_id")
+        await db.chat_threads.create_index("instructor_user_id")
 
         # Safely remove unassessed test duplicate attempt if present before unique index creation
         await db.submissions.delete_many({

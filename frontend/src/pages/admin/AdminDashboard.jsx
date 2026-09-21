@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Plus, Trash2, LogOut, Bell, CheckCircle2 } from 'lucide-react';
+import { Plus, Trash2, LogOut, Bell, CheckCircle2, Megaphone, Shield, MessageSquare, Send, RefreshCw } from 'lucide-react';
 import { API_BASE, getAvatarUrl } from '../../api/client';
 import { inputStyle } from '../../components/common/styles';
+import { notificationsApi, messagesApi } from '../../api';
 
 export function AdminDashboard({ onLogout }) {
   const [activeTab, setActiveTab] = useState('overview');
@@ -58,11 +59,84 @@ export function AdminDashboard({ onLogout }) {
   const [showAddAdminModal, setShowAddAdminModal] = useState(false);
   const [isSubmittingAdmin, setIsSubmittingAdmin] = useState(false);
 
+  // Announcements Broadcast State
+  const [bcTitle, setBcTitle] = useState('');
+  const [bcMessage, setBcMessage] = useState('');
+  const [bcTargetRole, setBcTargetRole] = useState('all');
+  const [bcTargetUser, setBcTargetUser] = useState('');
+  const [bcSending, setBcSending] = useState(false);
+  const [bcSuccess, setBcSuccess] = useState('');
+  const [bcError, setBcError] = useState('');
+
+  // Chat Audit State
+  const [auditThreads, setAuditThreads] = useState([]);
+  const [auditActiveThread, setAuditActiveThread] = useState(null);
+  const [auditMessages, setAuditMessages] = useState([]);
+  const [loadingAuditThreads, setLoadingAuditThreads] = useState(false);
+  const [loadingAuditHistory, setLoadingAuditHistory] = useState(false);
+
   // Assign & Profile View modal state
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [viewingStudent, setViewingStudent] = useState(null);
   const [assignSlot, setAssignSlot] = useState('');
   const [assignInst, setAssignInst] = useState('');
+
+  const handleBroadcastSubmit = async (e) => {
+    e.preventDefault();
+    setBcSending(true);
+    setBcSuccess('');
+    setBcError('');
+    try {
+      await notificationsApi.broadcast({
+        title: bcTitle,
+        message: bcMessage,
+        target_role: bcTargetRole,
+        target_user_id: bcTargetRole === 'specific' ? bcTargetUser : null,
+      });
+      setBcSuccess('Announcement successfully broadcasted!');
+      setBcTitle('');
+      setBcMessage('');
+      setBcTargetUser('');
+    } catch (err) {
+      console.error(err);
+      setBcError(err.message || 'Failed to send broadcast announcement');
+    } finally {
+      setBcSending(false);
+    }
+  };
+
+  const fetchAuditThreads = async () => {
+    setLoadingAuditThreads(true);
+    try {
+      const data = await messagesApi.getThreads();
+      setAuditThreads(data || []);
+      if (data && data.length > 0 && !auditActiveThread) {
+        setAuditActiveThread(data[0]);
+        fetchAuditHistory(data[0].thread_id);
+      }
+    } catch (err) {
+      console.error("Error fetching audit threads:", err);
+    } finally {
+      setLoadingAuditThreads(false);
+    }
+  };
+
+  const fetchAuditHistory = async (threadId) => {
+    setLoadingAuditHistory(true);
+    try {
+      const msgs = await messagesApi.getHistory(threadId);
+      setAuditMessages(msgs || []);
+    } catch (err) {
+      console.error("Error fetching audit history:", err);
+    } finally {
+      setLoadingAuditHistory(false);
+    }
+  };
+
+  const handleSelectAuditThread = (thread) => {
+    setAuditActiveThread(thread);
+    fetchAuditHistory(thread.thread_id);
+  };
 
   const token = localStorage.getItem('token') || localStorage.getItem('adminToken');
   const headers = {
@@ -291,6 +365,8 @@ export function AdminDashboard({ onLogout }) {
     if (activeTab === 'contacts') fetchContacts();
     if (activeTab === 'notifications') fetchNotifications();
     if (activeTab === 'admins') fetchAdmins();
+    if (activeTab === 'announcements') { fetchStudents(); fetchInstructors(); }
+    if (activeTab === 'chataudit') fetchAuditThreads();
 
     return () => clearInterval(notifTimer);
   }, [activeTab]);
@@ -605,6 +681,8 @@ export function AdminDashboard({ onLogout }) {
       <div className="admin-mobile-tab-bar no-scrollbar">
         {[
           { id: 'overview', label: 'Overview' },
+          { id: 'announcements', label: 'Announcements' },
+          { id: 'chataudit', label: 'Chat Audit' },
           { id: 'notifications', label: unreadNotifsCount > 0 ? `Alerts (${unreadNotifsCount})` : 'Alerts' },
           { id: 'admissions', label: 'Admissions' },
           { id: 'students', label: 'Students' },
@@ -628,6 +706,8 @@ export function AdminDashboard({ onLogout }) {
       <div className="admin-sidebar">
         <h3 style={{ color: 'var(--color-white)', fontWeight: 'bold', marginBottom: '1.5rem', textAlign: 'center' }} className="gradient-text">LMS Panel</h3>
         <button className={activeTab === 'overview' ? 'btn-primary' : 'glass-panel'} style={{ width: '100%', textAlign: 'left', padding: '10px 15px', border: 'none' }} onClick={() => setActiveTab('overview')}>Overview</button>
+        <button className={activeTab === 'announcements' ? 'btn-primary' : 'glass-panel'} style={{ width: '100%', textAlign: 'left', padding: '10px 15px', border: 'none' }} onClick={() => setActiveTab('announcements')}>Announcements</button>
+        <button className={activeTab === 'chataudit' ? 'btn-primary' : 'glass-panel'} style={{ width: '100%', textAlign: 'left', padding: '10px 15px', border: 'none' }} onClick={() => setActiveTab('chataudit')}>Chat Audit</button>
         <button 
           className={activeTab === 'notifications' ? 'btn-primary' : 'glass-panel'} 
           style={{ width: '100%', textAlign: 'left', padding: '10px 15px', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }} 
@@ -1898,6 +1978,273 @@ export function AdminDashboard({ onLogout }) {
                   )}
                 </tbody>
               </table>
+            </div>
+          </div>
+        )}
+
+        {/* Announcements Tab */}
+        {activeTab === 'announcements' && (
+          <div>
+            <div style={{ marginBottom: '1.5rem' }}>
+              <h2 style={{ color: 'var(--color-white)', margin: 0, fontSize: '1.6rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Megaphone size={24} style={{ color: 'var(--color-primary)' }} /> Broadcast Announcements &amp; Notifications
+              </h2>
+              <p style={{ color: '#b0c4c6', fontSize: '0.9rem', marginTop: '4px' }}>
+                Dispatch custom alert messages to Students, Instructors, All Platform Users, or Specific Individuals.
+              </p>
+            </div>
+
+            {bcSuccess && (
+              <div style={{ background: 'rgba(46, 204, 113, 0.15)', border: '1px solid rgba(46, 204, 113, 0.4)', color: '#2ecc71', padding: '12px 16px', borderRadius: '8px', marginBottom: '1.2rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <CheckCircle2 size={18} /> {bcSuccess}
+              </div>
+            )}
+
+            {bcError && (
+              <div style={{ background: 'rgba(231, 76, 60, 0.15)', border: '1px solid rgba(231, 76, 60, 0.4)', color: '#e74c3c', padding: '12px 16px', borderRadius: '8px', marginBottom: '1.2rem' }}>
+                {bcError}
+              </div>
+            )}
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.5rem' }}>
+              {/* Broadcast Form Panel */}
+              <div className="glass-panel" style={{ padding: '1.8rem', borderRadius: '12px' }}>
+                <h3 style={{ color: '#fff', fontSize: '1.1rem', marginBottom: '1.2rem', fontWeight: 'bold' }}>Compose Broadcast</h3>
+                
+                <form onSubmit={handleBroadcastSubmit}>
+                  <div style={{ marginBottom: '1rem' }}>
+                    <label style={{ display: 'block', color: '#b0c4c6', fontSize: '0.85rem', marginBottom: '6px' }}>Target Audience</label>
+                    <select
+                      value={bcTargetRole}
+                      onChange={(e) => setBcTargetRole(e.target.value)}
+                      style={{ ...inputStyle, width: '100%', background: 'rgba(255,255,255,0.05)', color: '#fff' }}
+                    >
+                      <option value="all" style={{ background: '#12252a' }}>All Platform Users (Students + Instructors)</option>
+                      <option value="student" style={{ background: '#12252a' }}>All Enrolled Students Only</option>
+                      <option value="instructor" style={{ background: '#12252a' }}>All Instructors Only</option>
+                      <option value="specific" style={{ background: '#12252a' }}>Specific User (By ID / Name)</option>
+                    </select>
+                  </div>
+
+                  {bcTargetRole === 'specific' && (
+                    <div style={{ marginBottom: '1rem' }}>
+                      <label style={{ display: 'block', color: '#b0c4c6', fontSize: '0.85rem', marginBottom: '6px' }}>Select Specific Recipient</label>
+                      <select
+                        value={bcTargetUser}
+                        onChange={(e) => setBcTargetUser(e.target.value)}
+                        style={{ ...inputStyle, width: '100%', background: 'rgba(255,255,255,0.05)', color: '#fff' }}
+                      >
+                        <option value="" style={{ background: '#12252a' }}>-- Select Recipient --</option>
+                        <optgroup label="Students" style={{ background: '#12252a' }}>
+                          {students.map(s => (
+                            <option key={s._id || s.id} value={s._id || s.id} style={{ background: '#12252a' }}>
+                              🎓 {s.full_name || s.student_name || s.username} ({s.roll_number || 'Student'})
+                            </option>
+                          ))}
+                        </optgroup>
+                        <optgroup label="Instructors" style={{ background: '#12252a' }}>
+                          {instructors.map(inst => (
+                            <option key={inst._id || inst.id} value={inst._id || inst.id} style={{ background: '#12252a' }}>
+                              👨‍🏫 {inst.full_name || inst.name || inst.username} ({inst.specialization || 'Instructor'})
+                            </option>
+                          ))}
+                        </optgroup>
+                      </select>
+                    </div>
+                  )}
+
+                  <div style={{ marginBottom: '1rem' }}>
+                    <label style={{ display: 'block', color: '#b0c4c6', fontSize: '0.85rem', marginBottom: '6px' }}>Announcement Title</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Important Platform Maintenance / Class Reschedule"
+                      value={bcTitle}
+                      onChange={(e) => setBcTitle(e.target.value)}
+                      required
+                      style={{ ...inputStyle, width: '100%' }}
+                    />
+                  </div>
+
+                  <div style={{ marginBottom: '1.2rem' }}>
+                    <label style={{ display: 'block', color: '#b0c4c6', fontSize: '0.85rem', marginBottom: '6px' }}>Message Content</label>
+                    <textarea
+                      rows={4}
+                      placeholder="Type your detailed message here..."
+                      value={bcMessage}
+                      onChange={(e) => setBcMessage(e.target.value)}
+                      required
+                      style={{ ...inputStyle, width: '100%', resize: 'vertical' }}
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={bcSending}
+                    className="btn-primary"
+                    style={{ width: '100%', padding: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: bcSending ? 'wait' : 'pointer' }}
+                  >
+                    <Send size={16} /> {bcSending ? 'Broadcasting...' : 'Send Announcement'}
+                  </button>
+                </form>
+              </div>
+
+              {/* Live Preview Card */}
+              <div className="glass-panel" style={{ padding: '1.8rem', borderRadius: '12px' }}>
+                <h3 style={{ color: '#fff', fontSize: '1.1rem', marginBottom: '1.2rem', fontWeight: 'bold' }}>Recipient Notification Preview</h3>
+                <p style={{ color: '#aaa', fontSize: '0.82rem', marginBottom: '1rem' }}>
+                  Here is how this announcement will render in recipient notification lists:
+                </p>
+
+                <div style={{ background: 'rgba(27, 67, 77, 0.4)', border: '1px solid rgba(0, 168, 150, 0.4)', borderRadius: '10px', padding: '1.2rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                    <span style={{ fontSize: '0.75rem', fontWeight: 'bold', padding: '2px 8px', borderRadius: '4px', background: 'rgba(0, 168, 150, 0.25)', color: 'var(--color-primary)', border: '1px solid rgba(0, 168, 150, 0.4)' }}>
+                      📢 ADMIN ANNOUNCEMENT
+                    </span>
+                    <span style={{ fontSize: '0.75rem', color: '#888' }}>Just now</span>
+                  </div>
+                  <h4 style={{ color: '#fff', fontSize: '1rem', margin: '6px 0', fontWeight: 'bold' }}>
+                    {bcTitle || 'Sample Announcement Title'}
+                  </h4>
+                  <p style={{ color: '#b0c4c6', fontSize: '0.88rem', margin: 0, whiteSpace: 'pre-wrap' }}>
+                    {bcMessage || 'Sample announcement text will be displayed here for the selected target audience.'}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Chat Audit Tab */}
+        {activeTab === 'chataudit' && (
+          <div>
+            <div style={{ marginBottom: '1.5rem' }}>
+              <h2 style={{ color: 'var(--color-white)', margin: 0, fontSize: '1.6rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Shield size={24} style={{ color: 'var(--color-primary)' }} /> Student-Instructor Communication Audit
+              </h2>
+              <p style={{ color: '#b0c4c6', fontSize: '0.9rem', marginTop: '4px' }}>
+                Read-only administrative monitoring of all private direct messaging threads across the platform.
+              </p>
+            </div>
+
+            {/* Security Banner */}
+            <div style={{ background: 'rgba(0, 168, 150, 0.12)', border: '1px solid rgba(0, 168, 150, 0.35)', padding: '12px 18px', borderRadius: '8px', marginBottom: '1.5rem', color: '#00a896', fontSize: '0.88rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <Shield size={18} style={{ flexShrink: 0 }} />
+              <span>
+                <strong>🔒 Audit Oversight Active:</strong> Administrators can inspect conversation history between students and their assigned instructors for policy compliance. Sending messages into private user threads is restricted.
+              </span>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(280px, 340px) 1fr', gap: '1.5rem', minHeight: '520px' }}>
+              {/* Threads Sidebar */}
+              <div className="glass-panel" style={{ padding: '1.2rem', borderRadius: '12px', display: 'flex', flexDirection: 'column' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                  <h3 style={{ color: '#fff', fontSize: '1.05rem', margin: 0, fontWeight: 'bold' }}>Active Threads</h3>
+                  <button onClick={fetchAuditThreads} className="btn-secondary" style={{ padding: '4px 8px', fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <RefreshCw size={12} /> Refresh
+                  </button>
+                </div>
+
+                {loadingAuditThreads ? (
+                  <div style={{ color: '#aaa', padding: '2rem', textAlign: 'center', fontSize: '0.9rem' }}>Loading threads...</div>
+                ) : auditThreads.length === 0 ? (
+                  <div style={{ color: '#888', padding: '2rem', textAlign: 'center', fontSize: '0.88rem' }}>No student-instructor threads found yet.</div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', overflowY: 'auto', maxHeight: '480px' }} className="no-scrollbar">
+                    {auditThreads.map((th) => {
+                      const isSelected = auditActiveThread && auditActiveThread.thread_id === th.thread_id;
+                      return (
+                        <div
+                          key={th.thread_id}
+                          onClick={() => handleSelectAuditThread(th)}
+                          style={{
+                            padding: '12px',
+                            borderRadius: '8px',
+                            background: isSelected ? 'rgba(0, 168, 150, 0.25)' : 'rgba(255, 255, 255, 0.03)',
+                            border: isSelected ? '1px solid rgba(0, 168, 150, 0.5)' : '1px solid rgba(255, 255, 255, 0.06)',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease'
+                          }}
+                        >
+                          <div style={{ color: '#fff', fontWeight: 'bold', fontSize: '0.9rem', marginBottom: '4px' }}>
+                            🎓 {th.student_name || 'Student'} ↔ 👨‍🏫 {th.instructor_name || 'Instructor'}
+                          </div>
+                          <div style={{ color: '#aaa', fontSize: '0.78rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {th.last_message || 'No messages exchanged yet'}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {/* Messages Viewer Area */}
+              <div className="glass-panel" style={{ padding: '1.2rem', borderRadius: '12px', display: 'flex', flexDirection: 'column' }}>
+                {auditActiveThread ? (
+                  <>
+                    <div style={{ paddingBottom: '1rem', borderBottom: '1px solid rgba(255,255,255,0.1)', marginBottom: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div>
+                        <h3 style={{ color: '#fff', fontSize: '1.1rem', margin: 0, fontWeight: 'bold' }}>
+                          Chat Audit: {auditActiveThread.student_name} &amp; {auditActiveThread.instructor_name}
+                        </h3>
+                        <span style={{ fontSize: '0.75rem', color: '#00a896' }}>Thread ID: {auditActiveThread.thread_id}</span>
+                      </div>
+                      <span style={{ fontSize: '0.75rem', padding: '4px 10px', borderRadius: '6px', background: 'rgba(255,255,255,0.06)', color: '#aaa', border: '1px solid rgba(255,255,255,0.1)' }}>
+                        Read-Only Audit Mode
+                      </span>
+                    </div>
+
+                    {/* Message Stream */}
+                    <div style={{ flex: 1, overflowY: 'auto', maxHeight: '360px', paddingRight: '6px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                      {loadingAuditHistory ? (
+                        <div style={{ color: '#aaa', textAlign: 'center', padding: '2rem' }}>Loading message log...</div>
+                      ) : auditMessages.length === 0 ? (
+                        <div style={{ color: '#888', textAlign: 'center', padding: '2rem' }}>No messages in this chat thread yet.</div>
+                      ) : (
+                        auditMessages.map((msg) => (
+                          <div key={msg._id || msg.id} style={{ display: 'flex', flexDirection: 'column', alignItems: msg.sender_role === 'student' ? 'flex-start' : 'flex-end' }}>
+                            <div style={{ fontSize: '0.72rem', color: '#888', marginBottom: '3px' }}>
+                              <strong style={{ color: msg.sender_role === 'student' ? '#3498db' : '#2ecc71' }}>
+                                {msg.sender_name} ({msg.sender_role})
+                              </strong> • {new Date(msg.timestamp || msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </div>
+                            <div style={{
+                              maxWidth: '75%',
+                              padding: '10px 14px',
+                              borderRadius: '12px',
+                              background: msg.sender_role === 'student' ? 'rgba(52, 152, 219, 0.15)' : 'rgba(46, 204, 113, 0.15)',
+                              border: msg.sender_role === 'student' ? '1px solid rgba(52, 152, 219, 0.3)' : '1px solid rgba(46, 204, 113, 0.3)',
+                              color: '#fff',
+                              fontSize: '0.88rem',
+                              lineHeight: '1.4'
+                            }}>
+                              {msg.content}
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+
+                    {/* Locked Bottom Message Input Bar */}
+                    <div style={{ marginTop: 'auto', paddingTop: '1rem', borderTop: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <input
+                        type="text"
+                        disabled
+                        placeholder="🔒 Message input disabled for admin monitoring session..."
+                        style={{ ...inputStyle, width: '100%', opacity: 0.5, cursor: 'not-allowed' }}
+                      />
+                      <button disabled className="btn-secondary" style={{ opacity: 0.5, cursor: 'not-allowed', padding: '10px 16px' }}>
+                        Locked
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#888' }}>
+                    <MessageSquare size={48} style={{ opacity: 0.3, marginBottom: '1rem' }} />
+                    <p>Select a student-instructor thread from the sidebar to audit conversation history.</p>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         )}

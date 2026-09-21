@@ -422,6 +422,49 @@ export const notificationsApi = {
     const res = await apiClient("/notifications/read-all", { method: "PATCH" });
     if (!res.ok) throw new Error("Failed to mark all notifications read");
     return res.json();
+  },
+  broadcast: async (data) => {
+    const res = await apiClient("/notifications/broadcast", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ detail: "Failed to broadcast notification" }));
+      throw new Error(err.detail || "Failed to broadcast notification");
+    }
+    return res.json();
+  }
+};
+
+// Messages / Chat API
+export const messagesApi = {
+  getThreads: async () => {
+    const res = await apiClient("/messages/threads");
+    if (!res.ok) throw new Error("Failed to load chat threads");
+    return res.json();
+  },
+  getHistory: async (threadId) => {
+    const res = await apiClient(`/messages/threads/${encodeURIComponent(threadId)}/history`);
+    if (!res.ok) throw new Error("Failed to load message history");
+    return res.json();
+  },
+  send: async (data) => {
+    const res = await apiClient("/messages/send", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ detail: "Failed to send message" }));
+      throw new Error(err.detail || "Failed to send message");
+    }
+    return res.json();
+  },
+  markRead: async (threadId) => {
+    const res = await apiClient(`/messages/threads/${encodeURIComponent(threadId)}/read`, {
+      method: "POST",
+    });
+    if (!res.ok) throw new Error("Failed to mark messages as read");
+    return res.json();
   }
 };
 

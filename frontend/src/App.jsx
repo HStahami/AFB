@@ -28,6 +28,7 @@ const InstructorResources = lazy(() => import('./pages/instructor/InstructorReso
 const InstructorReports = lazy(() => import('./pages/instructor/InstructorReports').then(m => ({ default: m.InstructorReports })));
 const InstructorNotifications = lazy(() => import('./pages/instructor/InstructorNotifications').then(m => ({ default: m.InstructorNotifications })));
 const InstructorProfile = lazy(() => import('./pages/instructor/InstructorProfile').then(m => ({ default: m.InstructorProfile })));
+const InstructorMessages = lazy(() => import('./pages/instructor/InstructorMessages').then(m => ({ default: m.InstructorMessages })));
 
 // Lazy-loaded Student Portal Pages
 const StudentLayout = lazy(() => import('./components/student/StudentLayout').then(m => ({ default: m.StudentLayout })));
@@ -43,6 +44,7 @@ const StudentReports = lazy(() => import('./pages/student/StudentReports').then(
 const StudentNotifications = lazy(() => import('./pages/student/StudentNotifications').then(m => ({ default: m.StudentNotifications })));
 const StudentProfile = lazy(() => import('./pages/student/StudentProfile').then(m => ({ default: m.StudentProfile })));
 const StudentSettings = lazy(() => import('./pages/student/StudentSettings').then(m => ({ default: m.StudentSettings })));
+const StudentMessages = lazy(() => import('./pages/student/StudentMessages').then(m => ({ default: m.StudentMessages })));
 
 import './index.css';
 
@@ -148,6 +150,7 @@ function AppLayout() {
                 <Route path="resources" element={<InstructorResources />} />
                 <Route path="reports" element={<InstructorReports />} />
                 <Route path="notifications" element={<InstructorNotifications />} />
+                <Route path="messages" element={<InstructorMessages />} />
                 <Route path="profile" element={<InstructorProfile />} />
               </Route>
 
@@ -170,6 +173,7 @@ function AppLayout() {
                 <Route path="resources" element={<StudentResources />} />
                 <Route path="reports" element={<StudentReports />} />
                 <Route path="notifications" element={<StudentNotifications />} />
+                <Route path="messages" element={<StudentMessages />} />
                 <Route path="profile" element={<StudentProfile />} />
                 <Route path="settings" element={<StudentSettings />} />
               </Route>

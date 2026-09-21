@@ -15,6 +15,7 @@ import {
   Menu,
   X,
   Lock,
+  MessageCircle,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { notificationsApi } from '../../api';
@@ -55,6 +56,7 @@ export function StudentLayout({ children }) {
     { label: 'My Courses', path: '/student/courses', icon: <BookOpen size={19} /> },
     { label: 'Course Tasks', path: '/student/tasks', icon: <CheckSquare size={19} /> },
     { label: 'Submissions', path: '/student/submissions', icon: <FileText size={19} /> },
+    { label: 'Instructor Chat', path: '/student/messages', icon: <MessageCircle size={19} /> },
     { label: 'Attendance', path: '/student/attendance', icon: <Calendar size={19} /> },
     { label: 'Resources', path: '/student/resources', icon: <FolderDown size={19} /> },
     { label: 'Reports', path: '/student/reports', icon: <BarChart3 size={19} /> },

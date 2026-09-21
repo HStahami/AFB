@@ -15,7 +15,8 @@ import {
   Menu,
   X,
   Lock,
-  AlertCircle
+  AlertCircle,
+  MessageCircle
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { notificationsApi, authApi } from "../../api";
@@ -95,6 +96,7 @@ export function InstructorLayout({ children }) {
   const navItems = [
     { label: "Dashboard", path: "/instructor", icon: <LayoutDashboard size={20} /> },
     { label: "My Students", path: "/instructor/students", icon: <Users size={20} /> },
+    { label: "Student Chat", path: "/instructor/messages", icon: <MessageCircle size={20} /> },
     { label: "My Classes", path: "/instructor/classes", icon: <Calendar size={20} /> },
     { label: "Tasks", path: "/instructor/tasks", icon: <CheckSquare size={20} /> },
     { label: "Submissions", path: "/instructor/submissions", icon: <FileText size={20} /> },

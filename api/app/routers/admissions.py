@@ -332,4 +332,3 @@ async def cancel_admission(form_id: str, admin_user: dict = Depends(require_admi
     except Exception as e:
         print(f"ERROR canceling admission: {e}")
         raise HTTPException(status_code=500, detail="Could not cancel admission.")
-
