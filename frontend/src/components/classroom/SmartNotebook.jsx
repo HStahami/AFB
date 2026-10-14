@@ -1,21 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { BookOpen, Save, Check, Clock, Copy, Download, Sparkles, Palette } from 'lucide-react';
+import { BookOpen, Save, Check, Clock, Copy, Download, Palette } from 'lucide-react';
 import { notesApi } from '../../api';
 import { ArabicWhiteboard } from './ArabicWhiteboard';
-
-// Common Arabic Harakat & Symbols for easy typing on any device
-const ARABIC_SHORTCUTS = [
-  { label: 'َ (Fatha)', char: '\u064E' },
-  { label: 'ِ (Kasra)', char: '\u0650' },
-  { label: 'ُ (Damma)', char: '\u064F' },
-  { label: 'ّ (Shaddah)', char: '\u0651' },
-  { label: 'ْ (Sukun)', char: '\u0652' },
-  { label: 'ً (Tanween Fath)', char: '\u064B' },
-  { label: 'ٍ (Tanween Kasr)', char: '\u064D' },
-  { label: 'ٌ (Tanween Damm)', char: '\u064C' },
-  { label: '، (Arabic Comma)', char: '\u060C' },
-  { label: '؟ (Arabic ?)', char: '\u061F' },
-];
 
 export function SmartNotebook({ slotId, slotName, initialNoteId = null }) {
   const [activeView, setActiveView] = useState('notes'); // 'notes' | 'whiteboard'
@@ -118,30 +104,6 @@ export function SmartNotebook({ slotId, slotName, initialNoteId = null }) {
     if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
     saveTimeoutRef.current = setTimeout(() => {
       saveNote(val, content);
-    }, 1200);
-  };
-
-  // Insert Arabic diacritic at the exact cursor position
-  const insertChar = (char) => {
-    const textarea = textareaRef.current;
-    if (!textarea) return;
-
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const text = content;
-    const newText = text.substring(0, start) + char + text.substring(end);
-
-    setContent(newText);
-    setSaveStatus('unsaved');
-
-    setTimeout(() => {
-      textarea.focus();
-      textarea.setSelectionRange(start + char.length, start + char.length);
-    }, 10);
-
-    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
-    saveTimeoutRef.current = setTimeout(() => {
-      saveNote(title, newText);
     }, 1200);
   };
 
@@ -342,52 +304,6 @@ export function SmartNotebook({ slotId, slotName, initialNoteId = null }) {
             Class: {slotName}
           </div>
         )}
-      </div>
-
-      {/* Arabic Quick Harakat Toolbar */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '4px',
-          padding: '6px 1.25rem',
-          backgroundColor: '#092528',
-          borderBottom: '1px solid rgba(255,255,255,0.06)',
-          overflowX: 'auto',
-          scrollbarWidth: 'none'
-        }}
-      >
-        <span style={{ fontSize: '0.72rem', color: '#94a3b8', marginRight: '4px', display: 'flex', alignItems: 'center', gap: '3px' }}>
-          <Sparkles size={11} color="var(--color-primary)" /> Harakat:
-        </span>
-        {ARABIC_SHORTCUTS.map((item, idx) => (
-          <button
-            key={idx}
-            type="button"
-            onClick={() => insertChar(item.char)}
-            title={item.label}
-            style={{
-              background: 'rgba(255, 255, 255, 0.05)',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
-              borderRadius: '4px',
-              color: '#38bdf8',
-              fontSize: '1rem',
-              fontWeight: 'bold',
-              minWidth: '28px',
-              height: '26px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-              padding: '0 4px',
-              transition: 'background 0.2s'
-            }}
-            onMouseEnter={e => e.currentTarget.style.background = 'rgba(0, 168, 150, 0.2)'}
-            onMouseLeave={e => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)'}
-          >
-            {item.char}
-          </button>
-        ))}
       </div>
 
       {/* Note Content Area */}

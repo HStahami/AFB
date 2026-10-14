@@ -285,9 +285,10 @@ async def list_attendance(
     return records
 
 
-@router.post("/auto-checkin", summary="Student auto check-in when entering live classroom")
+@router.post("/auto-checkin", summary="Student auto check-in after completing required classroom duration")
 async def auto_checkin(
     slot_id: str = Query(..., description="Slot ID or key"),
+    duration_minutes: int = Query(30, description="Duration in minutes student attended"),
     current_user: dict = Depends(require_roles(["student"]))
 ):
     db = get_db()
@@ -337,7 +338,7 @@ async def auto_checkin(
         if existing and existing.get("status") == "present":
             return {
                 "status": "already_marked",
-                "message": "Attendance already marked as Present for today.",
+                "message": f"Attendance already marked as Present for today ({duration_minutes}+ mins).",
                 "record": await _format_attendance(existing, db)
             }
 
@@ -354,7 +355,8 @@ async def auto_checkin(
                 "enrollment_id": enrollment_id,
                 "slot_id": slot["_id"],
                 "status": "present",
-                "remarks": "Automated Live Classroom Check-in",
+                "remarks": f"Automated Live Classroom Check-in ({duration_minutes}+ mins attended)",
+                "duration_minutes": duration_minutes,
                 "checkin_at": now,
                 "updated_at": now
             },
@@ -367,7 +369,7 @@ async def auto_checkin(
         record = await db.attendance.find_one(attendance_filter)
         return {
             "status": "marked_present",
-            "message": "Attendance marked as Present automatically.",
+            "message": f"Attendance marked as Present automatically ({duration_minutes}+ mins attended).",
             "record": await _format_attendance(record, db)
         }
     except HTTPException:

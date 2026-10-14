@@ -68,23 +68,64 @@ export function StudentClassroom() {
     };
   }, [slotKey]);
 
-  // Automated Attendance Check-in as soon as class is live
+  const [minutesRemaining, setMinutesRemaining] = useState(30);
+
+  // Check if attendance is already recorded for today for this student & slot
   useEffect(() => {
-    if (isLive && slotKey && !attendanceMarked) {
-      let isSubscribed = true;
-      const triggerAutoCheckin = async () => {
-        try {
-          await attendanceApi.autoCheckIn(slotKey);
-          if (isSubscribed) {
+    let isCancelled = false;
+    const checkExistingAttendance = async () => {
+      try {
+        const today = new Date().toISOString().split('T')[0];
+        const records = await attendanceApi.getAll({ date: today, slot_id: slotKey });
+        if (!isCancelled && Array.isArray(records) && records.length > 0) {
+          const myRec = records.find(r => r.status === 'present');
+          if (myRec) {
             setAttendanceMarked(true);
+            setMinutesRemaining(0);
           }
+        }
+      } catch (e) {
+        // non-blocking
+      }
+    };
+    if (slotKey) checkExistingAttendance();
+    return () => { isCancelled = true; };
+  }, [slotKey]);
+
+  // Automated Attendance Check-in: Required 30 minutes in live class
+  useEffect(() => {
+    if (!isLive || !slotKey || attendanceMarked) return;
+
+    const REQUIRED_SECONDS = 30 * 60; // 30 minutes = 1800s
+    const todayKey = new Date().toISOString().split('T')[0];
+    const sessionStorageKey = `afb_live_join_${slotKey}_${todayKey}`;
+
+    let joinTime = sessionStorage.getItem(sessionStorageKey);
+    if (!joinTime) {
+      joinTime = Date.now().toString();
+      sessionStorage.setItem(sessionStorageKey, joinTime);
+    }
+    const joinTimestamp = parseInt(joinTime, 10);
+
+    const updateTimerAndCheckIn = async () => {
+      const elapsed = Math.floor((Date.now() - joinTimestamp) / 1000);
+      const remainingMins = Math.max(0, Math.ceil((REQUIRED_SECONDS - elapsed) / 60));
+      setMinutesRemaining(remainingMins);
+
+      if (elapsed >= REQUIRED_SECONDS && !attendanceMarked) {
+        try {
+          await attendanceApi.autoCheckIn(slotKey, 30);
+          setAttendanceMarked(true);
+          setMinutesRemaining(0);
         } catch (err) {
           console.warn('Auto attendance check-in notice:', err);
         }
-      };
-      triggerAutoCheckin();
-      return () => { isSubscribed = false; };
-    }
+      }
+    };
+
+    updateTimerAndCheckIn();
+    const interval = setInterval(updateTimerAndCheckIn, 5000);
+    return () => clearInterval(interval);
   }, [isLive, slotKey, attendanceMarked]);
 
   const openUnlimitedWindow = () => {
@@ -137,7 +178,7 @@ export function StudentClassroom() {
                     <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#10b981', display: 'inline-block' }} />
                     Instructor is Live Now
                   </span>
-                  {attendanceMarked && (
+                  {attendanceMarked ? (
                     <span style={{
                       fontSize: '0.78rem',
                       color: '#34d399',
@@ -151,7 +192,25 @@ export function StudentClassroom() {
                       fontWeight: 600
                     }}>
                       <CheckCircle2 size={12} />
-                      Attendance: Present (Auto-Marked)
+                      Attendance: Present (30+ mins attended)
+                    </span>
+                  ) : (
+                    <span style={{
+                      fontSize: '0.78rem',
+                      color: '#fbbf24',
+                      background: 'rgba(245, 158, 11, 0.12)',
+                      border: '1px solid rgba(245, 158, 11, 0.3)',
+                      padding: '2px 8px',
+                      borderRadius: '12px',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      fontWeight: 600
+                    }}
+                    title="Attendance is recorded after staying in the live classroom for 30 minutes"
+                    >
+                      <Clock size={12} />
+                      Attendance in: {minutesRemaining} min{minutesRemaining > 1 ? 's' : ''}
                     </span>
                   )}
                   <span style={{

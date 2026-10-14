@@ -440,8 +440,8 @@ export const attendanceApi = {
     if (!res.ok) throw new Error("Failed to record bulk attendance");
     return res.json();
   },
-  autoCheckIn: async (slotId) => {
-    const res = await apiClient(`/attendance/auto-checkin?slot_id=${encodeURIComponent(slotId)}`, {
+  autoCheckIn: async (slotId, durationMinutes = 30) => {
+    const res = await apiClient(`/attendance/auto-checkin?slot_id=${encodeURIComponent(slotId)}&duration_minutes=${encodeURIComponent(durationMinutes)}`, {
       method: "POST"
     });
     if (!res.ok) {
