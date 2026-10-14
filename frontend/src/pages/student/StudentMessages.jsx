@@ -97,7 +97,7 @@ export function StudentMessages() {
             Instructor Chat & Messages
           </h1>
           <p style={{ color: "#8892b0", fontSize: "0.95rem" }}>
-            Directly communicate with your assigned Arabic & Quranic Ustadh
+            Directly communicate with your assigned Arabic & Quranic Instructor
           </p>
         </div>
         <button
@@ -143,7 +143,7 @@ export function StudentMessages() {
                   >
                     <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "4px" }}>
                       <span style={{ fontWeight: "600", color: "#fff", fontSize: "0.95rem" }}>
-                        {t.instructor_name || "Ustadh"}
+                        {t.instructor_name || "Instructor"}
                       </span>
                       {t.unread_count_student > 0 && (
                         <span style={{ background: "var(--color-primary)", color: "var(--color-bg-dark)", fontSize: "0.75rem", padding: "2px 8px", borderRadius: "10px", fontWeight: "bold" }}>
@@ -172,7 +172,7 @@ export function StudentMessages() {
                 </div>
                 <div>
                   <h3 style={{ color: "#fff", fontSize: "1.1rem", margin: 0 }}>
-                    {activeThread.instructor_name || "Ustadh"}
+                    {activeThread.instructor_name || "Instructor"}
                   </h3>
                   <span style={{ color: "var(--color-primary)", fontSize: "0.8rem" }}>Assigned Instructor</span>
                 </div>
@@ -220,7 +220,7 @@ export function StudentMessages() {
               <form onSubmit={handleSendMessage} style={{ marginTop: "1rem", display: "flex", gap: "10px", borderTop: "1px solid rgba(255, 255, 255, 0.1)", paddingTop: "1rem" }}>
                 <input
                   type="text"
-                  placeholder="Type your message to Ustadh..."
+                  placeholder="Type your message to Instructor..."
                   value={newMsgContent}
                   onChange={(e) => setNewMsgContent(e.target.value)}
                   style={{

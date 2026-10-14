@@ -1447,11 +1447,11 @@ export function AdminDashboard({ onLogout }) {
                 <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
                   <div style={{ flex: 1, minWidth: '220px' }}>
                     <label style={{ display: 'block', color: 'var(--color-primary)', marginBottom: '0.4rem', fontSize: '0.9rem' }}>Instructor Name *</label>
-                    <input type="text" placeholder="e.g. Ustadh Ahmed" value={newInstName} onChange={e => setNewInstName(e.target.value)} required style={{ ...inputStyle, width: '100%' }} />
+                    <input type="text" placeholder="e.g. Instructor Ahmed" value={newInstName} onChange={e => setNewInstName(e.target.value)} required style={{ ...inputStyle, width: '100%' }} />
                   </div>
                   <div style={{ flex: 1, minWidth: '220px' }}>
                     <label style={{ display: 'block', color: 'var(--color-primary)', marginBottom: '0.4rem', fontSize: '0.9rem' }}>Instructor Email * (for portal login & credentials)</label>
-                    <input type="email" placeholder="e.g. ustadh.ahmed@example.com" value={newInstEmail} onChange={e => setNewInstEmail(e.target.value)} required style={{ ...inputStyle, width: '100%' }} />
+                    <input type="email" placeholder="e.g. instructor.ahmed@example.com" value={newInstEmail} onChange={e => setNewInstEmail(e.target.value)} required style={{ ...inputStyle, width: '100%' }} />
                   </div>
                   <div style={{ flex: 1, minWidth: '220px' }}>
                     <label style={{ display: 'block', color: 'var(--color-primary)', marginBottom: '0.4rem', fontSize: '0.9rem' }}>Specialty / Role</label>

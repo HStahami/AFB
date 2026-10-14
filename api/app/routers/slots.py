@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import Optional
 from fastapi import APIRouter, HTTPException, Form, Depends
 from app.database import get_db
-from app.core.dependencies import require_admin
+from app.core.dependencies import require_admin, require_roles
 
 router = APIRouter(prefix="/api/slots", tags=["Slots"])
 
@@ -24,6 +24,8 @@ async def get_all_slots(status: Optional[str] = None):
             doc["id"] = doc["_id"]
             if "status" not in doc:
                 doc["status"] = "Active"
+            doc["is_live"] = doc.get("is_live", False)
+            doc["live_started_at"] = doc.get("live_started_at")
             slots.append(doc)
         return slots
     except Exception as e:
@@ -99,3 +101,165 @@ async def delete_slot(
     except Exception as e:
         print(f"ERROR deleting slot: {e}")
         raise HTTPException(status_code=500, detail="Could not delete slot.")
+
+
+@router.get("/{slot_id}/live-status", summary="Get real-time live status of a slot")
+async def get_slot_live_status(slot_id: str):
+    db = get_db()
+    if db is None:
+        return {"slot_id": slot_id, "is_live": False, "live_started_at": None}
+    try:
+        slot = None
+        if ObjectId.is_valid(slot_id):
+            slot = await db.slots.find_one({"_id": ObjectId(slot_id)})
+        if not slot:
+            if slot_id == "general":
+                slot = await db.slots.find_one({"is_general": True})
+            else:
+                slot = await db.slots.find_one({"days": slot_id})
+
+        if not slot and slot_id == "general":
+            res = await db.slots.insert_one({
+                "days": "General Classroom",
+                "time": "Open Live Session",
+                "status": "Active",
+                "is_general": True,
+                "is_live": False,
+                "created_at": datetime.utcnow()
+            })
+            slot = await db.slots.find_one({"_id": res.inserted_id})
+
+        if not slot:
+            return {"slot_id": slot_id, "is_live": False, "live_started_at": None, "live_started_by": None}
+
+        return {
+            "slot_id": str(slot["_id"]),
+            "is_live": bool(slot.get("is_live", False)),
+            "live_started_at": slot["live_started_at"].isoformat() if slot.get("live_started_at") else None,
+            "live_started_by": slot.get("live_started_by")
+        }
+    except Exception as e:
+        print(f"ERROR getting slot live status: {e}")
+        return {"slot_id": slot_id, "is_live": False, "live_started_at": None}
+
+
+@router.post("/{slot_id}/start-class", summary="Instructor starts live class (Go Live)")
+async def start_class(
+    slot_id: str,
+    current_user: dict = Depends(require_roles(["instructor", "admin", "superadmin"]))
+):
+    db = get_db()
+    if db is None:
+        raise HTTPException(status_code=500, detail="Database unavailable")
+    try:
+        slot = None
+        if ObjectId.is_valid(slot_id):
+            slot = await db.slots.find_one({"_id": ObjectId(slot_id)})
+        if not slot:
+            if slot_id == "general":
+                slot = await db.slots.find_one({"is_general": True})
+                if not slot:
+                    res = await db.slots.insert_one({
+                        "days": "General Classroom",
+                        "time": "Open Live Session",
+                        "status": "Active",
+                        "is_general": True,
+                        "is_live": False,
+                        "created_at": datetime.utcnow()
+                    })
+                    slot = await db.slots.find_one({"_id": res.inserted_id})
+            else:
+                slot = await db.slots.find_one({"days": slot_id})
+
+        if not slot:
+            raise HTTPException(status_code=404, detail="Slot not found")
+
+        now = datetime.utcnow()
+        await db.slots.update_one(
+            {"_id": slot["_id"]},
+            {"$set": {
+                "is_live": True,
+                "live_started_at": now,
+                "live_started_by": str(current_user["_id"])
+            }}
+        )
+
+        # Notify enrolled students
+        try:
+            slot_name = slot.get("days", "your class")
+            slot_time = slot.get("time", "")
+            student_query = {
+                "$or": [
+                    {"slot_id": slot["_id"]},
+                    {"slot": f"{slot.get('days')} — {slot.get('time')}"},
+                    {"slot": f"{slot.get('days')} {slot.get('time')}"},
+                    {"slot": slot.get("days")}
+                ]
+            }
+            async for s in db.students.find(student_query):
+                if s.get("user_id"):
+                    await db.notifications.insert_one({
+                        "recipient_user_id": s["user_id"],
+                        "title": "🟢 Live Class Started!",
+                        "message": f"Your instructor has started the live class for {slot_name} {slot_time}. Click to join now!",
+                        "type": "classroom",
+                        "link": "/student/classroom",
+                        "is_read": False,
+                        "created_at": now
+                    })
+        except Exception as notify_err:
+            print(f"Error notifying students: {notify_err}")
+
+        return {
+            "message": "Class started successfully.",
+            "slot_id": str(slot["_id"]),
+            "is_live": True,
+            "live_started_at": now.isoformat()
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"ERROR starting class: {e}")
+        raise HTTPException(status_code=500, detail="Could not start class session.")
+
+
+@router.post("/{slot_id}/end-class", summary="Instructor ends live session")
+async def end_class(
+    slot_id: str,
+    current_user: dict = Depends(require_roles(["instructor", "admin", "superadmin"]))
+):
+    db = get_db()
+    if db is None:
+        raise HTTPException(status_code=500, detail="Database unavailable")
+    try:
+        slot = None
+        if ObjectId.is_valid(slot_id):
+            slot = await db.slots.find_one({"_id": ObjectId(slot_id)})
+        if not slot:
+            if slot_id == "general":
+                slot = await db.slots.find_one({"is_general": True})
+            else:
+                slot = await db.slots.find_one({"days": slot_id})
+
+        if not slot:
+            raise HTTPException(status_code=404, detail="Slot not found")
+
+        now = datetime.utcnow()
+        await db.slots.update_one(
+            {"_id": slot["_id"]},
+            {"$set": {
+                "is_live": False,
+                "live_ended_at": now
+            }}
+        )
+        return {
+            "message": "Class ended successfully.",
+            "slot_id": str(slot["_id"]),
+            "is_live": False
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"ERROR ending class: {e}")
+        raise HTTPException(status_code=500, detail="Could not end class session.")
+

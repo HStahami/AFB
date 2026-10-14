@@ -64,7 +64,81 @@ async def get_my_profile(current_user: dict = Depends(get_current_user)):
     if not student:
         raise HTTPException(status_code=404, detail="Student profile not found.")
 
-    return _clean_doc(student)
+    cleaned = _clean_doc(student)
+
+    # Resolve slot
+    slot_doc = None
+    slot_oid = student.get("slot_id")
+    if slot_oid:
+        try:
+            slot_doc = await db.slots.find_one({"_id": ObjectId(slot_oid) if isinstance(slot_oid, str) else slot_oid})
+        except Exception:
+            pass
+    if not slot_doc and student.get("slot"):
+        slot_str = student["slot"]
+        slot_doc = await db.slots.find_one({
+            "$or": [
+                {"days": slot_str},
+                {"days": slot_str.split("—")[0].strip()}
+            ]
+        })
+
+    slot_data = None
+    if slot_doc:
+        slot_data = {
+            "id": str(slot_doc["_id"]),
+            "_id": str(slot_doc["_id"]),
+            "days": slot_doc.get("days", "Weekly"),
+            "time": slot_doc.get("time", "Scheduled Time"),
+            "status": slot_doc.get("status", "Active"),
+            "is_live": bool(slot_doc.get("is_live", False)),
+            "live_started_at": slot_doc["live_started_at"].isoformat() if slot_doc.get("live_started_at") else None
+        }
+    elif student.get("slot"):
+        slot_data = {
+            "id": "",
+            "_id": "",
+            "days": student["slot"],
+            "time": "",
+            "status": "Active",
+            "is_live": False,
+            "live_started_at": None
+        }
+
+    # Resolve instructor
+    instructor_doc = None
+    inst_oid = student.get("instructor_id")
+    if inst_oid:
+        try:
+            instructor_doc = await db.instructors.find_one({"_id": ObjectId(inst_oid) if isinstance(inst_oid, str) else inst_oid})
+        except Exception:
+            pass
+    if not instructor_doc and student.get("instructor"):
+        instructor_doc = await db.instructors.find_one({"name": student["instructor"]})
+
+    instructor_data = None
+    if instructor_doc:
+        instructor_data = {
+            "id": str(instructor_doc["_id"]),
+            "_id": str(instructor_doc["_id"]),
+            "name": instructor_doc.get("name", "Instructor"),
+            "email": instructor_doc.get("email", ""),
+            "avatar": instructor_doc.get("avatar", "")
+        }
+    elif student.get("instructor"):
+        instructor_data = {
+            "id": "",
+            "_id": "",
+            "name": student["instructor"],
+            "email": "",
+            "avatar": ""
+        }
+
+    response_data = dict(cleaned)
+    response_data["student"] = cleaned
+    response_data["slot"] = slot_data
+    response_data["instructor"] = instructor_data
+    return response_data
 
 
 @router.patch("/profile", summary="Update current logged-in student's own profile")
@@ -503,7 +577,7 @@ async def get_student_dashboard_summary(current_user: dict = Depends(get_current
     progress_summary = await get_student_progress_summary(db, student_oid)
 
     # 2. Resolve Active Course / Enrollment
-    enrollment = await db.enrollments.find_one({"student_id": student_oid, "status": "active"})
+    enrollment = await db.enrollments.find_one({"student_id": student_oid, "status": {"$in": ["active", "Active"]}})
 
     # Resolve Module
     module = None
@@ -535,6 +609,14 @@ async def get_student_dashboard_summary(current_user: dict = Depends(get_current
             slot = await db.slots.find_one({"_id": slot_oid if isinstance(slot_oid, ObjectId) else ObjectId(slot_oid)})
         except Exception:
             pass
+    if not slot and student.get("slot"):
+        slot_str = student["slot"]
+        slot = await db.slots.find_one({
+            "$or": [
+                {"days": slot_str},
+                {"days": slot_str.split("—")[0].strip()}
+            ]
+        })
 
     # Format module info
     module_data = None
@@ -575,7 +657,9 @@ async def get_student_dashboard_summary(current_user: dict = Depends(get_current
             "days": slot.get("days", "Weekly"),
             "time": slot.get("time", "Scheduled Time"),
             "schedule_days": slot.get("schedule_days", []),
-            "status": slot.get("status", "Active")
+            "status": slot.get("status", "Active"),
+            "is_live": bool(slot.get("is_live", False)),
+            "live_started_at": slot["live_started_at"].isoformat() if slot.get("live_started_at") else None
         }
     elif student.get("slot"):
         slot_data = {
@@ -583,7 +667,9 @@ async def get_student_dashboard_summary(current_user: dict = Depends(get_current
             "days": student["slot"],
             "time": "",
             "schedule_days": [],
-            "status": "Active"
+            "status": "Active",
+            "is_live": False,
+            "live_started_at": None
         }
 
     # 3. Upcoming Tasks

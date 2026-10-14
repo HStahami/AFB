@@ -292,6 +292,31 @@ export const slotsApi = {
     });
     if (!res.ok) throw new Error("Failed to delete slot");
     return res.json();
+  },
+  getLiveStatus: async (slotId) => {
+    const res = await apiClient(`/slots/${encodeURIComponent(slotId)}/live-status`);
+    if (!res.ok) throw new Error("Failed to fetch slot live status");
+    return res.json();
+  },
+  startClass: async (slotId) => {
+    const res = await apiClient(`/slots/${encodeURIComponent(slotId)}/start-class`, {
+      method: "POST"
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ detail: "Failed to start live class" }));
+      throw new Error(err.detail || "Failed to start live class");
+    }
+    return res.json();
+  },
+  endClass: async (slotId) => {
+    const res = await apiClient(`/slots/${encodeURIComponent(slotId)}/end-class`, {
+      method: "POST"
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ detail: "Failed to end live class" }));
+      throw new Error(err.detail || "Failed to end live class");
+    }
+    return res.json();
   }
 };
 
@@ -570,4 +595,5 @@ export const notesApi = {
     return res.json();
   }
 };
+
 

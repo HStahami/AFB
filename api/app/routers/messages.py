@@ -85,7 +85,7 @@ async def get_chat_threads(current_user: dict = Depends(get_current_user)):
                         "student_name": f"{s.get('first_name', '')} {s.get('last_name', '')}".strip() or s.get("name", "Student"),
                         "student_code": s.get("student_code", ""),
                         "instructor_user_id": str(inst["user_id"]),
-                        "instructor_name": inst.get("name", "Ustadh"),
+                        "instructor_name": inst.get("name", "Instructor"),
                         "last_message": "No messages exchanged yet.",
                         "last_message_at": s.get("created_at") or datetime.utcnow(),
                         "unread_count_student": 0,
@@ -129,7 +129,7 @@ async def get_chat_threads(current_user: dict = Depends(get_current_user)):
                         "student_name": f"{student.get('first_name', '')} {student.get('last_name', '')}".strip() or student.get("name", "Student"),
                         "student_code": student.get("student_code", ""),
                         "instructor_user_id": str(inst_user["_id"]),
-                        "instructor_name": instructor.get("name", "Ustadh"),
+                        "instructor_name": instructor.get("name", "Instructor"),
                         "last_message": "No messages yet. Click to start conversation.",
                         "last_message_at": datetime.utcnow(),
                         "unread_count_student": 0,
@@ -169,7 +169,7 @@ async def get_chat_threads(current_user: dict = Depends(get_current_user)):
                             "student_name": f"{s.get('first_name', '')} {s.get('last_name', '')}".strip() or s.get("name", "Student"),
                             "student_code": s.get("student_code", ""),
                             "instructor_user_id": user_id_str,
-                            "instructor_name": instructor.get("name", "Ustadh"),
+                            "instructor_name": instructor.get("name", "Instructor"),
                             "last_message": "No messages yet.",
                             "last_message_at": datetime.utcnow(),
                             "unread_count_student": 0,
@@ -283,7 +283,7 @@ async def send_message(payload: SendMessageRequest, current_user: dict = Depends
     if not student_name or student_name == "Student":
         student_name = student.get("name", "Student") if student else "Student"
 
-    instructor_name = instructor.get("name", "Ustadh") if instructor else "Ustadh"
+    instructor_name = instructor.get("name", "Instructor") if instructor else "Instructor"
 
     message_doc = {
         "thread_id": thread_id,

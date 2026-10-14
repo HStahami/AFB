@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Video } from 'lucide-react';
+import { Video, BookOpen } from 'lucide-react';
 import { studentsApi, reportsApi } from '../../api';
 import { useAuth } from '../../context/AuthContext';
 
@@ -111,27 +111,70 @@ export function StudentDashboard() {
             </div>
             {instructor && (
               <div style={{ fontSize: '0.8rem', color: 'var(--color-primary)', marginTop: '0.2rem' }}>
-                Ustadh: {instructor.name}
+                Instructor: {instructor.name}
               </div>
             )}
-            <Link
-              to="/student/classroom"
-              className="btn-primary"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
-                marginTop: '0.75rem',
-                padding: '8px 14px',
-                fontSize: '0.85rem',
-                textDecoration: 'none',
-                fontWeight: 600,
-                borderRadius: '6px'
-              }}
-            >
-              <Video size={16} /> Enter Live Classroom
-            </Link>
+            <div style={{ marginTop: '0.75rem' }}>
+              {slot.is_live ? (
+                <Link
+                  to="/student/classroom"
+                  className="btn-primary"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    padding: '9px 14px',
+                    fontSize: '0.85rem',
+                    textDecoration: 'none',
+                    fontWeight: 700,
+                    borderRadius: '6px',
+                    backgroundColor: '#10b981',
+                    color: '#fff',
+                    boxShadow: '0 0 12px rgba(16, 185, 129, 0.4)'
+                  }}
+                >
+                  <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#fff' }} />
+                  Instructor is Live — Join Class
+                </Link>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '6px',
+                    fontSize: '0.75rem',
+                    color: '#cbd5e1',
+                    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+                    padding: '5px 8px',
+                    borderRadius: '4px',
+                    border: '1px solid rgba(255, 255, 255, 0.1)'
+                  }}>
+                    <span>⏳ Class Not Started Yet</span>
+                  </div>
+                  <Link
+                    to="/student/classroom"
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px',
+                      padding: '7px 12px',
+                      fontSize: '0.82rem',
+                      textDecoration: 'none',
+                      fontWeight: 600,
+                      borderRadius: '6px',
+                      backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                      color: '#cbd5e1',
+                      border: '1px solid rgba(255, 255, 255, 0.15)'
+                    }}
+                  >
+                    <BookOpen size={15} /> Open Classroom & Notes
+                  </Link>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>

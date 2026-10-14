@@ -1,11 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Video, Loader2, AlertCircle, RefreshCw } from 'lucide-react';
+import { Video, Loader2, AlertCircle, RefreshCw, CheckCircle2, ArrowLeft } from 'lucide-react';
 
-export function JitsiClassroom({ roomName, displayName, onLeave, height = "100%" }) {
+export function JitsiClassroom({ roomName, displayName, onLeave, onReturn, height = "100%" }) {
   const containerRef = useRef(null);
   const jitsiApiRef = useRef(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [hasLeft, setHasLeft] = useState(false);
+  const [rejoinKey, setRejoinKey] = useState(0);
 
   // Clean and sanitize room name to safe ASCII string
   const cleanRoomName = (roomName || 'AFB_Live_Classroom')
@@ -16,6 +18,8 @@ export function JitsiClassroom({ roomName, displayName, onLeave, height = "100%"
 
   useEffect(() => {
     let isMounted = true;
+
+    if (hasLeft) return;
 
     const loadJitsiScript = () => {
       return new Promise((resolve, reject) => {
@@ -75,6 +79,7 @@ export function JitsiClassroom({ roomName, displayName, onLeave, height = "100%"
             disableDeepLinking: true,
             enableWelcomePage: false,
             enableClosePage: false,
+            disableThirdPartyRequests: true,
             whiteboard: {
               enabled: true
             },
@@ -119,13 +124,25 @@ export function JitsiClassroom({ roomName, displayName, onLeave, height = "100%"
           if (isMounted) setLoading(false);
         });
 
-        api.addEventListener('readyToClose', () => {
+        // Intercept hangup and call exit cleanly before Jitsi displays close/advertisement page
+        const handleSessionEnded = () => {
+          if (jitsiApiRef.current) {
+            try {
+              jitsiApiRef.current.dispose();
+            } catch (e) {
+              console.error('Error disposing Jitsi on hangup:', e);
+            }
+            jitsiApiRef.current = null;
+          }
+          if (isMounted) {
+            setHasLeft(true);
+            setLoading(false);
+          }
           if (onLeave) onLeave();
-        });
+        };
 
-        api.addEventListener('videoConferenceLeft', () => {
-          if (onLeave) onLeave();
-        });
+        api.addEventListener('readyToClose', handleSessionEnded);
+        api.addEventListener('videoConferenceLeft', handleSessionEnded);
 
         // Fallback in case videoConferenceJoined is delayed
         setTimeout(() => {
@@ -154,7 +171,7 @@ export function JitsiClassroom({ roomName, displayName, onLeave, height = "100%"
         jitsiApiRef.current = null;
       }
     };
-  }, [cleanRoomName, formattedDisplayName]);
+  }, [cleanRoomName, formattedDisplayName, hasLeft, rejoinKey]);
 
   return (
     <div
@@ -235,6 +252,89 @@ export function JitsiClassroom({ roomName, displayName, onLeave, height = "100%"
           >
             <RefreshCw size={16} /> Reconnect
           </button>
+        </div>
+      )}
+
+      {hasLeft && (
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: '#041416',
+            zIndex: 20,
+            gap: '1.25rem',
+            padding: '2rem',
+            textAlign: 'center'
+          }}
+        >
+          <div style={{
+            width: '64px',
+            height: '64px',
+            borderRadius: '50%',
+            background: 'rgba(0, 168, 150, 0.15)',
+            border: '2px solid var(--color-primary)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'var(--color-primary)'
+          }}>
+            <CheckCircle2 size={32} />
+          </div>
+          <div>
+            <h3 style={{ color: '#fff', fontSize: '1.35rem', margin: '0 0 8px 0', fontWeight: 700 }}>
+              Class Session Ended
+            </h3>
+            <p style={{ color: '#94a3b8', fontSize: '0.9rem', margin: 0, maxWidth: '440px', lineHeight: 1.5 }}>
+              You have cleanly left the live virtual classroom session. You can rejoin the live room at any time or navigate back to your dashboard.
+            </p>
+          </div>
+          <div style={{ display: 'flex', gap: '0.85rem', flexWrap: 'wrap', justifyContent: 'center' }}>
+            <button
+              onClick={() => {
+                setHasLeft(false);
+                setRejoinKey(prev => prev + 1);
+              }}
+              className="btn-primary"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '10px 22px',
+                fontSize: '0.9rem',
+                borderRadius: '8px',
+                cursor: 'pointer'
+              }}
+            >
+              <RefreshCw size={16} /> Rejoin Class
+            </button>
+            <button
+              onClick={() => {
+                if (onReturn) {
+                  onReturn();
+                } else {
+                  window.history.back();
+                }
+              }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '10px 22px',
+                fontSize: '0.9rem',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                color: '#fff',
+                border: '1px solid rgba(255, 255, 255, 0.2)'
+              }}
+            >
+              <ArrowLeft size={16} /> Return to Dashboard
+            </button>
+          </div>
         </div>
       )}
 

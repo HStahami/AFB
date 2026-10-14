@@ -301,7 +301,7 @@ async def get_my_classes(current_user: dict = Depends(get_current_user)):
 
     # Gather enrollments
     classes_map = {}
-    async for enr in db.enrollments.find({"instructor_id": inst_oid, "status": "active"}):
+    async for enr in db.enrollments.find({"instructor_id": inst_oid, "status": {"$in": ["active", "Active"]}}):
         slot_id = enr.get("slot_id")
         slot_key = str(slot_id) if slot_id else "general"
         if slot_key not in classes_map:
@@ -310,6 +310,8 @@ async def get_my_classes(current_user: dict = Depends(get_current_user)):
                 "slot_id": slot_key,
                 "days": slot_doc.get("days", "Flexible Schedule") if slot_doc else "Flexible Schedule",
                 "time": slot_doc.get("time", "TBD") if slot_doc else "TBD",
+                "is_live": bool(slot_doc.get("is_live", False)) if slot_doc else False,
+                "live_started_at": slot_doc["live_started_at"].isoformat() if (slot_doc and slot_doc.get("live_started_at")) else None,
                 "students_count": 0,
                 "student_ids": []
             }
@@ -323,15 +325,43 @@ async def get_my_classes(current_user: dict = Depends(get_current_user)):
             slot_key = slot_name
             if slot_key not in classes_map:
                 parts = slot_name.split("—")
+                slot_doc = await db.slots.find_one({"$or": [{"days": parts[0].strip()}, {"days": slot_name}]})
                 classes_map[slot_key] = {
-                    "slot_id": slot_key,
+                    "slot_id": str(slot_doc["_id"]) if slot_doc else slot_key,
                     "days": parts[0].strip() if len(parts) > 0 else slot_name,
-                    "time": parts[1].strip() if len(parts) > 1 else "TBD",
+                    "time": parts[1].strip() if len(parts) > 1 else (slot_doc.get("time", "TBD") if slot_doc else "TBD"),
+                    "is_live": bool(slot_doc.get("is_live", False)) if slot_doc else False,
+                    "live_started_at": slot_doc["live_started_at"].isoformat() if (slot_doc and slot_doc.get("live_started_at")) else None,
                     "students_count": 0,
                     "student_ids": []
                 }
             classes_map[slot_key]["students_count"] += 1
             classes_map[slot_key]["student_ids"].append(str(s["_id"]))
+
+    # If no specific slot assigned yet, provide active slots from catalog
+    if not classes_map:
+        async for s_doc in db.slots.find({"status": "Active"}).sort("created_at", 1).limit(5):
+            s_id = str(s_doc["_id"])
+            classes_map[s_id] = {
+                "slot_id": s_id,
+                "days": s_doc.get("days", "Class Session"),
+                "time": s_doc.get("time", "TBD"),
+                "is_live": bool(s_doc.get("is_live", False)),
+                "live_started_at": s_doc["live_started_at"].isoformat() if s_doc.get("live_started_at") else None,
+                "students_count": 0,
+                "student_ids": []
+            }
+
+    if not classes_map:
+        classes_map["general"] = {
+            "slot_id": "general",
+            "days": "General Classroom",
+            "time": "Open Live Session",
+            "is_live": False,
+            "live_started_at": None,
+            "students_count": 0,
+            "student_ids": []
+        }
 
     return list(classes_map.values())
 

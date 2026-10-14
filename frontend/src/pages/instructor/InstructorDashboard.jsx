@@ -219,7 +219,21 @@ export function InstructorDashboard() {
                     <div style={{ fontWeight: "600", fontSize: "0.95rem" }}>{c.days}</div>
                     <div style={{ fontSize: "0.85rem", color: "#b0c4c6" }}>{c.time}</div>
                   </div>
-                  <div style={{ textAlign: "right" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap", justifyContent: "flex-end" }}>
+                    {c.is_live && (
+                      <span
+                        style={{
+                          background: "rgba(16, 185, 129, 0.2)",
+                          color: "#10b981",
+                          padding: "3px 8px",
+                          borderRadius: "6px",
+                          fontSize: "0.75rem",
+                          fontWeight: "700"
+                        }}
+                      >
+                        ● LIVE NOW
+                      </span>
+                    )}
                     <span
                       style={{
                         background: "rgba(197, 229, 232, 0.15)",
@@ -232,6 +246,20 @@ export function InstructorDashboard() {
                     >
                       {c.students_count} {c.students_count === 1 ? "student" : "students"}
                     </span>
+                    <Link
+                      to="/instructor/classroom"
+                      className={c.is_live ? "btn-primary" : "glass-panel"}
+                      style={{
+                        padding: "4px 10px",
+                        fontSize: "0.78rem",
+                        textDecoration: "none",
+                        borderRadius: "6px",
+                        fontWeight: 600,
+                        border: "1px solid rgba(255,255,255,0.15)"
+                      }}
+                    >
+                      {c.is_live ? "Join Live" : "Launch Class"}
+                    </Link>
                   </div>
                 </div>
               ))}
