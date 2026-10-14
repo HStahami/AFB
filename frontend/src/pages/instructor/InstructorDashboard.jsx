@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
   Users,
@@ -9,7 +9,8 @@ import {
   Bell,
   ArrowRight,
   Plus,
-  AlertCircle
+  AlertCircle,
+  Video
 } from "lucide-react";
 import { instructorsApi, submissionsApi } from "../../api";
 import { useAuth } from "../../context/AuthContext";
@@ -99,7 +100,14 @@ export function InstructorDashboard() {
           </p>
         </div>
         <div style={{ display: "flex", gap: "0.8rem", flexWrap: "wrap" }}>
-          <Link to="/instructor/tasks" className="btn-primary" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+          <Link
+            to="/instructor/classroom"
+            className="btn-primary"
+            style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: "0.5rem" }}
+          >
+            <Video size={18} /> Launch Live Classroom
+          </Link>
+          <Link to="/instructor/tasks" className="glass-panel" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: "0.5rem", padding: "10px 18px", color: "#fff", fontSize: "0.9rem", border: "1px solid rgba(255,255,255,0.15)" }}>
             <Plus size={18} /> New Task
           </Link>
           <Link

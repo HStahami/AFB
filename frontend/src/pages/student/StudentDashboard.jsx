@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { Video } from 'lucide-react';
 import { studentsApi, reportsApi } from '../../api';
 import { useAuth } from '../../context/AuthContext';
 
@@ -113,6 +114,24 @@ export function StudentDashboard() {
                 Ustadh: {instructor.name}
               </div>
             )}
+            <Link
+              to="/student/classroom"
+              className="btn-primary"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                marginTop: '0.75rem',
+                padding: '8px 14px',
+                fontSize: '0.85rem',
+                textDecoration: 'none',
+                fontWeight: 600,
+                borderRadius: '6px'
+              }}
+            >
+              <Video size={16} /> Enter Live Classroom
+            </Link>
           </div>
         )}
       </div>

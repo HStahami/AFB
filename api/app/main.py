@@ -6,7 +6,7 @@ import os
 from app.database import connect_to_mongo, close_mongo_connection
 from app.routers import (
     admissions, students, instructors, modules, slots, contact, auth, dashboard,
-    enrollments, tasks, submissions, assessments, attendance, notifications, resources, reports, storage, admins, messages
+    enrollments, tasks, submissions, assessments, attendance, notifications, resources, reports, storage, admins, messages, notes
 )
 
 
@@ -119,7 +119,7 @@ async def normalize_api_path(request, call_next):
         "/auth", "/dashboard", "/admissions", "/students", "/instructors",
         "/modules", "/slots", "/contact", "/enrollments", "/tasks",
         "/submissions", "/assessments", "/attendance", "/notifications",
-        "/resources", "/reports", "/storage", "/admins", "/messages"
+        "/resources", "/reports", "/storage", "/admins", "/messages", "/notes"
     ]
     if not path.startswith("/api") and any(path.startswith(p) for p in prefixes):
         request.scope["path"] = f"/api{path}"
@@ -137,7 +137,7 @@ async def add_security_headers(request, call_next):
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
     response.headers["X-XSS-Protection"] = "1; mode=block"
     response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
-    response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
+    response.headers["Permissions-Policy"] = "camera=*, microphone=*, geolocation=()"
     return response
 
 
@@ -161,6 +161,7 @@ app.include_router(reports.router)
 app.include_router(storage.router)
 app.include_router(admins.router)
 app.include_router(messages.router)
+app.include_router(notes.router)
 
 from fastapi.responses import FileResponse
 

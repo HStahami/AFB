@@ -29,11 +29,14 @@ const InstructorReports = lazy(() => import('./pages/instructor/InstructorReport
 const InstructorNotifications = lazy(() => import('./pages/instructor/InstructorNotifications').then(m => ({ default: m.InstructorNotifications })));
 const InstructorProfile = lazy(() => import('./pages/instructor/InstructorProfile').then(m => ({ default: m.InstructorProfile })));
 const InstructorMessages = lazy(() => import('./pages/instructor/InstructorMessages').then(m => ({ default: m.InstructorMessages })));
+const InstructorClassroom = lazy(() => import('./pages/instructor/InstructorClassroom').then(m => ({ default: m.InstructorClassroom })));
 
 // Lazy-loaded Student Portal Pages
 const StudentLayout = lazy(() => import('./components/student/StudentLayout').then(m => ({ default: m.StudentLayout })));
 const StudentLogin = lazy(() => import('./pages/student/StudentLogin').then(m => ({ default: m.StudentLogin })));
 const StudentDashboard = lazy(() => import('./pages/student/StudentDashboard').then(m => ({ default: m.StudentDashboard })));
+const StudentClassroom = lazy(() => import('./pages/student/StudentClassroom').then(m => ({ default: m.StudentClassroom })));
+const StudentNotes = lazy(() => import('./pages/student/StudentNotes').then(m => ({ default: m.StudentNotes })));
 const StudentCourses = lazy(() => import('./pages/student/StudentCourses').then(m => ({ default: m.StudentCourses })));
 const StudentCourseDetail = lazy(() => import('./pages/student/StudentCourseDetail').then(m => ({ default: m.StudentCourseDetail })));
 const StudentTasks = lazy(() => import('./pages/student/StudentTasks').then(m => ({ default: m.StudentTasks })));
@@ -141,6 +144,7 @@ function AppLayout() {
                 }
               >
                 <Route index element={<InstructorDashboard />} />
+                <Route path="classroom" element={<InstructorClassroom />} />
                 <Route path="students" element={<InstructorStudents />} />
                 <Route path="students/:id" element={<InstructorStudentDetail />} />
                 <Route path="classes" element={<InstructorClasses />} />
@@ -165,6 +169,8 @@ function AppLayout() {
                 }
               >
                 <Route index element={<StudentDashboard />} />
+                <Route path="classroom" element={<StudentClassroom />} />
+                <Route path="notes" element={<StudentNotes />} />
                 <Route path="courses" element={<StudentCourses />} />
                 <Route path="courses/:id" element={<StudentCourseDetail />} />
                 <Route path="tasks" element={<StudentTasks />} />

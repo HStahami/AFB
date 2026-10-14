@@ -532,3 +532,42 @@ export const contactApi = {
     return res.json();
   }
 };
+
+// Notes API
+export const notesApi = {
+  getAll: async (slotId = null) => {
+    const url = slotId ? `/notes/?slot_id=${slotId}` : "/notes/";
+    const res = await apiClient(url);
+    if (!res.ok) throw new Error("Failed to load notes");
+    return res.json();
+  },
+  getById: async (id) => {
+    const res = await apiClient(`/notes/${id}`);
+    if (!res.ok) throw new Error("Failed to load note");
+    return res.json();
+  },
+  create: async (data) => {
+    const res = await apiClient("/notes/", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) throw new Error("Failed to save note");
+    return res.json();
+  },
+  update: async (id, data) => {
+    const res = await apiClient(`/notes/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) throw new Error("Failed to update note");
+    return res.json();
+  },
+  delete: async (id) => {
+    const res = await apiClient(`/notes/${id}`, {
+      method: "DELETE",
+    });
+    if (!res.ok) throw new Error("Failed to delete note");
+    return res.json();
+  }
+};
+
