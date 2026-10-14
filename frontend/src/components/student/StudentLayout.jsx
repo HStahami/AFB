@@ -35,6 +35,8 @@ export function StudentLayout({ children }) {
 
   useEffect(() => {
     loadUnreadNotifications();
+    const interval = setInterval(loadUnreadNotifications, 8000);
+    return () => clearInterval(interval);
   }, [location.pathname]);
 
   const loadUnreadNotifications = async () => {

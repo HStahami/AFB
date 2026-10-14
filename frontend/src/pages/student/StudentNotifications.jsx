@@ -1,4 +1,5 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { notificationsApi } from '../../api';
 
 export function StudentNotifications() {
@@ -70,6 +71,8 @@ export function StudentNotifications() {
         return 'Grade';
       case 'schedule':
         return 'Schedule';
+      case 'classroom':
+        return 'Live';
       default:
         return 'Alert';
     }
@@ -236,6 +239,30 @@ export function StudentNotifications() {
                   <p style={{ margin: 0, color: '#b0c4c6', fontSize: '0.85rem', lineHeight: '1.4' }}>
                     {notif.message}
                   </p>
+
+                  {notif.link && (
+                    <div style={{ marginTop: '0.5rem' }}>
+                      <Link
+                        to={notif.link}
+                        onClick={() => handleMarkRead(notif.id)}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          padding: '5px 12px',
+                          borderRadius: '6px',
+                          backgroundColor: '#10b981',
+                          color: '#fff',
+                          fontSize: '0.8rem',
+                          fontWeight: 700,
+                          textDecoration: 'none',
+                          boxShadow: '0 0 10px rgba(16, 185, 129, 0.3)'
+                        }}
+                      >
+                        Join Live Class Now →
+                      </Link>
+                    </div>
+                  )}
 
                   <div style={{ marginTop: '0.4rem', fontSize: '0.75rem', color: '#8892b0' }}>
                     {notif.created_at ? new Date(notif.created_at).toLocaleString() : ''}

@@ -3,7 +3,7 @@ import { useAuth } from '../../context/AuthContext';
 import { instructorsApi, slotsApi } from '../../api';
 import { JitsiClassroom } from '../../components/classroom/JitsiClassroom';
 import { SmartNotebook } from '../../components/classroom/SmartNotebook';
-import { Video, Calendar, Users, ArrowLeft, Maximize2, Minimize2, Layers, Radio, Square, Loader2 } from 'lucide-react';
+import { Video, Calendar, Users, ArrowLeft, Maximize2, Minimize2, Layers, Radio, Square, Loader2, ExternalLink, ShieldCheck, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export function InstructorClassroom() {
@@ -66,7 +66,7 @@ export function InstructorClassroom() {
   const handleStartClass = async () => {
     try {
       setActionLoading(true);
-      const res = await slotsApi.startClass(slotKey);
+      await slotsApi.startClass(slotKey);
       setIsLive(true);
       // update classes list item
       setClasses(prev => prev.map(c => c.slot_id === slotKey ? { ...c, is_live: true } : c));
@@ -94,6 +94,11 @@ export function InstructorClassroom() {
     } finally {
       setActionLoading(false);
     }
+  };
+
+  const openUnlimitedWindow = () => {
+    const url = `https://meet.jit.si/${roomName}#userInfo.displayName="${encodeURIComponent(displayName)}"&config.startWithVideoMuted=true&config.prejoinPageEnabled=false`;
+    window.open(url, '_blank', 'noopener,noreferrer,width=1280,height=800');
   };
 
   return (
@@ -138,11 +143,11 @@ export function InstructorClassroom() {
               {isLive ? (
                 <span style={{ fontSize: '0.85rem', color: '#10b981', display: 'flex', alignItems: 'center', gap: '5px', fontWeight: 700 }}>
                   <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#10b981', display: 'inline-block' }} />
-                  ● YOU ARE LIVE (Students Can Join)
+                  ● YOU ARE LIVE (Students Notified)
                 </span>
               ) : (
                 <span style={{ fontSize: '0.85rem', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 500 }}>
-                  ○ Session Offline (Students Waiting)
+                  ○ Session Offline (Ready to Launch)
                 </span>
               )}
             </div>
@@ -153,7 +158,7 @@ export function InstructorClassroom() {
         </div>
 
         {/* Slot Selector & Live Controls */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
           {classes.length > 1 && (
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <Layers size={15} style={{ color: 'var(--color-primary)' }} />
@@ -201,27 +206,49 @@ export function InstructorClassroom() {
 
           {/* Go Live / End Class Button */}
           {isLive ? (
-            <button
-              onClick={handleEndClass}
-              disabled={actionLoading}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '7px 14px',
-                borderRadius: '6px',
-                border: '1px solid #ef4444',
-                backgroundColor: 'rgba(239, 68, 68, 0.2)',
-                color: '#ef4444',
-                fontWeight: 600,
-                fontSize: '0.85rem',
-                cursor: 'pointer'
-              }}
-              title="End live class session for students"
-            >
-              {actionLoading ? <Loader2 size={14} className="spin-animation" /> : <Square size={14} />}
-              End Class Session
-            </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <button
+                onClick={openUnlimitedWindow}
+                className="glass-panel"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '7px 12px',
+                  fontSize: '0.82rem',
+                  color: '#38bdf8',
+                  border: '1px solid #38bdf8',
+                  cursor: 'pointer',
+                  borderRadius: '6px',
+                  fontWeight: 600
+                }}
+                title="Open meeting in dedicated full window without any 5-minute timeout"
+              >
+                <ExternalLink size={14} /> Dedicated HD Window
+              </button>
+
+              <button
+                onClick={handleEndClass}
+                disabled={actionLoading}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '7px 14px',
+                  borderRadius: '6px',
+                  border: '1px solid #ef4444',
+                  backgroundColor: 'rgba(239, 68, 68, 0.2)',
+                  color: '#ef4444',
+                  fontWeight: 600,
+                  fontSize: '0.85rem',
+                  cursor: 'pointer'
+                }}
+                title="End live class session for students"
+              >
+                {actionLoading ? <Loader2 size={14} className="spin-animation" /> : <Square size={14} />}
+                End Class Session
+              </button>
+            </div>
           ) : (
             <button
               onClick={handleStartClass}
@@ -230,7 +257,7 @@ export function InstructorClassroom() {
                 display: 'flex',
                 alignItems: 'center',
                 gap: '6px',
-                padding: '7px 15px',
+                padding: '7px 16px',
                 borderRadius: '6px',
                 border: 'none',
                 backgroundColor: '#10b981',
@@ -238,12 +265,12 @@ export function InstructorClassroom() {
                 fontWeight: 700,
                 fontSize: '0.85rem',
                 cursor: 'pointer',
-                boxShadow: '0 0 10px rgba(16, 185, 129, 0.4)'
+                boxShadow: '0 0 12px rgba(16, 185, 129, 0.4)'
               }}
-              title="Start live class so students can join"
+              title="Start live class and send in-app notification to all enrolled students"
             >
               {actionLoading ? <Loader2 size={14} className="spin-animation" /> : <Radio size={14} />}
-              Start Live Class (Go Live)
+              Start Live Class & Notify Students
             </button>
           )}
 
@@ -277,7 +304,7 @@ export function InstructorClassroom() {
           alignItems: 'stretch'
         }}
       >
-        {/* Left Side: Jitsi Classroom with Whiteboard */}
+        {/* Left Side: Jitsi Classroom or Pre-Launch Screen */}
         <div
           style={{
             display: 'flex',
@@ -286,12 +313,151 @@ export function InstructorClassroom() {
             minHeight: '520px'
           }}
         >
-          <JitsiClassroom
-            roomName={roomName}
-            displayName={displayName}
-            height="100%"
-            onReturn={() => window.location.href = '/instructor'}
-          />
+          {isLive ? (
+            <div style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: '8px' }}>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                backgroundColor: 'rgba(56, 189, 248, 0.1)',
+                border: '1px solid rgba(56, 189, 248, 0.25)',
+                padding: '6px 12px',
+                borderRadius: '8px',
+                fontSize: '0.82rem',
+                color: '#e2e8f0'
+              }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <Sparkles size={14} style={{ color: '#38bdf8' }} />
+                  <strong>Tip for Extended Classes:</strong> If you prefer no 5-minute embedded demo popup, click "Dedicated HD Window" to run in full unlimited mode!
+                </span>
+                <button
+                  onClick={openUnlimitedWindow}
+                  style={{
+                    backgroundColor: '#38bdf8',
+                    color: '#041416',
+                    border: 'none',
+                    padding: '4px 10px',
+                    borderRadius: '5px',
+                    fontWeight: 700,
+                    fontSize: '0.78rem',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px'
+                  }}
+                >
+                  <ExternalLink size={12} /> Launch Full Window
+                </button>
+              </div>
+
+              <div style={{ flex: 1, minHeight: '480px' }}>
+                <JitsiClassroom
+                  roomName={roomName}
+                  displayName={displayName}
+                  height="100%"
+                  onReturn={() => window.location.href = '/instructor'}
+                />
+              </div>
+            </div>
+          ) : (
+            <div
+              style={{
+                width: '100%',
+                height: '100%',
+                minHeight: '520px',
+                backgroundColor: '#041416',
+                borderRadius: '12px',
+                overflow: 'hidden',
+                border: '1px solid rgba(0, 168, 150, 0.25)',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '2.5rem 1.5rem',
+                textAlign: 'center',
+                gap: '1.25rem'
+              }}
+            >
+              <div style={{
+                width: '72px',
+                height: '72px',
+                borderRadius: '50%',
+                background: 'rgba(0, 168, 150, 0.15)',
+                border: '2px solid var(--color-primary)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'var(--color-primary)'
+              }}>
+                <Video size={36} />
+              </div>
+
+              <div style={{ maxWidth: '480px' }}>
+                <h3 style={{ color: '#fff', fontSize: '1.4rem', margin: '0 0 8px 0', fontWeight: 700 }}>
+                  Ready to Start Live Class?
+                </h3>
+                <p style={{ color: '#94a3b8', fontSize: '0.92rem', margin: '0 0 12px 0', lineHeight: 1.6 }}>
+                  Clicking the button below officially launches the live virtual room, sets the class status to <strong>LIVE</strong>, and automatically sends a real-time notification to all enrolled students so they can join!
+                </p>
+                <div style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                  padding: '6px 14px',
+                  borderRadius: '20px',
+                  fontSize: '0.85rem',
+                  color: '#cbd5e1'
+                }}>
+                  <Calendar size={14} style={{ color: 'var(--color-primary)' }} />
+                  <span>{slotTitle}</span>
+                  <span style={{ color: '#64748b' }}>•</span>
+                  <span>{selectedSlot?.students_count || 0} Students Enrolled</span>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '0.85rem', flexWrap: 'wrap', justifyContent: 'center', marginTop: '0.5rem' }}>
+                <button
+                  onClick={handleStartClass}
+                  disabled={actionLoading}
+                  className="btn-primary"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '12px 24px',
+                    fontSize: '0.95rem',
+                    fontWeight: 700,
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    boxShadow: '0 0 16px rgba(16, 185, 129, 0.45)'
+                  }}
+                >
+                  {actionLoading ? <Loader2 size={16} className="spin-animation" /> : <Radio size={16} />}
+                  🔴 Start Live Class & Notify Students
+                </button>
+
+                <button
+                  onClick={openUnlimitedWindow}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '12px 20px',
+                    fontSize: '0.92rem',
+                    fontWeight: 600,
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                    color: '#fff',
+                    border: '1px solid rgba(255, 255, 255, 0.2)'
+                  }}
+                >
+                  <ExternalLink size={16} /> Open in Dedicated Window
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Right Side: Instructor's Lesson & Dars Notes */}
@@ -314,4 +480,5 @@ export function InstructorClassroom() {
     </div>
   );
 }
+
 

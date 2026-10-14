@@ -11,20 +11,22 @@ export function StudentDashboard() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    loadDashboard();
+    loadDashboard(true);
+    const interval = setInterval(() => loadDashboard(false), 8000);
+    return () => clearInterval(interval);
   }, []);
 
-  const loadDashboard = async () => {
+  const loadDashboard = async (isFirst = true) => {
     try {
-      setLoading(true);
+      if (isFirst) setLoading(true);
       setError(null);
       const summary = await studentsApi.getDashboardSummary();
       setData(summary);
     } catch (err) {
       console.error('Error loading student dashboard:', err);
-      setError('Failed to load dashboard data. Please refresh.');
+      if (isFirst) setError('Failed to load dashboard data. Please refresh.');
     } finally {
-      setLoading(false);
+      if (isFirst) setLoading(false);
     }
   };
 

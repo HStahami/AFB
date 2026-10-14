@@ -3,7 +3,7 @@ import { useAuth } from '../../context/AuthContext';
 import { studentsApi, slotsApi } from '../../api';
 import { JitsiClassroom } from '../../components/classroom/JitsiClassroom';
 import { SmartNotebook } from '../../components/classroom/SmartNotebook';
-import { Video, BookOpen, User, Calendar, Maximize2, Minimize2, ArrowLeft, Clock, RefreshCw } from 'lucide-react';
+import { Video, BookOpen, User, Calendar, Maximize2, Minimize2, ArrowLeft, Clock, RefreshCw, ExternalLink, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export function StudentClassroom() {
@@ -64,6 +64,11 @@ export function StudentClassroom() {
       clearInterval(interval);
     };
   }, [slotKey]);
+
+  const openUnlimitedWindow = () => {
+    const url = `https://meet.jit.si/${roomName}#userInfo.displayName="${encodeURIComponent(displayName)}"&config.startWithVideoMuted=true&config.prejoinPageEnabled=false`;
+    window.open(url, '_blank', 'noopener,noreferrer,width=1280,height=800');
+  };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', height: '100%', minHeight: 'calc(100vh - 120px)' }}>
@@ -136,6 +141,29 @@ export function StudentClassroom() {
               <User size={15} style={{ color: 'var(--color-primary)' }} />
               <span>Instructor: <strong style={{ color: '#fff' }}>{instructor.name}</strong></span>
             </div>
+          )}
+
+          {/* Dedicated HD Window (No 5-min timeout) */}
+          {isLive && (
+            <button
+              onClick={openUnlimitedWindow}
+              className="glass-panel"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '6px 12px',
+                fontSize: '0.8rem',
+                color: '#38bdf8',
+                border: '1px solid #38bdf8',
+                cursor: 'pointer',
+                borderRadius: '6px',
+                fontWeight: 600
+              }}
+              title="Open meeting in dedicated full window without any 5-minute timeout"
+            >
+              <ExternalLink size={14} /> Dedicated HD Window
+            </button>
           )}
 
           {/* Desktop Full-Video Toggle */}
@@ -229,12 +257,53 @@ export function StudentClassroom() {
           }}
         >
           {isLive ? (
-            <JitsiClassroom
-              roomName={roomName}
-              displayName={displayName}
-              height="100%"
-              onReturn={() => window.location.href = '/student'}
-            />
+            <div style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: '8px' }}>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                backgroundColor: 'rgba(56, 189, 248, 0.1)',
+                border: '1px solid rgba(56, 189, 248, 0.25)',
+                padding: '6px 12px',
+                borderRadius: '8px',
+                fontSize: '0.82rem',
+                color: '#e2e8f0',
+                flexWrap: 'wrap',
+                gap: '8px'
+              }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <Sparkles size={14} style={{ color: '#38bdf8' }} />
+                  <strong>Tip for Extended Classes:</strong> If you see an embedded 5-minute demo notice, click "Dedicated HD Window" for full unlimited duration!
+                </span>
+                <button
+                  onClick={openUnlimitedWindow}
+                  style={{
+                    backgroundColor: '#38bdf8',
+                    color: '#041416',
+                    border: 'none',
+                    padding: '4px 10px',
+                    borderRadius: '5px',
+                    fontWeight: 700,
+                    fontSize: '0.78rem',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px'
+                  }}
+                >
+                  <ExternalLink size={12} /> Launch Full Window
+                </button>
+              </div>
+
+              <div style={{ flex: 1, minHeight: '480px' }}>
+                <JitsiClassroom
+                  roomName={roomName}
+                  displayName={displayName}
+                  height="100%"
+                  onReturn={() => window.location.href = '/student'}
+                />
+              </div>
+            </div>
           ) : (
             <div
               style={{
