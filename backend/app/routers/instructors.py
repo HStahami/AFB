@@ -1,3 +1,4 @@
+import re
 from urllib.parse import quote_plus
 from bson import ObjectId
 from datetime import datetime
@@ -5,7 +6,9 @@ from fastapi import APIRouter, HTTPException, File, UploadFile, Form, Depends, s
 from typing import Optional, List
 from app.database import get_db
 from app.core.dependencies import get_current_user, require_admin, require_roles
+from app.core.security import hash_password
 from app.services.storage_service import upload_media_file
+from app.services.credential_service import generate_secure_temporary_password, send_instructor_credentials
 
 router = APIRouter(prefix="/api/instructors", tags=["Instructors"])
 
@@ -15,6 +18,8 @@ def _format_instructor(doc: dict) -> dict:
     doc["_id"] = str(doc["_id"])
     if doc.get("user_id"):
         doc["user_id"] = str(doc["user_id"])
+    doc["email"] = doc.get("email", "")
+    doc["username"] = doc.get("username", "")
     if "about" not in doc:
         doc["about"] = doc.get("bio", doc.get("specialty", ""))
     if "bio" not in doc:
@@ -334,23 +339,77 @@ async def get_my_classes(current_user: dict = Depends(get_current_user)):
 @router.post("/", summary="Add a new instructor (Admin Only)")
 async def add_instructor(
     name: str = Form(...),
+    email: str = Form(...),
     about: Optional[str] = Form(""),
     specialty: Optional[str] = Form(""),
     avatar: Optional[UploadFile] = File(None),
     admin_user: dict = Depends(require_admin)
 ):
     db = get_db()
-    avatar_url = None
+    email_clean = email.strip().lower()
 
+    if not email_clean or "@" not in email_clean:
+        raise HTTPException(status_code=400, detail="A valid instructor email address is required.")
+
+    # 1. Prevent duplicate email in users and instructors
+    existing_user = await db.users.find_one({"email": email_clean})
+    if existing_user:
+        raise HTTPException(status_code=400, detail=f"An account with email '{email_clean}' already exists.")
+
+    existing_instructor = await db.instructors.find_one({"email": email_clean})
+    if existing_instructor:
+        raise HTTPException(status_code=400, detail=f"An instructor with email '{email_clean}' already exists.")
+
+    # 2. Upload avatar or generate fallback avatar
+    avatar_url = None
     if avatar and avatar.filename:
         avatar_url = await upload_media_file(avatar, folder="instructors", prefix="instructor")
     else:
-        name_quoted = quote_plus(name)
+        name_quoted = quote_plus(name.strip())
         avatar_url = f"https://ui-avatars.com/api/?name={name_quoted}&background=C5E5E8&color=072224&size=150&font-size=0.33&bold=true"
 
+    # 3. Generate unique username
+    base_user = re.sub(r'[^a-zA-Z0-9]', '', name.strip().lower())
+    if len(base_user) < 3:
+        base_user = email_clean.split("@")[0]
+        base_user = re.sub(r'[^a-zA-Z0-9]', '', base_user)
+    if not base_user:
+        base_user = "instructor"
+
+    candidate_username = base_user
+    counter = 1
+    while await db.users.find_one({"username": candidate_username}):
+        candidate_username = f"{base_user}{counter}"
+        counter += 1
+
+    username = candidate_username
+
+    # 4. Generate cryptographically strong temporary password & hash with Argon2id
+    temp_password = generate_secure_temporary_password(10)
+    pwd_hash = hash_password(temp_password)
+
     try:
+        # 5. Provision user record in db.users
+        user_doc = {
+            "username": username,
+            "email": email_clean,
+            "password_hash": pwd_hash,
+            "role": "instructor",
+            "status": "active",
+            "first_login": True,
+            "profile_completed": True,
+            "created_at": datetime.utcnow(),
+            "updated_at": datetime.utcnow()
+        }
+        res_user = await db.users.insert_one(user_doc)
+        user_id = res_user.inserted_id
+
+        # 6. Save instructor profile linked to user_id
         doc = {
+            "user_id": user_id,
             "name": name.strip(),
+            "email": email_clean,
+            "username": username,
             "about": about or specialty or "",
             "specialty": specialty or about or "",
             "avatar": avatar_url,
@@ -358,7 +417,31 @@ async def add_instructor(
             "created_at": datetime.utcnow()
         }
         result = await db.instructors.insert_one(doc)
-        return {"message": "Instructor added.", "id": str(result.inserted_id), "avatar": avatar_url}
+        inst_id = result.inserted_id
+
+        # 7. Dispatch official credentials email
+        email_sent = False
+        try:
+            email_sent = send_instructor_credentials(
+                instructor_name=name.strip(),
+                instructor_email=email_clean,
+                username=username,
+                temp_password=temp_password
+            )
+        except Exception as mail_err:
+            print(f"[INSTRUCTOR ADD] Note: Email delivery notice: {mail_err}")
+
+        return {
+            "message": "Instructor added and login credentials dispatched to email.",
+            "id": str(inst_id),
+            "user_id": str(user_id),
+            "username": username,
+            "email": email_clean,
+            "avatar": avatar_url,
+            "email_sent": email_sent
+        }
+    except HTTPException:
+        raise
     except Exception as e:
         print(f"ERROR adding instructor: {e}")
         raise HTTPException(status_code=500, detail="Could not add instructor.")
@@ -368,6 +451,7 @@ async def add_instructor(
 async def update_instructor(
     instructor_id: str,
     name: str = Form(...),
+    email: Optional[str] = Form(None),
     about: Optional[str] = Form(""),
     specialty: Optional[str] = Form(""),
     is_active: Optional[bool] = Form(True),
@@ -380,6 +464,15 @@ async def update_instructor(
         if not existing:
             raise HTTPException(status_code=404, detail="Instructor not found")
 
+        email_clean = email.strip().lower() if email else existing.get("email")
+
+        # If email is modified, ensure no collision
+        if email_clean and email_clean != existing.get("email"):
+            if await db.users.find_one({"email": email_clean, "_id": {"$ne": existing.get("user_id")}}):
+                raise HTTPException(status_code=400, detail="Another account is already using this email.")
+            if await db.instructors.find_one({"email": email_clean, "_id": {"$ne": ObjectId(instructor_id)}}):
+                raise HTTPException(status_code=400, detail="Another instructor is already using this email.")
+
         update_data = {
             "name": name.strip(),
             "about": about or specialty or "",
@@ -387,11 +480,28 @@ async def update_instructor(
             "is_active": is_active if is_active is not None else existing.get("is_active", True),
             "updated_at": datetime.utcnow()
         }
+        if email_clean:
+            update_data["email"] = email_clean
 
         if avatar and avatar.filename:
             update_data["avatar"] = await upload_media_file(avatar, folder="instructors", prefix="instructor")
 
         await db.instructors.update_one({"_id": ObjectId(instructor_id)}, {"$set": update_data})
+
+        # Synchronize linked account in db.users
+        user_id = existing.get("user_id")
+        user_updates = {
+            "updated_at": datetime.utcnow(),
+            "status": "active" if update_data["is_active"] else "inactive"
+        }
+        if email_clean:
+            user_updates["email"] = email_clean
+
+        if user_id:
+            await db.users.update_one({"_id": user_id}, {"$set": user_updates})
+        elif existing.get("email"):
+            await db.users.update_one({"email": existing.get("email"), "role": "instructor"}, {"$set": user_updates})
+
         return {"message": "Instructor updated successfully."}
     except HTTPException:
         raise
@@ -407,6 +517,17 @@ async def delete_instructor(
 ):
     db = get_db()
     try:
+        existing = await db.instructors.find_one({"_id": ObjectId(instructor_id)})
+        if not existing:
+            raise HTTPException(status_code=404, detail="Instructor not found")
+
+        # Remove linked user account
+        user_id = existing.get("user_id")
+        if user_id:
+            await db.users.delete_one({"_id": user_id})
+        elif existing.get("email"):
+            await db.users.delete_one({"email": existing.get("email"), "role": "instructor"})
+
         result = await db.instructors.delete_one({"_id": ObjectId(instructor_id)})
         if result.deleted_count == 0:
             raise HTTPException(status_code=404, detail="Instructor not found")
@@ -416,3 +537,86 @@ async def delete_instructor(
     except Exception as e:
         print(f"ERROR deleting instructor: {e}")
         raise HTTPException(status_code=500, detail="Could not delete instructor.")
+
+
+@router.post("/{instructor_id}/resend-credentials", summary="Resend login credentials to instructor (Admin Only)")
+async def resend_instructor_credentials_api(
+    instructor_id: str,
+    admin_user: dict = Depends(require_admin)
+):
+    db = get_db()
+    try:
+        existing = await db.instructors.find_one({"_id": ObjectId(instructor_id)})
+        if not existing:
+            raise HTTPException(status_code=404, detail="Instructor not found")
+
+        email = existing.get("email")
+        if not email:
+            raise HTTPException(status_code=400, detail="Instructor does not have a configured email address.")
+
+        email_clean = email.strip().lower()
+        temp_password = generate_secure_temporary_password(10)
+        pwd_hash = hash_password(temp_password)
+
+        user_id = existing.get("user_id")
+        user = None
+        if user_id:
+            user = await db.users.find_one({"_id": user_id})
+        if not user:
+            user = await db.users.find_one({"email": email_clean})
+
+        username = existing.get("username")
+        if user:
+            username = user.get("username", username or email_clean.split("@")[0])
+            await db.users.update_one(
+                {"_id": user["_id"]},
+                {"$set": {
+                    "password_hash": pwd_hash,
+                    "first_login": True,
+                    "status": "active",
+                    "updated_at": datetime.utcnow()
+                }}
+            )
+        else:
+            # Provision user account if missing
+            base_user = re.sub(r'[^a-zA-Z0-9]', '', existing.get("name", "instructor").lower()) or email_clean.split("@")[0]
+            candidate_username = base_user
+            counter = 1
+            while await db.users.find_one({"username": candidate_username}):
+                candidate_username = f"{base_user}{counter}"
+                counter += 1
+            username = candidate_username
+
+            res_user = await db.users.insert_one({
+                "username": username,
+                "email": email_clean,
+                "password_hash": pwd_hash,
+                "role": "instructor",
+                "status": "active",
+                "first_login": True,
+                "profile_completed": True,
+                "created_at": datetime.utcnow(),
+                "updated_at": datetime.utcnow()
+            })
+            await db.instructors.update_one(
+                {"_id": existing["_id"]},
+                {"$set": {"user_id": res_user.inserted_id, "username": username}}
+            )
+
+        sent = send_instructor_credentials(
+            instructor_name=existing.get("name", "Instructor"),
+            instructor_email=email_clean,
+            username=username or email_clean,
+            temp_password=temp_password
+        )
+
+        return {
+            "message": f"Login credentials successfully sent to {email_clean}.",
+            "email_sent": bool(sent),
+            "email": email_clean
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"ERROR resending instructor credentials: {e}")
+        raise HTTPException(status_code=500, detail="Could not resend credentials.")

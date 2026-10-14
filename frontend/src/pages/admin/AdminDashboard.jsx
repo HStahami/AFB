@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Plus, Trash2, LogOut, Bell, CheckCircle2, Megaphone, Shield, MessageSquare, Send, RefreshCw } from 'lucide-react';
+import { Plus, Trash2, LogOut, Bell, CheckCircle2, Megaphone, Shield, MessageSquare, Send, RefreshCw, Mail } from 'lucide-react';
 import { API_BASE, getAvatarUrl } from '../../api/client';
 import { inputStyle } from '../../components/common/styles';
 import { notificationsApi, messagesApi } from '../../api';
@@ -20,12 +20,14 @@ export function AdminDashboard({ onLogout }) {
 
   // Instructor Form State
   const [newInstName, setNewInstName] = useState('');
+  const [newInstEmail, setNewInstEmail] = useState('');
   const [newInstAbout, setNewInstAbout] = useState('');
   const [newInstSpec, setNewInstSpec] = useState('');
   const [selectedFile, setSelectedFile] = useState(null);
   const [editingInstId, setEditingInstId] = useState(null);
   const [instFormSuccess, setInstFormSuccess] = useState('');
   const [instFormError, setInstFormError] = useState('');
+  const [resendingInstId, setResendingInstId] = useState(null);
   const fileInputRef = useRef(null);
 
   // Module Form State
@@ -437,9 +439,21 @@ export function AdminDashboard({ onLogout }) {
     e.preventDefault();
     setInstFormSuccess('');
     setInstFormError('');
+
+    if (!newInstName.trim()) {
+      setInstFormError('Instructor Name is required.');
+      return;
+    }
+
+    if (!newInstEmail.trim() || !newInstEmail.includes('@')) {
+      setInstFormError('A valid Instructor Email is required to provision their portal account.');
+      return;
+    }
+
     try {
       const formData = new FormData();
-      formData.append('name', newInstName);
+      formData.append('name', newInstName.trim());
+      formData.append('email', newInstEmail.trim().toLowerCase());
       formData.append('about', newInstAbout);
       formData.append('specialty', newInstSpec || newInstAbout);
       if (selectedFile) {
@@ -457,10 +471,18 @@ export function AdminDashboard({ onLogout }) {
         body: formData
       });
 
-      if (!res.ok) throw new Error("Failed to save instructor.");
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.detail || "Failed to save instructor.");
+      }
 
-      setInstFormSuccess(editingInstId ? "Instructor updated successfully!" : "Instructor added successfully!");
+      setInstFormSuccess(
+        editingInstId 
+          ? "Instructor updated successfully!" 
+          : "Instructor added successfully! Login credentials have been dispatched to their email."
+      );
       setNewInstName('');
+      setNewInstEmail('');
       setNewInstAbout('');
       setNewInstSpec('');
       setSelectedFile(null);
@@ -470,13 +492,14 @@ export function AdminDashboard({ onLogout }) {
       fetchStats();
     } catch (e) {
       console.error(e);
-      setInstFormError("Failed to save instructor. Please try again.");
+      setInstFormError(e.message || "Failed to save instructor. Please try again.");
     }
   };
 
   const handleEditInstructorClick = (inst) => {
     setEditingInstId(inst._id || inst.id);
     setNewInstName(inst.name || '');
+    setNewInstEmail(inst.email || '');
     setNewInstAbout(inst.about || inst.specialty || '');
     setNewInstSpec(inst.specialty || inst.about || '');
     setSelectedFile(null);
@@ -487,12 +510,33 @@ export function AdminDashboard({ onLogout }) {
   const handleCancelEditInstructor = () => {
     setEditingInstId(null);
     setNewInstName('');
+    setNewInstEmail('');
     setNewInstAbout('');
     setNewInstSpec('');
     setSelectedFile(null);
     setInstFormSuccess('');
     setInstFormError('');
     if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const handleResendInstructorCredentials = async (instId, instName, instEmail) => {
+    if (!confirm(`Are you sure you want to resend login credentials to ${instName} (${instEmail || 'instructor'})? A new temporary password will be generated and emailed.`)) return;
+    setResendingInstId(instId);
+    try {
+      const res = await fetch(`${API_BASE}/instructors/${instId}/resend-credentials`, {
+        method: 'POST',
+        headers
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.detail || "Failed to resend credentials.");
+      }
+      alert(data.message || `Credentials sent successfully to ${instEmail}!`);
+    } catch (err) {
+      alert(err.message || "Failed to resend credentials.");
+    } finally {
+      setResendingInstId(null);
+    }
   };
 
   const handleDeleteInstructor = async (id) => {
@@ -1406,9 +1450,17 @@ export function AdminDashboard({ onLogout }) {
                     <input type="text" placeholder="e.g. Ustadh Ahmed" value={newInstName} onChange={e => setNewInstName(e.target.value)} required style={{ ...inputStyle, width: '100%' }} />
                   </div>
                   <div style={{ flex: 1, minWidth: '220px' }}>
+                    <label style={{ display: 'block', color: 'var(--color-primary)', marginBottom: '0.4rem', fontSize: '0.9rem' }}>Instructor Email * (for portal login & credentials)</label>
+                    <input type="email" placeholder="e.g. ustadh.ahmed@example.com" value={newInstEmail} onChange={e => setNewInstEmail(e.target.value)} required style={{ ...inputStyle, width: '100%' }} />
+                  </div>
+                  <div style={{ flex: 1, minWidth: '220px' }}>
                     <label style={{ display: 'block', color: 'var(--color-primary)', marginBottom: '0.4rem', fontSize: '0.9rem' }}>Specialty / Role</label>
                     <input type="text" placeholder="e.g. Grammar & Morphology" value={newInstSpec} onChange={e => setNewInstSpec(e.target.value)} style={{ ...inputStyle, width: '100%' }} />
                   </div>
+                </div>
+
+                <div style={{ fontSize: '0.85rem', color: '#94a3b8', background: 'rgba(0, 168, 150, 0.08)', padding: '10px 14px', borderRadius: '8px', border: '1px solid rgba(0, 168, 150, 0.2)' }}>
+                  📧 <strong>Automatic Credentials Dispatch:</strong> Saving this instructor creates a secure portal account and automatically emails their temporary login credentials and password.
                 </div>
 
                 <div>
@@ -1439,7 +1491,7 @@ export function AdminDashboard({ onLogout }) {
                 <thead>
                   <tr>
                     <th style={tableHeaderStyle}>Picture</th>
-                    <th style={tableHeaderStyle}>Name</th>
+                    <th style={tableHeaderStyle}>Name & Email</th>
                     <th style={tableHeaderStyle}>About / Specialty</th>
                     <th style={tableHeaderStyle}>Active Slots / Students</th>
                     <th style={tableHeaderStyle}>Total Students</th>
@@ -1452,7 +1504,15 @@ export function AdminDashboard({ onLogout }) {
                       <td style={tableCellStyle}>
                         <img src={getAvatarUrl(inst.avatar, inst.name)} alt={inst.name} style={{ width: '44px', height: '44px', borderRadius: '50%', objectFit: 'cover', background: 'var(--color-bg-dark)' }} />
                       </td>
-                      <td style={tableCellStyle}><strong>{inst.name}</strong></td>
+                      <td style={tableCellStyle}>
+                        <strong>{inst.name}</strong>
+                        {inst.email && (
+                          <div style={{ color: '#94a3b8', fontSize: '0.82rem', marginTop: '2px' }}>{inst.email}</div>
+                        )}
+                        {inst.username && (
+                          <div style={{ color: 'var(--color-primary)', fontSize: '0.78rem', marginTop: '1px' }}>@{inst.username}</div>
+                        )}
+                      </td>
                       <td style={tableCellStyle}>
                         <div>{inst.about || inst.specialty || '-'}</div>
                         {inst.specialty && inst.about && inst.specialty !== inst.about && (
@@ -1474,8 +1534,19 @@ export function AdminDashboard({ onLogout }) {
                       </td>
                       <td style={tableCellStyle}>{inst.total_students || 0}</td>
                       <td style={tableCellStyle}>
-                        <div style={{ display: 'flex', gap: '8px' }}>
+                        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                           <button onClick={() => handleEditInstructorClick(inst)} className="glass-panel" style={{ padding: '6px 12px', fontSize: '0.85rem', color: 'var(--color-primary)', border: '1px solid var(--color-primary)' }}>Edit</button>
+                          {inst.email && (
+                            <button
+                              onClick={() => handleResendInstructorCredentials(inst._id || inst.id, inst.name, inst.email)}
+                              disabled={resendingInstId === (inst._id || inst.id)}
+                              className="glass-panel"
+                              title="Resend login credentials to instructor email"
+                              style={{ padding: '6px 10px', fontSize: '0.85rem', color: '#38bdf8', border: '1px solid #38bdf8', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}
+                            >
+                              <Mail size={13} /> {resendingInstId === (inst._id || inst.id) ? 'Sending...' : 'Resend Credentials'}
+                            </button>
+                          )}
                           <button onClick={() => handleDeleteInstructor(inst._id || inst.id)} className="glass-panel" style={{ padding: '6px 12px', fontSize: '0.85rem', color: '#e74c3c', border: '1px solid #e74c3c' }}><Trash2 size={14} /></button>
                         </div>
                       </td>
