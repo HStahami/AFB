@@ -109,10 +109,13 @@ export function AdminDashboard({ onLogout }) {
     setLoadingAuditThreads(true);
     try {
       const data = await messagesApi.getThreads();
-      setAuditThreads(data || []);
-      if (data && data.length > 0 && !auditActiveThread) {
-        setAuditActiveThread(data[0]);
-        fetchAuditHistory(data[0].thread_id);
+      const list = Array.isArray(data) ? data : [];
+      setAuditThreads(list);
+      if (list.length > 0 && !auditActiveThread) {
+        const first = list[0];
+        const firstId = first.thread_id || first._id || first.id;
+        setAuditActiveThread(first);
+        if (firstId) fetchAuditHistory(firstId);
       }
     } catch (err) {
       console.error("Error fetching audit threads:", err);
@@ -122,10 +125,11 @@ export function AdminDashboard({ onLogout }) {
   };
 
   const fetchAuditHistory = async (threadId) => {
+    if (!threadId) return;
     setLoadingAuditHistory(true);
     try {
       const msgs = await messagesApi.getHistory(threadId);
-      setAuditMessages(msgs || []);
+      setAuditMessages(Array.isArray(msgs) ? msgs : []);
     } catch (err) {
       console.error("Error fetching audit history:", err);
     } finally {
@@ -134,8 +138,9 @@ export function AdminDashboard({ onLogout }) {
   };
 
   const handleSelectAuditThread = (thread) => {
+    const threadId = thread.thread_id || thread._id || thread.id;
     setAuditActiveThread(thread);
-    fetchAuditHistory(thread.thread_id);
+    if (threadId) fetchAuditHistory(threadId);
   };
 
   const token = localStorage.getItem('token') || localStorage.getItem('adminToken');
@@ -2151,10 +2156,12 @@ export function AdminDashboard({ onLogout }) {
                 ) : (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', overflowY: 'auto', maxHeight: '480px' }} className="no-scrollbar">
                     {auditThreads.map((th) => {
-                      const isSelected = auditActiveThread && auditActiveThread.thread_id === th.thread_id;
+                      const thId = th.thread_id || th._id || th.id;
+                      const activeId = auditActiveThread ? (auditActiveThread.thread_id || auditActiveThread._id || auditActiveThread.id) : null;
+                      const isSelected = activeId && activeId === thId;
                       return (
                         <div
-                          key={th.thread_id}
+                          key={thId}
                           onClick={() => handleSelectAuditThread(th)}
                           style={{
                             padding: '12px',
@@ -2187,7 +2194,9 @@ export function AdminDashboard({ onLogout }) {
                         <h3 style={{ color: '#fff', fontSize: '1.1rem', margin: 0, fontWeight: 'bold' }}>
                           Chat Audit: {auditActiveThread.student_name} &amp; {auditActiveThread.instructor_name}
                         </h3>
-                        <span style={{ fontSize: '0.75rem', color: '#00a896' }}>Thread ID: {auditActiveThread.thread_id}</span>
+                        <span style={{ fontSize: '0.75rem', color: '#00a896' }}>
+                          Thread ID: {auditActiveThread.thread_id || auditActiveThread._id || auditActiveThread.id}
+                        </span>
                       </div>
                       <span style={{ fontSize: '0.75rem', padding: '4px 10px', borderRadius: '6px', background: 'rgba(255,255,255,0.06)', color: '#aaa', border: '1px solid rgba(255,255,255,0.1)' }}>
                         Read-Only Audit Mode
@@ -2201,27 +2210,30 @@ export function AdminDashboard({ onLogout }) {
                       ) : auditMessages.length === 0 ? (
                         <div style={{ color: '#888', textAlign: 'center', padding: '2rem' }}>No messages in this chat thread yet.</div>
                       ) : (
-                        auditMessages.map((msg) => (
-                          <div key={msg._id || msg.id} style={{ display: 'flex', flexDirection: 'column', alignItems: msg.sender_role === 'student' ? 'flex-start' : 'flex-end' }}>
-                            <div style={{ fontSize: '0.72rem', color: '#888', marginBottom: '3px' }}>
-                              <strong style={{ color: msg.sender_role === 'student' ? '#3498db' : '#2ecc71' }}>
-                                {msg.sender_name} ({msg.sender_role})
-                              </strong> • {new Date(msg.timestamp || msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        auditMessages.map((msg) => {
+                          const senderDisplay = msg.sender_name || (msg.sender_role === 'student' ? auditActiveThread.student_name : auditActiveThread.instructor_name);
+                          return (
+                            <div key={msg._id || msg.id} style={{ display: 'flex', flexDirection: 'column', alignItems: msg.sender_role === 'student' ? 'flex-start' : 'flex-end' }}>
+                              <div style={{ fontSize: '0.72rem', color: '#888', marginBottom: '3px' }}>
+                                <strong style={{ color: msg.sender_role === 'student' ? '#3498db' : '#2ecc71' }}>
+                                  {senderDisplay} ({msg.sender_role})
+                                </strong> • {new Date(msg.timestamp || msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              </div>
+                              <div style={{
+                                maxWidth: '75%',
+                                padding: '10px 14px',
+                                borderRadius: '12px',
+                                background: msg.sender_role === 'student' ? 'rgba(52, 152, 219, 0.15)' : 'rgba(46, 204, 113, 0.15)',
+                                border: msg.sender_role === 'student' ? '1px solid rgba(52, 152, 219, 0.3)' : '1px solid rgba(46, 204, 113, 0.3)',
+                                color: '#fff',
+                                fontSize: '0.88rem',
+                                lineHeight: '1.4'
+                              }}>
+                                {msg.content}
+                              </div>
                             </div>
-                            <div style={{
-                              maxWidth: '75%',
-                              padding: '10px 14px',
-                              borderRadius: '12px',
-                              background: msg.sender_role === 'student' ? 'rgba(52, 152, 219, 0.15)' : 'rgba(46, 204, 113, 0.15)',
-                              border: msg.sender_role === 'student' ? '1px solid rgba(52, 152, 219, 0.3)' : '1px solid rgba(46, 204, 113, 0.3)',
-                              color: '#fff',
-                              fontSize: '0.88rem',
-                              lineHeight: '1.4'
-                            }}>
-                              {msg.content}
-                            </div>
-                          </div>
-                        ))
+                          );
+                        })
                       )}
                     </div>
 

@@ -55,9 +55,44 @@ async def get_chat_threads(current_user: dict = Depends(get_current_user)):
 
     if role == "admin":
         # Admin: View ALL chat threads
+        existing_threads = set()
         async for doc in db.chat_threads.find().sort("last_message_at", -1):
-            doc["id"] = doc.get("_id")
+            doc["id"] = str(doc.get("_id"))
+            doc["thread_id"] = str(doc.get("_id"))
+            existing_threads.add(str(doc.get("_id")))
             threads.append(doc)
+
+        # Also populate candidate threads for all assigned student-instructor pairings
+        async for s in db.students.find():
+            inst_id = s.get("instructor_id")
+            inst_name = s.get("instructor")
+            if not inst_id and not inst_name:
+                continue
+            inst_query = {}
+            if inst_id:
+                inst_query["_id"] = inst_id
+            elif inst_name:
+                inst_query["name"] = inst_name
+            inst = await db.instructors.find_one(inst_query) if inst_query else None
+            if inst and inst.get("user_id") and s.get("user_id"):
+                candidate_id = _build_thread_id(str(s["user_id"]), str(inst["user_id"]))
+                if candidate_id not in existing_threads:
+                    candidate_thread = {
+                        "_id": candidate_id,
+                        "id": candidate_id,
+                        "thread_id": candidate_id,
+                        "student_user_id": str(s["user_id"]),
+                        "student_name": f"{s.get('first_name', '')} {s.get('last_name', '')}".strip() or s.get("name", "Student"),
+                        "student_code": s.get("student_code", ""),
+                        "instructor_user_id": str(inst["user_id"]),
+                        "instructor_name": inst.get("name", "Ustadh"),
+                        "last_message": "No messages exchanged yet.",
+                        "last_message_at": s.get("created_at") or datetime.utcnow(),
+                        "unread_count_student": 0,
+                        "unread_count_instructor": 0
+                    }
+                    threads.append(candidate_thread)
+                    existing_threads.add(candidate_id)
 
     elif role == "student":
         # Find student record
@@ -68,7 +103,8 @@ async def get_chat_threads(current_user: dict = Depends(get_current_user)):
         # Get existing active threads for this student
         existing_threads = {}
         async for doc in db.chat_threads.find({"student_user_id": user_id_str}).sort("last_message_at", -1):
-            doc["id"] = doc.get("_id")
+            doc["id"] = str(doc.get("_id"))
+            doc["thread_id"] = str(doc.get("_id"))
             existing_threads[doc["instructor_user_id"]] = doc
             threads.append(doc)
 
@@ -88,6 +124,7 @@ async def get_chat_threads(current_user: dict = Depends(get_current_user)):
                     candidate_thread = {
                         "_id": thread_id,
                         "id": thread_id,
+                        "thread_id": thread_id,
                         "student_user_id": user_id_str,
                         "student_name": f"{student.get('first_name', '')} {student.get('last_name', '')}".strip() or student.get("name", "Student"),
                         "student_code": student.get("student_code", ""),
@@ -108,7 +145,8 @@ async def get_chat_threads(current_user: dict = Depends(get_current_user)):
 
         existing_threads = {}
         async for doc in db.chat_threads.find({"instructor_user_id": user_id_str}).sort("last_message_at", -1):
-            doc["id"] = doc.get("_id")
+            doc["id"] = str(doc.get("_id"))
+            doc["thread_id"] = str(doc.get("_id"))
             existing_threads[doc["student_user_id"]] = doc
             threads.append(doc)
 
@@ -126,6 +164,7 @@ async def get_chat_threads(current_user: dict = Depends(get_current_user)):
                         candidate_thread = {
                             "_id": thread_id,
                             "id": thread_id,
+                            "thread_id": thread_id,
                             "student_user_id": std_user_id_str,
                             "student_name": f"{s.get('first_name', '')} {s.get('last_name', '')}".strip() or s.get("name", "Student"),
                             "student_code": s.get("student_code", ""),
@@ -164,8 +203,15 @@ async def get_thread_history(thread_id: str, current_user: dict = Depends(get_cu
                 raise HTTPException(status_code=403, detail="Access denied: You are not a participant in this conversation.")
 
     messages = []
+    thread = await db.chat_threads.find_one({"_id": thread_id})
+    student_name = thread.get("student_name", "Student") if thread else "Student"
+    instructor_name = thread.get("instructor_name", "Instructor") if thread else "Instructor"
+
     async for doc in db.messages.find({"thread_id": thread_id}).sort("created_at", 1):
-        messages.append(_format_message(doc))
+        formatted = _format_message(doc)
+        if not formatted.get("sender_name"):
+            formatted["sender_name"] = student_name if formatted.get("sender_role") == "student" else instructor_name
+        messages.append(formatted)
 
     return messages
 
@@ -246,6 +292,7 @@ async def send_message(payload: SendMessageRequest, current_user: dict = Depends
         "sender_id": sender_user_id,
         "sender_user_id": sender_user_id_str,
         "sender_role": role,
+        "sender_name": student_name if role == "student" else instructor_name,
         "receiver_id": recipient_oid,
         "receiver_user_id": recipient_user_id_str,
         "content": payload.content.strip(),
@@ -263,6 +310,7 @@ async def send_message(payload: SendMessageRequest, current_user: dict = Depends
         {"_id": thread_id},
         {
             "$set": {
+                "thread_id": thread_id,
                 "student_user_id": student_user_id_str,
                 "student_name": student_name,
                 "instructor_user_id": instructor_user_id_str,
