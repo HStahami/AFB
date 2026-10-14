@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { BookOpen, Save, Check, Clock, Copy, Download, Sparkles } from 'lucide-react';
+import { BookOpen, Save, Check, Clock, Copy, Download, Sparkles, Palette } from 'lucide-react';
 import { notesApi } from '../../api';
+import { ArabicWhiteboard } from './ArabicWhiteboard';
 
 // Common Arabic Harakat & Symbols for easy typing on any device
 const ARABIC_SHORTCUTS = [
@@ -17,6 +18,7 @@ const ARABIC_SHORTCUTS = [
 ];
 
 export function SmartNotebook({ slotId, slotName, initialNoteId = null }) {
+  const [activeView, setActiveView] = useState('notes'); // 'notes' | 'whiteboard'
   const [noteId, setNoteId] = useState(initialNoteId);
   const [title, setTitle] = useState(() => {
     const today = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
@@ -198,79 +200,127 @@ export function SmartNotebook({ slotId, slotName, initialNoteId = null }) {
               color: 'var(--color-primary)'
             }}
           >
-            <BookOpen size={18} />
+            {activeView === 'notes' ? <BookOpen size={18} /> : <Palette size={18} />}
           </div>
           <div>
             <h3 style={{ margin: 0, fontSize: '0.95rem', color: '#fff', fontWeight: 600 }}>
-              Smart Class Notebook
+              {activeView === 'notes' ? 'Smart Class Notebook' : 'AlArabia Digital Whiteboard'}
             </h3>
             <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
-              دفتر الملاحظات (Auto-Saved)
+              {activeView === 'notes' ? 'دفتر الملاحظات (Auto-Saved)' : 'اللوحة الرقمية التفاعلية'}
             </span>
           </div>
         </div>
 
-        {/* Status Badge & Action Buttons */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-          <div
+        {/* Tab Switcher: Notes vs Whiteboard */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', backgroundColor: 'rgba(255, 255, 255, 0.06)', padding: '3px', borderRadius: '8px' }}>
+          <button
+            onClick={() => setActiveView('notes')}
             style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '4px',
+              padding: '4px 10px',
+              borderRadius: '5px',
+              border: 'none',
+              background: activeView === 'notes' ? 'var(--color-primary)' : 'transparent',
+              color: activeView === 'notes' ? '#041416' : '#cbd5e1',
+              fontWeight: 700,
               fontSize: '0.75rem',
-              color: saveStatus === 'saved' ? '#10b981' : saveStatus === 'saving' ? '#38bdf8' : '#f59e0b',
-              background: 'rgba(255, 255, 255, 0.04)',
-              padding: '3px 8px',
-              borderRadius: '6px'
-            }}
-          >
-            {saveStatus === 'saved' && <Check size={13} />}
-            {saveStatus === 'saving' && <Clock size={13} className="spin-animation" />}
-            {saveStatus === 'saved' ? (lastSavedAt ? `Saved ${lastSavedAt}` : 'Saved') : saveStatus === 'saving' ? 'Saving...' : 'Unsaved changes'}
-          </div>
-
-          <button
-            onClick={handleCopy}
-            title="Copy Notes"
-            style={{
-              background: 'transparent',
-              border: '1px solid rgba(255,255,255,0.1)',
-              borderRadius: '6px',
-              color: copied ? '#10b981' : '#cbd5e1',
-              padding: '5px 8px',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              gap: '4px',
-              fontSize: '0.75rem'
+              gap: '4px'
             }}
           >
-            <Copy size={13} /> {copied ? 'Copied' : 'Copy'}
+            <BookOpen size={12} /> Notes
           </button>
-
           <button
-            onClick={handleDownload}
-            title="Download Notes as Text File"
+            onClick={() => setActiveView('whiteboard')}
             style={{
-              background: 'transparent',
-              border: '1px solid rgba(255,255,255,0.1)',
-              borderRadius: '6px',
-              color: '#cbd5e1',
-              padding: '5px 8px',
+              padding: '4px 10px',
+              borderRadius: '5px',
+              border: 'none',
+              background: activeView === 'whiteboard' ? 'var(--color-primary)' : 'transparent',
+              color: activeView === 'whiteboard' ? '#041416' : '#cbd5e1',
+              fontWeight: 700,
+              fontSize: '0.75rem',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              gap: '4px',
-              fontSize: '0.75rem'
+              gap: '4px'
             }}
           >
-            <Download size={13} /> Export
+            <Palette size={12} /> Whiteboard
           </button>
         </div>
+
+        {/* Status Badge & Action Buttons (Only in notes view) */}
+        {activeView === 'notes' && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                fontSize: '0.75rem',
+                color: saveStatus === 'saved' ? '#10b981' : saveStatus === 'saving' ? '#38bdf8' : '#f59e0b',
+                background: 'rgba(255, 255, 255, 0.04)',
+                padding: '3px 8px',
+                borderRadius: '6px'
+              }}
+            >
+              {saveStatus === 'saved' && <Check size={13} />}
+              {saveStatus === 'saving' && <Clock size={13} className="spin-animation" />}
+              {saveStatus === 'saved' ? (lastSavedAt ? `Saved ${lastSavedAt}` : 'Saved') : saveStatus === 'saving' ? 'Saving...' : 'Unsaved changes'}
+            </div>
+
+            <button
+              onClick={handleCopy}
+              title="Copy Notes"
+              style={{
+                background: 'transparent',
+                border: '1px solid rgba(255,255,255,0.1)',
+                borderRadius: '6px',
+                color: copied ? '#10b981' : '#cbd5e1',
+                padding: '5px 8px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                fontSize: '0.75rem'
+              }}
+            >
+              <Copy size={13} /> {copied ? 'Copied' : 'Copy'}
+            </button>
+
+            <button
+              onClick={handleDownload}
+              title="Download Notes as Text File"
+              style={{
+                background: 'transparent',
+                border: '1px solid rgba(255,255,255,0.1)',
+                borderRadius: '6px',
+                color: '#cbd5e1',
+                padding: '5px 8px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                fontSize: '0.75rem'
+              }}
+            >
+              <Download size={13} /> Export
+            </button>
+          </div>
+        )}
       </div>
 
-      {/* Note Title Input */}
-      <div style={{ padding: '0.75rem 1.25rem', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+      {activeView === 'whiteboard' ? (
+        <div style={{ flex: 1, padding: '0.75rem', display: 'flex', flexDirection: 'column', minHeight: '450px' }}>
+          <ArabicWhiteboard slotName={slotName || 'Classroom'} />
+        </div>
+      ) : (
+        <>
+          {/* Note Title Input */}
+          <div style={{ padding: '0.75rem 1.25rem', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
         <input
           type="text"
           value={title}
@@ -393,6 +443,8 @@ export function SmartNotebook({ slotId, slotName, initialNoteId = null }) {
           <Save size={13} /> Save Now
         </button>
       </div>
-    </div>
+    </>
+  )}
+</div>
   );
 }

@@ -136,11 +136,52 @@ async def get_slot_live_status(slot_id: str):
             "slot_id": str(slot["_id"]),
             "is_live": bool(slot.get("is_live", False)),
             "live_started_at": slot["live_started_at"].isoformat() if slot.get("live_started_at") else None,
-            "live_started_by": slot.get("live_started_by")
+            "live_started_by": slot.get("live_started_by"),
+            "student_whiteboard_allowed": bool(slot.get("student_whiteboard_allowed", False))
         }
     except Exception as e:
         print(f"ERROR getting slot live status: {e}")
-        return {"slot_id": slot_id, "is_live": False, "live_started_at": None}
+        return {"slot_id": slot_id, "is_live": False, "live_started_at": None, "student_whiteboard_allowed": False}
+
+
+@router.post("/{slot_id}/whiteboard-access", summary="Instructor toggles student whiteboard access")
+async def toggle_whiteboard_access(
+    slot_id: str,
+    payload: dict,
+    current_user: dict = Depends(require_roles(["instructor", "admin", "superadmin"]))
+):
+    db = get_db()
+    if db is None:
+        raise HTTPException(status_code=500, detail="Database unavailable")
+    try:
+        slot = None
+        if ObjectId.is_valid(slot_id):
+            slot = await db.slots.find_one({"_id": ObjectId(slot_id)})
+        if not slot:
+            if slot_id == "general":
+                slot = await db.slots.find_one({"is_general": True})
+            else:
+                slot = await db.slots.find_one({"days": slot_id})
+
+        if not slot:
+            raise HTTPException(status_code=404, detail="Slot not found")
+
+        allowed = bool(payload.get("allowed", False))
+        await db.slots.update_one(
+            {"_id": slot["_id"]},
+            {"$set": {"student_whiteboard_allowed": allowed}}
+        )
+        return {
+            "slot_id": str(slot["_id"]),
+            "student_whiteboard_allowed": allowed,
+            "message": f"Student whiteboard access {'enabled' if allowed else 'disabled'}."
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"ERROR updating whiteboard access: {e}")
+        raise HTTPException(status_code=500, detail="Could not update whiteboard access.")
+
 
 
 @router.post("/{slot_id}/start-class", summary="Instructor starts live class (Go Live)")

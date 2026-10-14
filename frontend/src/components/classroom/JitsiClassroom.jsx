@@ -1,7 +1,15 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Video, Loader2, AlertCircle, RefreshCw, CheckCircle2, ArrowLeft } from 'lucide-react';
 
-export function JitsiClassroom({ roomName, displayName, onLeave, onReturn, height = "100%" }) {
+export function JitsiClassroom({
+  roomName,
+  displayName,
+  onLeave,
+  onReturn,
+  height = "100%",
+  isInstructor = false,
+  allowStudentWhiteboard = false
+}) {
   const containerRef = useRef(null);
   const jitsiApiRef = useRef(null);
   const [loading, setLoading] = useState(true);
@@ -64,6 +72,21 @@ export function JitsiClassroom({ roomName, displayName, onLeave, onReturn, heigh
         }
 
         const domain = 'meet.jit.si';
+        const canUseWhiteboard = isInstructor || Boolean(allowStudentWhiteboard);
+        const toolbarButtons = [
+          'microphone',
+          'camera',
+          'desktop',
+          ...(canUseWhiteboard ? ['whiteboard'] : []),
+          'chat',
+          'raisehand',
+          'tileview',
+          'videoquality',
+          'filmstrip',
+          'fullscreen',
+          'hangup'
+        ];
+
         const options = {
           roomName: cleanRoomName,
           width: '100%',
@@ -81,39 +104,15 @@ export function JitsiClassroom({ roomName, displayName, onLeave, onReturn, heigh
             enableClosePage: false,
             disableThirdPartyRequests: true,
             whiteboard: {
-              enabled: true
+              enabled: canUseWhiteboard
             },
-            toolbarButtons: [
-              'microphone',
-              'camera',
-              'desktop',
-              'whiteboard',
-              'chat',
-              'raisehand',
-              'tileview',
-              'videoquality',
-              'filmstrip',
-              'fullscreen',
-              'hangup'
-            ]
+            toolbarButtons: toolbarButtons
           },
           interfaceConfigOverwrite: {
             SHOW_JITSI_WATERMARK: false,
             SHOW_WATERMARK_FOR_GUESTS: false,
             DEFAULT_BACKGROUND: '#072224',
-            TOOLBAR_BUTTONS: [
-              'microphone',
-              'camera',
-              'desktop',
-              'whiteboard',
-              'chat',
-              'raisehand',
-              'tileview',
-              'videoquality',
-              'filmstrip',
-              'fullscreen',
-              'hangup'
-            ]
+            TOOLBAR_BUTTONS: toolbarButtons
           }
         };
 

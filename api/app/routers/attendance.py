@@ -283,3 +283,96 @@ async def list_attendance(
     async for doc in db.attendance.find(query).sort("date", -1):
         records.append(await _format_attendance(doc, db))
     return records
+
+
+@router.post("/auto-checkin", summary="Student auto check-in when entering live classroom")
+async def auto_checkin(
+    slot_id: str = Query(..., description="Slot ID or key"),
+    current_user: dict = Depends(require_roles(["student"]))
+):
+    db = get_db()
+    if db is None:
+        raise HTTPException(status_code=500, detail="Database unavailable")
+
+    try:
+        student = await db.students.find_one({"user_id": current_user["_id"]})
+        if not student:
+            student = await db.students.find_one({"email": current_user.get("email")})
+        if not student:
+            raise HTTPException(status_code=404, detail="Student profile not found.")
+
+        # Find slot
+        slot = None
+        if ObjectId.is_valid(slot_id):
+            slot = await db.slots.find_one({"_id": ObjectId(slot_id)})
+        if not slot:
+            if slot_id == "general":
+                slot = await db.slots.find_one({"is_general": True})
+            else:
+                slot = await db.slots.find_one({"days": slot_id})
+        if not slot and student.get("slot_id"):
+            raw_sid = student["slot_id"]
+            if ObjectId.is_valid(str(raw_sid)):
+                slot = await db.slots.find_one({"_id": ObjectId(str(raw_sid))})
+
+        if not slot:
+            raise HTTPException(status_code=404, detail="Slot not found.")
+
+        if not slot.get("is_live"):
+            return {
+                "status": "not_live",
+                "message": "Class is not currently live. Attendance is only recorded when class is live."
+            }
+
+        now = datetime.utcnow()
+        today_str = now.strftime("%Y-%m-%d")
+
+        attendance_filter = {
+            "student_id": student["_id"],
+            "date": today_str,
+            "slot_id": slot["_id"]
+        }
+
+        existing = await db.attendance.find_one(attendance_filter)
+        if existing and existing.get("status") == "present":
+            return {
+                "status": "already_marked",
+                "message": "Attendance already marked as Present for today.",
+                "record": await _format_attendance(existing, db)
+            }
+
+        inst_oid = slot.get("instructor_id") or student.get("instructor_id")
+        enrollment = await db.enrollments.find_one({
+            "student_id": student["_id"],
+            "status": "active"
+        })
+        enrollment_id = enrollment["_id"] if enrollment else None
+
+        update_doc = {
+            "$set": {
+                "instructor_id": inst_oid,
+                "enrollment_id": enrollment_id,
+                "slot_id": slot["_id"],
+                "status": "present",
+                "remarks": "Automated Live Classroom Check-in",
+                "checkin_at": now,
+                "updated_at": now
+            },
+            "$setOnInsert": {
+                "created_at": now
+            }
+        }
+
+        await db.attendance.update_one(attendance_filter, update_doc, upsert=True)
+        record = await db.attendance.find_one(attendance_filter)
+        return {
+            "status": "marked_present",
+            "message": "Attendance marked as Present automatically.",
+            "record": await _format_attendance(record, db)
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"ERROR auto check-in attendance: {e}")
+        raise HTTPException(status_code=500, detail="Could not record automated attendance.")
+

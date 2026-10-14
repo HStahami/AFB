@@ -317,6 +317,17 @@ export const slotsApi = {
       throw new Error(err.detail || "Failed to end live class");
     }
     return res.json();
+  },
+  setWhiteboardAccess: async (slotId, allowed) => {
+    const res = await apiClient(`/slots/${encodeURIComponent(slotId)}/whiteboard-access`, {
+      method: "POST",
+      body: JSON.stringify({ allowed })
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ detail: "Failed to update whiteboard access" }));
+      throw new Error(err.detail || "Failed to update whiteboard access");
+    }
+    return res.json();
   }
 };
 
@@ -427,6 +438,16 @@ export const attendanceApi = {
       body: JSON.stringify(records),
     });
     if (!res.ok) throw new Error("Failed to record bulk attendance");
+    return res.json();
+  },
+  autoCheckIn: async (slotId) => {
+    const res = await apiClient(`/attendance/auto-checkin?slot_id=${encodeURIComponent(slotId)}`, {
+      method: "POST"
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ detail: "Failed to record auto check-in" }));
+      throw new Error(err.detail || "Failed to record auto check-in");
+    }
     return res.json();
   }
 };

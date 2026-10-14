@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { studentsApi, slotsApi } from '../../api';
+import { studentsApi, slotsApi, attendanceApi } from '../../api';
 import { JitsiClassroom } from '../../components/classroom/JitsiClassroom';
 import { SmartNotebook } from '../../components/classroom/SmartNotebook';
-import { Video, BookOpen, User, Calendar, Maximize2, Minimize2, ArrowLeft, Clock, RefreshCw, ExternalLink, Sparkles } from 'lucide-react';
+import { Video, BookOpen, User, Calendar, Maximize2, Minimize2, ArrowLeft, Clock, RefreshCw, ExternalLink, Sparkles, CheckCircle2, Palette, Lock } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export function StudentClassroom() {
@@ -14,6 +14,8 @@ export function StudentClassroom() {
   const [checkingLive, setCheckingLive] = useState(true);
   const [activeTabMobile, setActiveTabMobile] = useState('video'); // 'video' | 'notes'
   const [fullVideoMode, setFullVideoMode] = useState(false);
+  const [studentWhiteboardAllowed, setStudentWhiteboardAllowed] = useState(false);
+  const [attendanceMarked, setAttendanceMarked] = useState(false);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -49,6 +51,7 @@ export function StudentClassroom() {
         const res = await slotsApi.getLiveStatus(slotKey);
         if (!isCancelled) {
           setIsLive(Boolean(res?.is_live));
+          setStudentWhiteboardAllowed(Boolean(res?.student_whiteboard_allowed));
         }
       } catch (err) {
         console.error('Error checking live status:', err);
@@ -64,6 +67,25 @@ export function StudentClassroom() {
       clearInterval(interval);
     };
   }, [slotKey]);
+
+  // Automated Attendance Check-in as soon as class is live
+  useEffect(() => {
+    if (isLive && slotKey && !attendanceMarked) {
+      let isSubscribed = true;
+      const triggerAutoCheckin = async () => {
+        try {
+          await attendanceApi.autoCheckIn(slotKey);
+          if (isSubscribed) {
+            setAttendanceMarked(true);
+          }
+        } catch (err) {
+          console.warn('Auto attendance check-in notice:', err);
+        }
+      };
+      triggerAutoCheckin();
+      return () => { isSubscribed = false; };
+    }
+  }, [isLive, slotKey, attendanceMarked]);
 
   const openUnlimitedWindow = () => {
     const url = `https://meet.jit.si/${roomName}#userInfo.displayName="${encodeURIComponent(displayName)}"&config.startWithVideoMuted=true&config.prejoinPageEnabled=false`;
@@ -110,10 +132,43 @@ export function StudentClassroom() {
                 LIVE CLASSROOM
               </span>
               {isLive ? (
-                <span style={{ fontSize: '0.85rem', color: '#10b981', display: 'flex', alignItems: 'center', gap: '5px', fontWeight: 600 }}>
-                  <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#10b981', display: 'inline-block' }} />
-                  Instructor is Live Now
-                </span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap' }}>
+                  <span style={{ fontSize: '0.85rem', color: '#10b981', display: 'flex', alignItems: 'center', gap: '5px', fontWeight: 600 }}>
+                    <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#10b981', display: 'inline-block' }} />
+                    Instructor is Live Now
+                  </span>
+                  {attendanceMarked && (
+                    <span style={{
+                      fontSize: '0.78rem',
+                      color: '#34d399',
+                      background: 'rgba(16, 185, 129, 0.15)',
+                      border: '1px solid rgba(16, 185, 129, 0.3)',
+                      padding: '2px 8px',
+                      borderRadius: '12px',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      fontWeight: 600
+                    }}>
+                      <CheckCircle2 size={12} />
+                      Attendance: Present (Auto-Marked)
+                    </span>
+                  )}
+                  <span style={{
+                    fontSize: '0.75rem',
+                    color: studentWhiteboardAllowed ? '#38bdf8' : '#94a3b8',
+                    background: studentWhiteboardAllowed ? 'rgba(56, 189, 248, 0.15)' : 'rgba(255, 255, 255, 0.06)',
+                    border: `1px solid ${studentWhiteboardAllowed ? 'rgba(56, 189, 248, 0.3)' : 'rgba(255, 255, 255, 0.1)'}`,
+                    padding: '2px 7px',
+                    borderRadius: '12px',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px'
+                  }}>
+                    {studentWhiteboardAllowed ? <Palette size={11} /> : <Lock size={11} />}
+                    {studentWhiteboardAllowed ? 'Whiteboard: Open to Draw' : 'Whiteboard: Instructor Only'}
+                  </span>
+                </div>
               ) : (
                 <span style={{ fontSize: '0.85rem', color: '#f59e0b', display: 'flex', alignItems: 'center', gap: '5px', fontWeight: 500 }}>
                   <Clock size={13} />
@@ -300,6 +355,8 @@ export function StudentClassroom() {
                   roomName={roomName}
                   displayName={displayName}
                   height="100%"
+                  isInstructor={false}
+                  allowStudentWhiteboard={studentWhiteboardAllowed}
                   onReturn={() => window.location.href = '/student'}
                 />
               </div>

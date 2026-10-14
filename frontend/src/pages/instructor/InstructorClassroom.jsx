@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { instructorsApi, slotsApi } from '../../api';
+import { instructorsApi, slotsApi, attendanceApi } from '../../api';
 import { JitsiClassroom } from '../../components/classroom/JitsiClassroom';
 import { SmartNotebook } from '../../components/classroom/SmartNotebook';
-import { Video, Calendar, Users, ArrowLeft, Maximize2, Minimize2, Layers, Radio, Square, Loader2, ExternalLink, ShieldCheck, Sparkles } from 'lucide-react';
+import { Video, Calendar, Users, ArrowLeft, Maximize2, Minimize2, Layers, Radio, Square, Loader2, ExternalLink, ShieldCheck, Sparkles, Palette, Lock, CheckCircle2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export function InstructorClassroom() {
@@ -14,6 +14,8 @@ export function InstructorClassroom() {
   const [isLive, setIsLive] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const [fullVideoMode, setFullVideoMode] = useState(false);
+  const [studentWhiteboardAllowed, setStudentWhiteboardAllowed] = useState(false);
+  const [attendeesCount, setAttendeesCount] = useState(0);
 
   useEffect(() => {
     const fetchClasses = async () => {
@@ -40,7 +42,7 @@ export function InstructorClassroom() {
   const displayName = `Instructor ${user?.full_name || user?.name || user?.username || ''}`.trim();
   const slotTitle = selectedSlot ? `${selectedSlot.days || 'Class'} ${selectedSlot.time ? `— ${selectedSlot.time}` : ''}` : 'Live Class';
 
-  // Check live status whenever selectedSlot changes
+  // Check live status and live attendance count whenever selectedSlot changes
   useEffect(() => {
     let isCancelled = false;
     const fetchLiveStatus = async () => {
@@ -49,19 +51,50 @@ export function InstructorClassroom() {
         const res = await slotsApi.getLiveStatus(slotKey);
         if (!isCancelled) {
           setIsLive(Boolean(res?.is_live));
+          setStudentWhiteboardAllowed(Boolean(res?.student_whiteboard_allowed));
         }
       } catch (err) {
         console.error('Error fetching slot live status:', err);
       }
     };
 
+    const fetchAttendees = async () => {
+      if (!slotKey) return;
+      try {
+        const today = new Date().toISOString().split('T')[0];
+        const records = await attendanceApi.getAll({ date: today, slot_id: slotKey });
+        const present = (records || []).filter(r => r.status === 'present').length;
+        if (!isCancelled) setAttendeesCount(present);
+      } catch (e) {
+        // non-blocking
+      }
+    };
+
     fetchLiveStatus();
-    const interval = setInterval(fetchLiveStatus, 10000);
+    fetchAttendees();
+    const interval = setInterval(() => {
+      fetchLiveStatus();
+      fetchAttendees();
+    }, 8000);
     return () => {
       isCancelled = true;
       clearInterval(interval);
     };
   }, [slotKey]);
+
+  const handleToggleWhiteboard = async () => {
+    try {
+      setActionLoading(true);
+      const nextVal = !studentWhiteboardAllowed;
+      await slotsApi.setWhiteboardAccess(slotKey, nextVal);
+      setStudentWhiteboardAllowed(nextVal);
+    } catch (err) {
+      console.error('Error toggling whiteboard access:', err);
+      alert('Could not update student whiteboard permission.');
+    } finally {
+      setActionLoading(false);
+    }
+  };
 
   const handleStartClass = async () => {
     try {
@@ -201,12 +234,40 @@ export function InstructorClassroom() {
                 <Users size={13} style={{ color: '#38bdf8' }} />
                 {selectedSlot.students_count || 0} Enrolled
               </span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '5px', background: 'rgba(16, 185, 129, 0.12)', border: '1px solid rgba(16, 185, 129, 0.3)', color: '#34d399', padding: '3px 8px', borderRadius: '4px' }} title="Automated real-time attendance count for today">
+                <CheckCircle2 size={13} />
+                {attendeesCount} Present Today
+              </span>
             </div>
           )}
 
           {/* Go Live / End Class Button */}
           {isLive ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+              {/* Student Whiteboard Access Toggle Button */}
+              <button
+                onClick={handleToggleWhiteboard}
+                disabled={actionLoading}
+                className="glass-panel"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '7px 12px',
+                  fontSize: '0.82rem',
+                  color: studentWhiteboardAllowed ? '#34d399' : '#f59e0b',
+                  border: `1px solid ${studentWhiteboardAllowed ? 'rgba(52, 211, 153, 0.5)' : 'rgba(245, 158, 11, 0.5)'}`,
+                  cursor: 'pointer',
+                  borderRadius: '6px',
+                  fontWeight: 600,
+                  backgroundColor: studentWhiteboardAllowed ? 'rgba(16, 185, 129, 0.12)' : 'rgba(245, 158, 11, 0.12)'
+                }}
+                title={studentWhiteboardAllowed ? "Click to lock whiteboard (students cannot draw)" : "Click to allow students to draw on whiteboard"}
+              >
+                {studentWhiteboardAllowed ? <Palette size={14} /> : <Lock size={14} />}
+                <span>{studentWhiteboardAllowed ? "Student Board: Unlocked" : "Student Board: Locked"}</span>
+              </button>
+
               <button
                 onClick={openUnlimitedWindow}
                 className="glass-panel"
@@ -355,6 +416,8 @@ export function InstructorClassroom() {
                   roomName={roomName}
                   displayName={displayName}
                   height="100%"
+                  isInstructor={true}
+                  allowStudentWhiteboard={studentWhiteboardAllowed}
                   onReturn={() => window.location.href = '/instructor'}
                 />
               </div>
