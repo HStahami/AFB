@@ -53,7 +53,7 @@ def send_email(to_email: str, subject: str, body: str, html_body: str = None) ->
         msg.add_alternative(html_body, subtype="html")
 
     msg['Subject'] = subject
-    msg['From'] = settings.EMAIL_FROM or f"AlArabia Fi Buyutikum <{settings.SMTP_USERNAME}>"
+    msg['From'] = settings.EMAIL_FROM or f"Alarabia Fi Buyutikum <{settings.SMTP_USERNAME}>"
     msg['To'] = to_email
 
     try:
@@ -71,7 +71,7 @@ def send_email(to_email: str, subject: str, body: str, html_body: str = None) ->
 
 
 def send_admission_alert(student_name: str, student_email: str, student_phone: str, form_id: str):
-    subject = "New Admission Alert - AlArabia Fi Buyutikum"
+    subject = "New Admission Alert - Alarabia Fi Buyutikum"
     body = f"""New Admission Alert
 
 Name: {student_name}
@@ -106,7 +106,7 @@ def send_fee_instructions_email(
 
 Assalamu Alaikum wa Rahmatullah,
 
-Thank you for applying for admission to AlArabia Fi Buyutikum for {course_name}.
+Thank you for applying for admission to Alarabia Fi Buyutikum for {course_name}.
 
 Your application reference ID is: {form_id}
 
@@ -145,14 +145,14 @@ If you have any questions, feel free to reply directly to this email.
 
 JazakAllah Khair,
 Admissions Office
-AlArabia Fi Buyutikum
+Alarabia Fi Buyutikum
 """
 
     html_body = f"""
     <div style="font-family: Arial, sans-serif; background: #0f172a; color: #f8fafc; padding: 24px; border-radius: 8px;">
         <div style="max-width: 600px; margin: 0 auto; background: #1e293b; padding: 32px; border-radius: 12px; border: 1px solid #334155;">
             <div style="text-align: center; margin-bottom: 24px;">
-                <h2 style="color: #38bdf8; margin: 0; font-size: 24px;">AlArabia Fi Buyutikum</h2>
+                <h2 style="color: #38bdf8; margin: 0; font-size: 24px;">Alarabia Fi Buyutikum</h2>
                 <p style="color: #94a3b8; font-size: 14px; margin-top: 4px;">Online Arabic Learning Institute</p>
             </div>
             
@@ -188,7 +188,7 @@ AlArabia Fi Buyutikum
             </p>
 
             <div style="border-top: 1px solid #334155; margin-top: 24px; padding-top: 16px; font-size: 12px; color: #64748b; text-align: center;">
-                AlArabia Fi Buyutikum • Admissions Office
+                Alarabia Fi Buyutikum • Admissions Office
             </div>
         </div>
     </div>

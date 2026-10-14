@@ -90,7 +90,7 @@ export function StudentDashboard() {
           </h1>
 
           <p style={{ color: '#b0c4c6', fontSize: '0.95rem', margin: 0, maxWidth: '600px', lineHeight: '1.45' }}>
-            Welcome to your AlArabia learning portal. Track assignments, attend live sessions, and view your academic achievements.
+            Welcome to your Alarabia learning portal. Track assignments, attend live sessions, and view your academic achievements.
           </p>
         </div>
 

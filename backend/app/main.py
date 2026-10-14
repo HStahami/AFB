@@ -28,7 +28,7 @@ async def lifespan(app: FastAPI):
     await close_mongo_connection()
 
 app = FastAPI(
-    title="AlArabia Fi Buyutikum LMS API",
+    title="Alarabia Fi Buyutikum LMS API",
     description="Backend API for managing admissions, students, instructors, modules, slots, and the admin dashboard.",
     version="1.0.0",
     lifespan=lifespan
@@ -209,4 +209,4 @@ if os.path.exists(frontend_dist):
 else:
     @app.get("/", tags=["Health"])
     async def root():
-        return {"status": "ok", "message": "AlArabia Fi Buyutikum API is running!"}
+        return {"status": "ok", "message": "Alarabia Fi Buyutikum API is running!"}

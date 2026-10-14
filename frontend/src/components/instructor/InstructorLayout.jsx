@@ -131,7 +131,7 @@ export function InstructorLayout({ children }) {
           <Link to="/" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: "0.6rem" }}>
             <img src="/afb1.jpeg" alt="AFB Logo" style={{ height: 32, width: 42, borderRadius: 4 }} />
             <span style={{ fontSize: "1.15rem", fontWeight: "700" }} className="gradient-text">
-              AlArabia LMS
+              Alarabia LMS
             </span>
           </Link>
           <span
@@ -270,7 +270,7 @@ export function InstructorLayout({ children }) {
 
         <div style={{ borderTop: "1px solid rgba(255, 255, 255, 0.08)", paddingTop: "1rem", marginTop: "1rem" }}>
           <div style={{ fontSize: "0.75rem", color: "#8892b0", textAlign: "center" }}>
-            AlArabia LMS Instructor Portal
+            Alarabia LMS Instructor Portal
           </div>
         </div>
       </aside>

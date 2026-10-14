@@ -80,7 +80,7 @@ export function Admission() {
       <div className="glass-panel responsive-form-card" style={{ textAlign: 'center', maxWidth: '640px', width: '100%', padding: '2.5rem 2rem' }}>
         <h2 style={{ fontSize: '2.2rem', fontWeight: '700', marginBottom: '0.6rem' }} className="gradient-text">Student Admission</h2>
         <p style={{ color: '#b0c4c6', marginBottom: '2rem', fontSize: '1rem', lineHeight: '1.5' }}>
-          Begin your journey with AlArabia Fi Buyutikum. Submit your details below to receive instant fee payment instructions.
+          Begin your journey with Alarabia Fi Buyutikum. Submit your details below to receive instant fee payment instructions.
         </p>
 
         {errorMessage && (

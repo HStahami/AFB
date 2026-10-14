@@ -297,7 +297,7 @@ async def approve_admission(form_id: str, admin_user: dict = Depends(require_adm
         await create_notification(
             db=db,
             recipient_user_id=user_id,
-            title="Welcome to AlArabia Fi Buyutikum!",
+            title="Welcome to Alarabia Fi Buyutikum!",
             message=f"Your admission is confirmed with Student ID {student_code}. Please change your password and complete your profile.",
             notification_type="system",
             related_entity_type="admission",

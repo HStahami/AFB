@@ -74,7 +74,7 @@ async def create_admin(username: str, email: str, password: str):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Create a new Admin account for AlArabia Fi Buyutikum LMS")
+    parser = argparse.ArgumentParser(description="Create a new Admin account for Alarabia Fi Buyutikum LMS")
     parser.add_argument("--username", "-u", help="Admin username")
     parser.add_argument("--email", "-e", help="Admin email address")
     parser.add_argument("--password", "-p", help="Admin password")

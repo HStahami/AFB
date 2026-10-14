@@ -378,7 +378,7 @@ async def assign_slot_instructor(
             )
 
         # Send assignment email
-        subject = "Your Class Details - AlArabia Fi Buyutikum"
+        subject = "Your Class Details - Alarabia Fi Buyutikum"
         body = f"""Dear {doc['first_name']} {doc['last_name']},
 
 Great news! Your class details have been finalized.
@@ -390,7 +390,7 @@ Your Instructor: {instructor}
 Please make sure you are available at the scheduled time. Your instructor will contact you shortly with further details.
 
 JazakAllah Khair,
-AlArabia Fi Buyutikum Team
+Alarabia Fi Buyutikum Team
 """
         send_email(doc['email'], subject, body)
         return {"message": "Slot and instructor assigned, enrollment updated, email sent to student."}
@@ -820,7 +820,7 @@ async def get_student_courses(current_user: dict = Depends(get_current_user)):
     if not courses and (student.get("slot") or student.get("instructor")):
         module = await db.modules.find_one()
         instructor = await db.instructors.find_one({"name": student.get("instructor")}) if student.get("instructor") else None
-        leg_title = module.get("title", "AlArabia Arabic Program") if module else "AlArabia Arabic Program"
+        leg_title = module.get("title", "Alarabia Arabic Program") if module else "Alarabia Arabic Program"
         courses.append({
             "enrollment_id": "legacy",
             "module_title": leg_title,

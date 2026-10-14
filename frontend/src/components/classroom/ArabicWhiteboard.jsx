@@ -355,7 +355,7 @@ export function ArabicWhiteboard({ slotName = "Classroom" }) {
           pointerEvents: 'none',
           userSelect: 'none'
         }}>
-          AlArabia Digital Canvas • {slotName}
+          Alarabia Digital Canvas • {slotName}
         </div>
       </div>
     </div>

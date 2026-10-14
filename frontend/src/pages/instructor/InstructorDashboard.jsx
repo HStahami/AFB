@@ -96,7 +96,7 @@ export function InstructorDashboard() {
             Welcome, {user?.username || "Instructor"}!
           </h1>
           <p style={{ color: "#b0c4c6", fontSize: "0.95rem" }}>
-            Here is your daily operational summary for AlArabia Fi Buyutikum.
+            Here is your daily operational summary for Alarabia Fi Buyutikum.
           </p>
         </div>
         <div style={{ display: "flex", gap: "0.8rem", flexWrap: "wrap" }}>

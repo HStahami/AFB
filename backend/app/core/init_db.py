@@ -129,7 +129,7 @@ async def init_database(db):
 
             if not existing_user:
                 # Provision user account with Argon2id hash
-                default_password = code or "AlArabia2026!"
+                default_password = code or "Alarabia2026!"
                 user_doc = {
                     "username": code or email,
                     "email": email,

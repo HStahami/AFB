@@ -166,7 +166,7 @@ export function SmartNotebook({ slotId, slotName, initialNoteId = null }) {
           </div>
           <div>
             <h3 style={{ margin: 0, fontSize: '0.95rem', color: '#fff', fontWeight: 600 }}>
-              {activeView === 'notes' ? 'Smart Class Notebook' : 'AlArabia Digital Whiteboard'}
+              {activeView === 'notes' ? 'Smart Class Notebook' : 'Alarabia Digital Whiteboard'}
             </h3>
             <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
               {activeView === 'notes' ? 'دفتر الملاحظات (Auto-Saved)' : 'اللوحة الرقمية التفاعلية'}

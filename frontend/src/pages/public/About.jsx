@@ -7,7 +7,7 @@ export function About() {
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ padding: '2.5rem 1.5rem 4rem', maxWidth: '900px', margin: '0 auto', textAlign: 'center' }}>
       <h2 style={{ fontSize: '3rem', fontWeight: '800', marginBottom: '1.5rem' }} className="gradient-text">About Us</h2>
       <p style={{ fontSize: '1.15rem', color: '#e0e0e0', marginBottom: '1.5rem', lineHeight: '1.8' }}>
-        AlArabia Fi Buyutikum (Arabic in Your Homes) was founded with a singular vision: to make the majestic Arabic language accessible to everyone, everywhere. We believe that learning Arabic shouldn't be confined to traditional classrooms or limited by geographical boundaries.
+        Alarabia Fi Buyutikum (Arabic in Your Homes) was founded with a singular vision: to make the majestic Arabic language accessible to everyone, everywhere. We believe that learning Arabic shouldn't be confined to traditional classrooms or limited by geographical boundaries.
       </p>
       <p style={{ fontSize: '1.15rem', color: '#e0e0e0', marginBottom: '3rem', lineHeight: '1.8' }}>
         Leveraging cutting-edge technology and a layered, comprehensive curriculum, we bring expert native instructors directly to your screen. Our platform is designed to be highly engaging, intuitive, and effective, ensuring that your journey to mastering Arabic is as beautiful as the language itself.
