@@ -105,30 +105,34 @@ async def run_phase5_tests():
         )
 
     student_a_record = await db.students.find_one({"email": student_a_email})
+    student_defaults = {
+        "name": "Abdullah ibn Mansoor",
+        "first_name": "Abdullah",
+        "last_name": "Mansoor",
+        "email": student_a_email,
+        "student_code": "AFB-2026-9001",
+        "user_id": student_a_user["_id"],
+        "status": "enrolled",
+        "country": "Saudi Arabia",
+        "city": "Riyadh",
+        "education": "Bachelors",
+        "referral_source": "Friend/Family",
+        "course": "Classical Arabic",
+        "preferred_days": "Weekdays",
+        "preferred_class_type": "One-on-One",
+        "preferred_time_slot": "Evening",
+        "instructor_id": inst_record["_id"],
+        "modules": [str(module["_id"])],
+        "module_ids": [module["_id"]]
+    }
     if not student_a_record:
-        res = await db.students.insert_one({
-            "name": "Abdullah ibn Mansoor",
-            "first_name": "Abdullah",
-            "last_name": "Mansoor",
-            "email": student_a_email,
-            "student_code": "AFB-2026-9001",
-            "user_id": student_a_user["_id"],
-            "status": "enrolled",
-            "instructor_id": inst_record["_id"],
-            "modules": [str(module["_id"])],
-            "module_ids": [module["_id"]],
-            "created_at": datetime.utcnow()
-        })
+        student_defaults["created_at"] = datetime.utcnow()
+        res = await db.students.insert_one(student_defaults)
         student_a_record = await db.students.find_one({"_id": res.inserted_id})
     else:
         await db.students.update_one(
             {"_id": student_a_record["_id"]},
-            {"$set": {
-                "user_id": student_a_user["_id"],
-                "instructor_id": inst_record["_id"],
-                "modules": [str(module["_id"])],
-                "module_ids": [module["_id"]]
-            }}
+            {"$set": student_defaults}
         )
 
     # Ensure Enrollment record exists for Student A
@@ -253,7 +257,15 @@ async def run_phase5_tests():
             "phone": "+966512345678",
             "date_of_birth": "2000-05-15",
             "gender": "Male",
+            "country": "Saudi Arabia",
+            "city": "Riyadh",
             "address": "Riyadh, Saudi Arabia",
+            "education": "Bachelors",
+            "referral_source": "Friend/Family",
+            "course": "Classical Arabic",
+            "preferred_days": "Weekdays",
+            "preferred_class_type": "One-on-One",
+            "preferred_time_slot": "Evening",
             "guardian_name": "Mansoor Al-Hashimi",
             "guardian_phone": "+966587654321",
             "guardian_relationship": "Father",

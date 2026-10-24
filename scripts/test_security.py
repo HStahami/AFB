@@ -21,7 +21,7 @@ async def main():
     await init_database(db)
     
     print("\n--- 2. Verifying Admin User in `users` collection ---")
-    admin = await db.users.find_one({"role": "admin"})
+    admin = await db.users.find_one({"username": settings.ADMIN_USERNAME}) or await db.users.find_one({"role": "admin"})
     if not admin:
         print("[FAIL] Admin user not found in db.users!")
         return

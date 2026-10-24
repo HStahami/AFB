@@ -1,4 +1,4 @@
-﻿import asyncio
+import asyncio
 import os
 import sys
 from datetime import datetime
@@ -75,9 +75,14 @@ async def run_phase4_tests():
         res = await db.instructors.insert_one(inst_rec)
         instructor_record = await db.instructors.find_one({"_id": res.inserted_id})
     else:
-        # Link user_id if missing
+        # Link user_id or email if missing
+        update_fields = {}
         if "user_id" not in instructor_record or not instructor_record["user_id"]:
-            await db.instructors.update_one({"_id": instructor_record["_id"]}, {"$set": {"user_id": instructor_user["_id"]}})
+            update_fields["user_id"] = instructor_user["_id"]
+        if "email" not in instructor_record or not instructor_record["email"]:
+            update_fields["email"] = instructor_user["email"]
+        if update_fields:
+            await db.instructors.update_one({"_id": instructor_record["_id"]}, {"$set": update_fields})
 
     # Check or create Student User
     student_user = await db.users.find_one({"role": "student"})

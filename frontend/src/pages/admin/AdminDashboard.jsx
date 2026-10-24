@@ -301,7 +301,7 @@ export function AdminDashboard({ onLogout }) {
     }
   };
 
-  const handleToggleAdminStatus = async (adminId, adminUsername) => {
+  const handleToggleAdminStatus = async (adminId, _adminUsername) => {
     try {
       const res = await fetch(`${API_BASE}/admins/${adminId}/toggle-status`, {
         method: 'PATCH',

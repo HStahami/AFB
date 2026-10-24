@@ -86,7 +86,10 @@ async def get_my_profile(current_user: dict = Depends(get_current_user)):
     if not instructor:
         raise HTTPException(status_code=404, detail="Instructor profile not linked.")
 
-    return _format_instructor(instructor)
+    formatted = _format_instructor(instructor)
+    if not formatted.get("email") and current_user.get("email"):
+        formatted["email"] = current_user.get("email")
+    return formatted
 
 
 @router.patch("/profile", summary="Update current logged-in instructor profile")

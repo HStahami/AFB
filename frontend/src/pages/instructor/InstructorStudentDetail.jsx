@@ -8,9 +8,6 @@ import {
   Calendar,
   MapPin,
   Shield,
-  FileText,
-  ClipboardCheck,
-  Award,
   AlertCircle
 } from "lucide-react";
 import { studentsApi, reportsApi, submissionsApi, attendanceApi } from "../../api";

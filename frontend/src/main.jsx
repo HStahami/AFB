@@ -4,7 +4,7 @@ import './index.css'
 import App from './App.jsx'
 
 // Auto reload on new production deployments when lazy chunks change
-window.addEventListener('vite:preloadError', (event) => {
+window.addEventListener('vite:preloadError', () => {
   window.location.reload();
 });
 

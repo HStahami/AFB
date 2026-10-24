@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { resourcesApi, modulesApi } from '../../api';
 
 export function InstructorResources() {
@@ -21,11 +21,7 @@ export function InstructorResources() {
     module_id: '',
   });
 
-  useEffect(() => {
-    loadData();
-  }, [selectedModule]);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -41,7 +37,11 @@ export function InstructorResources() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedModule]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   const handleCreateResource = async (e) => {
     e.preventDefault();

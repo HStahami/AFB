@@ -1,4 +1,4 @@
-﻿import os
+import os
 import sys
 import asyncio
 from datetime import datetime, timezone
@@ -179,7 +179,15 @@ async def run_phase3_tests():
             "phone": "+923009998877",
             "date_of_birth": "2000-05-15",
             "gender": "Male",
+            "country": "Pakistan",
+            "city": "Islamabad",
             "address": "Islamabad, Pakistan",
+            "education": "Bachelors",
+            "referral_source": "Social Media",
+            "course": "Classical Arabic",
+            "preferred_days": "Weekdays",
+            "preferred_class_type": "One-on-One",
+            "preferred_time_slot": "Evening",
             "guardian_name": "Mansoor Ahmad",
             "guardian_phone": "+923001112233",
             "guardian_relationship": "Father",
