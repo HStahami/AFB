@@ -3,39 +3,64 @@ import { useAuth } from '../../context/AuthContext';
 import { instructorsApi, slotsApi, attendanceApi } from '../../api';
 import { JitsiClassroom } from '../../components/classroom/JitsiClassroom';
 import { SmartNotebook } from '../../components/classroom/SmartNotebook';
-import { Video, Calendar, Users, ArrowLeft, Maximize2, Minimize2, Layers, Radio, Square, Loader2, ExternalLink, ShieldCheck, Sparkles, Palette, Lock, CheckCircle2 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Video, Calendar, Users, ArrowLeft, Maximize2, Minimize2, Layers, Radio, Square, Loader2, ExternalLink, Sparkles, CheckCircle2 } from 'lucide-react';
+import { Link, useSearchParams } from 'react-router-dom';
 
 export function InstructorClassroom() {
   const { user } = useAuth();
+  const [searchParams] = useSearchParams();
+  const requestedSlotId = searchParams.get('slot_id');
+  const autoStartRequested = searchParams.get('auto_start') === 'true';
+
   const [classes, setClasses] = useState([]);
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isLive, setIsLive] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const [fullVideoMode, setFullVideoMode] = useState(false);
-  const [studentWhiteboardAllowed, setStudentWhiteboardAllowed] = useState(false);
+  const [isPopoutMode, setIsPopoutMode] = useState(false);
   const [attendeesCount, setAttendeesCount] = useState(0);
 
   useEffect(() => {
+    let isCancelled = false;
     const fetchClasses = async () => {
       try {
         setLoading(true);
         const data = await instructorsApi.getMyClasses();
         const list = Array.isArray(data) ? data : [];
+        if (isCancelled) return;
         setClasses(list);
         if (list.length > 0) {
-          setSelectedSlot(list[0]);
-          setIsLive(Boolean(list[0].is_live));
+          const matched = requestedSlotId ? (list.find(c => c.slot_id === requestedSlotId) || list[0]) : list[0];
+          setSelectedSlot(matched);
+          const liveStatus = Boolean(matched.is_live);
+          setIsLive(liveStatus);
+
+          // If launched with auto_start from dashboard, start immediately on first click
+          if (autoStartRequested && !liveStatus) {
+            try {
+              setActionLoading(true);
+              await slotsApi.startClass(matched.slot_id);
+              if (!isCancelled) {
+                setIsLive(true);
+                setClasses(prev => prev.map(c => c.slot_id === matched.slot_id ? { ...c, is_live: true } : c));
+              }
+            } catch (autoErr) {
+              console.error('Auto start error:', autoErr);
+            } finally {
+              if (!isCancelled) setActionLoading(false);
+            }
+          }
         }
       } catch (err) {
         console.error('Error fetching instructor classes:', err);
       } finally {
-        setLoading(false);
+        if (!isCancelled) setLoading(false);
       }
     };
     fetchClasses();
-  }, []);
+    return () => { isCancelled = true; };
+  }, [requestedSlotId, autoStartRequested]);
 
   const slotKey = selectedSlot?.slot_id || 'general';
   const roomName = `AFB_Class_${slotKey}`;
@@ -51,7 +76,6 @@ export function InstructorClassroom() {
         const res = await slotsApi.getLiveStatus(slotKey);
         if (!isCancelled) {
           setIsLive(Boolean(res?.is_live));
-          setStudentWhiteboardAllowed(Boolean(res?.student_whiteboard_allowed));
         }
       } catch (err) {
         console.error('Error fetching slot live status:', err);
@@ -82,27 +106,17 @@ export function InstructorClassroom() {
     };
   }, [slotKey]);
 
-  const handleToggleWhiteboard = async () => {
-    try {
-      setActionLoading(true);
-      const nextVal = !studentWhiteboardAllowed;
-      await slotsApi.setWhiteboardAccess(slotKey, nextVal);
-      setStudentWhiteboardAllowed(nextVal);
-    } catch (err) {
-      console.error('Error toggling whiteboard access:', err);
-      alert('Could not update student whiteboard permission.');
-    } finally {
-      setActionLoading(false);
+  const handleStartClass = async (overrideSlotKey = null) => {
+    const targetKey = overrideSlotKey || selectedSlot?.slot_id || slotKey;
+    if (!targetKey || targetKey === 'general') {
+      alert('Please wait a moment while your assigned class schedule finishes loading.');
+      return;
     }
-  };
-
-  const handleStartClass = async () => {
     try {
       setActionLoading(true);
-      await slotsApi.startClass(slotKey);
+      await slotsApi.startClass(targetKey);
       setIsLive(true);
-      // update classes list item
-      setClasses(prev => prev.map(c => c.slot_id === slotKey ? { ...c, is_live: true } : c));
+      setClasses(prev => prev.map(c => c.slot_id === targetKey ? { ...c, is_live: true } : c));
     } catch (err) {
       console.error('Error starting class:', err);
       alert(err.message || 'Could not start live class.');
@@ -119,7 +133,7 @@ export function InstructorClassroom() {
       setActionLoading(true);
       await slotsApi.endClass(slotKey);
       setIsLive(false);
-      // update classes list item
+      setIsPopoutMode(false);
       setClasses(prev => prev.map(c => c.slot_id === slotKey ? { ...c, is_live: false } : c));
     } catch (err) {
       console.error('Error ending class:', err);
@@ -130,9 +144,23 @@ export function InstructorClassroom() {
   };
 
   const openUnlimitedWindow = () => {
+    if (!isLive) {
+      handleStartClass();
+    }
+    setIsPopoutMode(true);
     const url = `https://meet.jit.si/${roomName}#userInfo.displayName="${encodeURIComponent(displayName)}"&config.startWithVideoMuted=true&config.prejoinPageEnabled=false`;
     window.open(url, '_blank', 'noopener,noreferrer,width=1280,height=800');
   };
+
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', gap: '1rem', color: '#cbd5e1' }}>
+        <Loader2 size={36} className="spin-animation" style={{ color: 'var(--color-primary)' }} />
+        <h3 style={{ margin: 0, fontSize: '1.2rem', color: '#fff' }}>Connecting to Instructor Classroom...</h3>
+        <p style={{ margin: 0, color: '#94a3b8', fontSize: '0.88rem' }}>Loading assigned classes and active schedule.</p>
+      </div>
+    );
+  }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', height: '100%', minHeight: 'calc(100vh - 120px)' }}>
@@ -244,30 +272,6 @@ export function InstructorClassroom() {
           {/* Go Live / End Class Button */}
           {isLive ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-              {/* Student Whiteboard Access Toggle Button */}
-              <button
-                onClick={handleToggleWhiteboard}
-                disabled={actionLoading}
-                className="glass-panel"
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  padding: '7px 12px',
-                  fontSize: '0.82rem',
-                  color: studentWhiteboardAllowed ? '#34d399' : '#f59e0b',
-                  border: `1px solid ${studentWhiteboardAllowed ? 'rgba(52, 211, 153, 0.5)' : 'rgba(245, 158, 11, 0.5)'}`,
-                  cursor: 'pointer',
-                  borderRadius: '6px',
-                  fontWeight: 600,
-                  backgroundColor: studentWhiteboardAllowed ? 'rgba(16, 185, 129, 0.12)' : 'rgba(245, 158, 11, 0.12)'
-                }}
-                title={studentWhiteboardAllowed ? "Click to lock whiteboard (students cannot draw)" : "Click to allow students to draw on whiteboard"}
-              >
-                {studentWhiteboardAllowed ? <Palette size={14} /> : <Lock size={14} />}
-                <span>{studentWhiteboardAllowed ? "Student Board: Unlocked" : "Student Board: Locked"}</span>
-              </button>
-
               <button
                 onClick={openUnlimitedWindow}
                 className="glass-panel"
@@ -312,7 +316,7 @@ export function InstructorClassroom() {
             </div>
           ) : (
             <button
-              onClick={handleStartClass}
+              onClick={() => handleStartClass()}
               disabled={actionLoading}
               style={{
                 display: 'flex',
@@ -412,14 +416,66 @@ export function InstructorClassroom() {
               </div>
 
               <div style={{ flex: 1, minHeight: '480px' }}>
-                <JitsiClassroom
-                  roomName={roomName}
-                  displayName={displayName}
-                  height="100%"
-                  isInstructor={true}
-                  allowStudentWhiteboard={studentWhiteboardAllowed}
-                  onReturn={() => window.location.href = '/instructor'}
-                />
+                {isPopoutMode ? (
+                  <div
+                    style={{
+                      height: '100%',
+                      minHeight: '480px',
+                      backgroundColor: '#041416',
+                      borderRadius: '12px',
+                      border: '1px solid rgba(56, 189, 248, 0.3)',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      padding: '2rem',
+                      textAlign: 'center',
+                      gap: '1rem'
+                    }}
+                  >
+                    <div style={{
+                      width: '60px',
+                      height: '60px',
+                      borderRadius: '50%',
+                      background: 'rgba(56, 189, 248, 0.15)',
+                      border: '2px solid #38bdf8',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#38bdf8'
+                    }}>
+                      <ExternalLink size={28} />
+                    </div>
+                    <h3 style={{ color: '#fff', margin: 0, fontSize: '1.25rem' }}>Meeting is Active in Dedicated Window</h3>
+                    <p style={{ color: '#94a3b8', margin: 0, maxWidth: '420px', fontSize: '0.88rem', lineHeight: 1.6 }}>
+                      Your classroom video is running in a separate window. In-portal video is paused here to ensure you only appear once in the meeting.
+                    </p>
+                    <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>
+                      <button
+                        onClick={() => setIsPopoutMode(false)}
+                        className="btn-primary"
+                        style={{ padding: '8px 18px', fontSize: '0.85rem' }}
+                      >
+                        Re-embed Video in Portal
+                      </button>
+                      <button
+                        onClick={openUnlimitedWindow}
+                        className="glass-panel"
+                        style={{ padding: '8px 16px', fontSize: '0.85rem', color: '#38bdf8', border: '1px solid #38bdf8' }}
+                      >
+                        Re-open Dedicated Window
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <JitsiClassroom
+                    roomName={roomName}
+                    displayName={displayName}
+                    height="100%"
+                    isInstructor={true}
+                    onReturn={() => window.location.href = '/instructor'}
+                  />
+                )}
               </div>
             </div>
           ) : (
@@ -481,7 +537,7 @@ export function InstructorClassroom() {
 
               <div style={{ display: 'flex', gap: '0.85rem', flexWrap: 'wrap', justifyContent: 'center', marginTop: '0.5rem' }}>
                 <button
-                  onClick={handleStartClass}
+                  onClick={() => handleStartClass()}
                   disabled={actionLoading}
                   className="btn-primary"
                   style={{
@@ -515,8 +571,9 @@ export function InstructorClassroom() {
                     color: '#fff',
                     border: '1px solid rgba(255, 255, 255, 0.2)'
                   }}
+                  title="Officially launch class and open meeting in separate HD window"
                 >
-                  <ExternalLink size={16} /> Open in Dedicated Window
+                  <ExternalLink size={16} /> Start in Dedicated Window
                 </button>
               </div>
             </div>
@@ -536,6 +593,7 @@ export function InstructorClassroom() {
             <SmartNotebook
               slotId={slotKey}
               slotName={slotTitle}
+              isInstructor={true}
             />
           </div>
         )}

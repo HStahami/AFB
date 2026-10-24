@@ -7,11 +7,11 @@ export function JitsiClassroom({
   onLeave,
   onReturn,
   height = "100%",
-  isInstructor = false,
-  allowStudentWhiteboard = false
+  isInstructor = false
 }) {
   const containerRef = useRef(null);
   const jitsiApiRef = useRef(null);
+  const sessionIdRef = useRef(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [hasLeft, setHasLeft] = useState(false);
@@ -26,6 +26,7 @@ export function JitsiClassroom({
 
   useEffect(() => {
     let isMounted = true;
+    const currentSessionId = ++sessionIdRef.current;
 
     if (hasLeft) return;
 
@@ -59,9 +60,10 @@ export function JitsiClassroom({
         setError(null);
         const JitsiAPI = await loadJitsiScript();
 
-        if (!isMounted || !containerRef.current) return;
+        // Bail out if unmounted or if another session has superseded this one
+        if (!isMounted || currentSessionId !== sessionIdRef.current || !containerRef.current) return;
 
-        // Clean up previous instance if any
+        // Clean up previous instance if any and force container clearance to prevent double profiles
         if (jitsiApiRef.current) {
           try {
             jitsiApiRef.current.dispose();
@@ -71,8 +73,13 @@ export function JitsiClassroom({
           jitsiApiRef.current = null;
         }
 
+        if (containerRef.current) {
+          containerRef.current.innerHTML = '';
+        }
+
         const domain = 'meet.jit.si';
-        const canUseWhiteboard = isInstructor || Boolean(allowStudentWhiteboard);
+        // Whiteboard access is STRICTLY reserved for the instructor
+        const canUseWhiteboard = Boolean(isInstructor);
         const toolbarButtons = [
           'microphone',
           'camera',
@@ -133,6 +140,9 @@ export function JitsiClassroom({
             }
             jitsiApiRef.current = null;
           }
+          if (containerRef.current) {
+            containerRef.current.innerHTML = '';
+          }
           if (isMounted) {
             setHasLeft(true);
             setLoading(false);
@@ -169,8 +179,11 @@ export function JitsiClassroom({
         }
         jitsiApiRef.current = null;
       }
+      if (containerRef.current) {
+        containerRef.current.innerHTML = '';
+      }
     };
-  }, [cleanRoomName, formattedDisplayName, hasLeft, rejoinKey]);
+  }, [cleanRoomName, formattedDisplayName, hasLeft, rejoinKey, isInstructor]);
 
   return (
     <div

@@ -3,7 +3,7 @@ import { BookOpen, Save, Check, Clock, Copy, Download, Palette } from 'lucide-re
 import { notesApi } from '../../api';
 import { ArabicWhiteboard } from './ArabicWhiteboard';
 
-export function SmartNotebook({ slotId, slotName, initialNoteId = null }) {
+export function SmartNotebook({ slotId, slotName, initialNoteId = null, isInstructor = false }) {
   const [activeView, setActiveView] = useState('notes'); // 'notes' | 'whiteboard'
   const [noteId, setNoteId] = useState(initialNoteId);
   const [title, setTitle] = useState(() => {
@@ -174,45 +174,47 @@ export function SmartNotebook({ slotId, slotName, initialNoteId = null }) {
           </div>
         </div>
 
-        {/* Tab Switcher: Notes vs Whiteboard */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', backgroundColor: 'rgba(255, 255, 255, 0.06)', padding: '3px', borderRadius: '8px' }}>
-          <button
-            onClick={() => setActiveView('notes')}
-            style={{
-              padding: '4px 10px',
-              borderRadius: '5px',
-              border: 'none',
-              background: activeView === 'notes' ? 'var(--color-primary)' : 'transparent',
-              color: activeView === 'notes' ? '#041416' : '#cbd5e1',
-              fontWeight: 700,
-              fontSize: '0.75rem',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '4px'
-            }}
-          >
-            <BookOpen size={12} /> Notes
-          </button>
-          <button
-            onClick={() => setActiveView('whiteboard')}
-            style={{
-              padding: '4px 10px',
-              borderRadius: '5px',
-              border: 'none',
-              background: activeView === 'whiteboard' ? 'var(--color-primary)' : 'transparent',
-              color: activeView === 'whiteboard' ? '#041416' : '#cbd5e1',
-              fontWeight: 700,
-              fontSize: '0.75rem',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '4px'
-            }}
-          >
-            <Palette size={12} /> Whiteboard
-          </button>
-        </div>
+        {/* Tab Switcher: Notes vs Whiteboard (Instructor Only) */}
+        {isInstructor && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', backgroundColor: 'rgba(255, 255, 255, 0.06)', padding: '3px', borderRadius: '8px' }}>
+            <button
+              onClick={() => setActiveView('notes')}
+              style={{
+                padding: '4px 10px',
+                borderRadius: '5px',
+                border: 'none',
+                background: activeView === 'notes' ? 'var(--color-primary)' : 'transparent',
+                color: activeView === 'notes' ? '#041416' : '#cbd5e1',
+                fontWeight: 700,
+                fontSize: '0.75rem',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px'
+              }}
+            >
+              <BookOpen size={12} /> Notes
+            </button>
+            <button
+              onClick={() => setActiveView('whiteboard')}
+              style={{
+                padding: '4px 10px',
+                borderRadius: '5px',
+                border: 'none',
+                background: activeView === 'whiteboard' ? 'var(--color-primary)' : 'transparent',
+                color: activeView === 'whiteboard' ? '#041416' : '#cbd5e1',
+                fontWeight: 700,
+                fontSize: '0.75rem',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px'
+              }}
+            >
+              <Palette size={12} /> Whiteboard
+            </button>
+          </div>
+        )}
 
         {/* Status Badge & Action Buttons (Only in notes view) */}
         {activeView === 'notes' && (

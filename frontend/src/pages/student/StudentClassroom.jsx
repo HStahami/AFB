@@ -3,7 +3,7 @@ import { useAuth } from '../../context/AuthContext';
 import { studentsApi, slotsApi, attendanceApi } from '../../api';
 import { JitsiClassroom } from '../../components/classroom/JitsiClassroom';
 import { SmartNotebook } from '../../components/classroom/SmartNotebook';
-import { Video, BookOpen, User, Calendar, Maximize2, Minimize2, ArrowLeft, Clock, RefreshCw, ExternalLink, Sparkles, CheckCircle2, Palette, Lock } from 'lucide-react';
+import { Video, BookOpen, User, Calendar, Maximize2, Minimize2, ArrowLeft, Clock, RefreshCw, ExternalLink, Sparkles, CheckCircle2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export function StudentClassroom() {
@@ -14,7 +14,6 @@ export function StudentClassroom() {
   const [checkingLive, setCheckingLive] = useState(true);
   const [activeTabMobile, setActiveTabMobile] = useState('video'); // 'video' | 'notes'
   const [fullVideoMode, setFullVideoMode] = useState(false);
-  const [studentWhiteboardAllowed, setStudentWhiteboardAllowed] = useState(false);
   const [attendanceMarked, setAttendanceMarked] = useState(false);
 
   useEffect(() => {
@@ -51,7 +50,6 @@ export function StudentClassroom() {
         const res = await slotsApi.getLiveStatus(slotKey);
         if (!isCancelled) {
           setIsLive(Boolean(res?.is_live));
-          setStudentWhiteboardAllowed(Boolean(res?.student_whiteboard_allowed));
         }
       } catch (err) {
         console.error('Error checking live status:', err);
@@ -213,20 +211,6 @@ export function StudentClassroom() {
                       Attendance in: {minutesRemaining} min{minutesRemaining > 1 ? 's' : ''}
                     </span>
                   )}
-                  <span style={{
-                    fontSize: '0.75rem',
-                    color: studentWhiteboardAllowed ? '#38bdf8' : '#94a3b8',
-                    background: studentWhiteboardAllowed ? 'rgba(56, 189, 248, 0.15)' : 'rgba(255, 255, 255, 0.06)',
-                    border: `1px solid ${studentWhiteboardAllowed ? 'rgba(56, 189, 248, 0.3)' : 'rgba(255, 255, 255, 0.1)'}`,
-                    padding: '2px 7px',
-                    borderRadius: '12px',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '4px'
-                  }}>
-                    {studentWhiteboardAllowed ? <Palette size={11} /> : <Lock size={11} />}
-                    {studentWhiteboardAllowed ? 'Whiteboard: Open to Draw' : 'Whiteboard: Instructor Only'}
-                  </span>
                 </div>
               ) : (
                 <span style={{ fontSize: '0.85rem', color: '#f59e0b', display: 'flex', alignItems: 'center', gap: '5px', fontWeight: 500 }}>
@@ -415,7 +399,6 @@ export function StudentClassroom() {
                   displayName={displayName}
                   height="100%"
                   isInstructor={false}
-                  allowStudentWhiteboard={studentWhiteboardAllowed}
                   onReturn={() => window.location.href = '/student'}
                 />
               </div>
@@ -511,6 +494,7 @@ export function StudentClassroom() {
             <SmartNotebook
               slotId={slotKey}
               slotName={slotLabel}
+              isInstructor={false}
             />
           </div>
         )}

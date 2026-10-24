@@ -247,7 +247,7 @@ export function InstructorDashboard() {
                       {c.students_count} {c.students_count === 1 ? "student" : "students"}
                     </span>
                     <Link
-                      to="/instructor/classroom"
+                      to={`/instructor/classroom?slot_id=${c.slot_id}&auto_start=true`}
                       className={c.is_live ? "btn-primary" : "glass-panel"}
                       style={{
                         padding: "4px 10px",
