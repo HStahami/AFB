@@ -88,8 +88,9 @@ export const admissionsApi = {
 
 // Students API
 export const studentsApi = {
-  getAll: async () => {
-    const res = await apiClient("/students/");
+  getAll: async (status = null) => {
+    const url = status ? `/students/?status=${encodeURIComponent(status)}` : "/students/";
+    const res = await apiClient(url);
     if (!res.ok) throw new Error("Failed to load students");
     return res.json();
   },
@@ -145,6 +146,38 @@ export const studentsApi = {
       method: "PATCH",
     });
     if (!res.ok) throw new Error("Failed to dismiss update request");
+    return res.json();
+  },
+  graduate: async (studentId, payload = {}) => {
+    const res = await apiClient(`/students/${studentId}/graduate`, {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || "Failed to mark student as graduated");
+    }
+    return res.json();
+  },
+  dropout: async (studentId, payload = {}) => {
+    const res = await apiClient(`/students/${studentId}/dropout`, {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || "Failed to mark student as dropout");
+    }
+    return res.json();
+  },
+  reactivate: async (studentId) => {
+    const res = await apiClient(`/students/${studentId}/reactivate`, {
+      method: "PATCH",
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || "Failed to reactivate student");
+    }
     return res.json();
   }
 };

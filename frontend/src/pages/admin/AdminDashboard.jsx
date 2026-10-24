@@ -1,15 +1,15 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Plus, Trash2, LogOut, Bell, CheckCircle2, Megaphone, Shield, MessageSquare, Send, RefreshCw, Mail } from 'lucide-react';
+import { Plus, Trash2, LogOut, Bell, CheckCircle2, Megaphone, Shield, MessageSquare, Send, RefreshCw, Mail, GraduationCap, UserX, Award, Search } from 'lucide-react';
 import { API_BASE, getAvatarUrl } from '../../api/client';
 import { inputStyle } from '../../components/common/styles';
-import { notificationsApi, messagesApi } from '../../api';
+import { notificationsApi, messagesApi, studentsApi } from '../../api';
 
 export function AdminDashboard({ onLogout }) {
   const [activeTab, setActiveTab] = useState('overview');
-  const [stats, setStats] = useState({ total: 0, pending: 0, approved: 0, canceled: 0, total_students: 0, total_instructors: 0, total_modules: 0 });
+  const [stats, setStats] = useState({ total: 0, pending: 0, approved: 0, canceled: 0, total_students: 0, total_instructors: 0, total_modules: 0, graduated_students: 0, dropout_students: 0 });
   const [admissions, setAdmissions] = useState([]);
   const [students, setStudents] = useState([]);
-  const [studentFilter, setStudentFilter] = useState('all'); // 'all', 'active', 'cancelled'
+  const [studentFilter, setStudentFilter] = useState('active'); // 'active', 'all', 'graduated', 'dropout'
   const [studentSearch, setStudentSearch] = useState('');
   const [instructors, setInstructors] = useState([]);
   const [modules, setModules] = useState([]);
@@ -82,6 +82,31 @@ export function AdminDashboard({ onLogout }) {
   const [viewingStudent, setViewingStudent] = useState(null);
   const [assignSlot, setAssignSlot] = useState('');
   const [assignInst, setAssignInst] = useState('');
+
+  // Graduates & Dropouts State
+  const [graduatesSearch, setGraduatesSearch] = useState('');
+  const [dropoutsSearch, setDropoutsSearch] = useState('');
+  const [graduatingStudent, setGraduatingStudent] = useState(null);
+  const [graduateForm, setGraduateForm] = useState({
+    graduation_date: new Date().toISOString().split('T')[0],
+    final_grade: 'A',
+    final_score: '90%',
+    graduation_course: '',
+    graduation_remarks: 'Completed program successfully with distinction.',
+  });
+  const [isSubmittingGraduate, setIsSubmittingGraduate] = useState(false);
+
+  const [droppingStudent, setDroppingStudent] = useState(null);
+  const [dropoutForm, setDropoutForm] = useState({
+    dropped_at: new Date().toISOString().split('T')[0],
+    dropout_reason: 'Time constraints / Schedule conflict',
+    dropout_remarks: '',
+  });
+  const [isSubmittingDropout, setIsSubmittingDropout] = useState(false);
+
+  const isStudentGraduated = (s) => ['Graduated', 'graduated'].includes(s?.status);
+  const isStudentDropout = (s) => ['Cancelled', 'cancelled', 'Dropout', 'dropout'].includes(s?.status);
+  const isStudentActive = (s) => !isStudentGraduated(s) && !isStudentDropout(s);
 
   const handleBroadcastSubmit = async (e) => {
     e.preventDefault();
@@ -365,7 +390,11 @@ export function AdminDashboard({ onLogout }) {
     const notifTimer = setInterval(fetchNotifications, 25000);
 
     if (activeTab === 'admissions') fetchAdmissions();
-    if (activeTab === 'students') { fetchStudents(); fetchInstructors(); fetchSlots(); }
+    if (activeTab === 'students' || activeTab === 'graduates' || activeTab === 'dropouts') { 
+      fetchStudents(); 
+      fetchInstructors(); 
+      fetchSlots(); 
+    }
     if (activeTab === 'instructors') fetchInstructors();
     if (activeTab === 'modules') fetchModules();
     if (activeTab === 'slots') fetchSlots();
@@ -407,16 +436,92 @@ export function AdminDashboard({ onLogout }) {
     } catch (e) { alert("Failed to cancel"); }
   };
 
+  const handleOpenGraduateModal = (std) => {
+    setGraduatingStudent(std);
+    setGraduateForm({
+      graduation_date: new Date().toISOString().split('T')[0],
+      final_grade: 'A',
+      final_score: '90%',
+      graduation_course: std.course || std.preferred_course || 'Modern Standard Arabic',
+      graduation_remarks: 'Completed program successfully with distinction.',
+    });
+  };
+
+  const handleGraduateSubmit = async (e) => {
+    e.preventDefault();
+    if (!graduatingStudent) return;
+    setIsSubmittingGraduate(true);
+    try {
+      const studentId = graduatingStudent._id || graduatingStudent.id;
+      await studentsApi.graduate(studentId, graduateForm);
+      alert(`Student ${graduatingStudent.first_name} ${graduatingStudent.last_name || ''} has been marked as Graduated!`);
+      setGraduatingStudent(null);
+      await fetchStudents();
+      await fetchStats();
+      if (viewingStudent && (String(viewingStudent._id) === String(studentId) || String(viewingStudent.id) === String(studentId))) {
+        setViewingStudent(prev => ({
+          ...prev,
+          status: 'Graduated',
+          ...graduateForm,
+          graduated_at: graduateForm.graduation_date,
+        }));
+      }
+    } catch (err) {
+      console.error(err);
+      alert(err.message || 'Failed to mark student as graduated');
+    } finally {
+      setIsSubmittingGraduate(false);
+    }
+  };
+
+  const handleOpenDropoutModal = (std) => {
+    setDroppingStudent(std);
+    setDropoutForm({
+      dropped_at: new Date().toISOString().split('T')[0],
+      dropout_reason: 'Time constraints / Schedule conflict',
+      dropout_remarks: '',
+    });
+  };
+
+  const handleDropoutSubmit = async (e) => {
+    e.preventDefault();
+    if (!droppingStudent) return;
+    setIsSubmittingDropout(true);
+    try {
+      const studentId = droppingStudent._id || droppingStudent.id;
+      await studentsApi.dropout(studentId, dropoutForm);
+      alert(`Student ${droppingStudent.first_name} ${droppingStudent.last_name || ''} has been marked as Dropout. Portal login revoked.`);
+      setDroppingStudent(null);
+      await fetchStudents();
+      await fetchStats();
+      if (viewingStudent && (String(viewingStudent._id) === String(studentId) || String(viewingStudent.id) === String(studentId))) {
+        setViewingStudent(prev => ({
+          ...prev,
+          status: 'Dropout',
+          ...dropoutForm,
+        }));
+      }
+    } catch (err) {
+      console.error(err);
+      alert(err.message || 'Failed to mark student as dropout');
+    } finally {
+      setIsSubmittingDropout(false);
+    }
+  };
+
   const handleCancelStudent = async (id, name) => {
     if (!confirm(`Are you sure you want to cancel the admission for ${name || 'this student'}? Their portal access will be revoked immediately.`)) return;
     try {
-      const res = await fetch(`${API_BASE}/students/${id}/cancel`, { method: 'PATCH', headers });
-      if (!res.ok) throw new Error();
+      await studentsApi.dropout(id, {
+        dropped_at: new Date().toISOString().split('T')[0],
+        dropout_reason: 'Administrative Cancellation',
+        dropout_remarks: 'Admission cancelled by administrator.'
+      });
       alert("Student admission has been cancelled. Portal login is now disabled.");
-      fetchStudents();
-      fetchStats();
+      await fetchStudents();
+      await fetchStats();
       if (viewingStudent && (String(viewingStudent._id) === String(id) || String(viewingStudent.id) === String(id))) {
-        setViewingStudent(prev => ({ ...prev, status: 'Cancelled' }));
+        setViewingStudent(prev => ({ ...prev, status: 'Dropout' }));
       }
     } catch (e) { alert("Failed to cancel student admission"); }
   };
@@ -424,11 +529,10 @@ export function AdminDashboard({ onLogout }) {
   const handleReactivateStudent = async (id, name) => {
     if (!confirm(`Are you sure you want to reactivate admission for ${name || 'this student'}?`)) return;
     try {
-      const res = await fetch(`${API_BASE}/students/${id}/reactivate`, { method: 'PATCH', headers });
-      if (!res.ok) throw new Error();
-      alert("Student admission has been reactivated.");
-      fetchStudents();
-      fetchStats();
+      await studentsApi.reactivate(id);
+      alert("Student admission has been reactivated to Active status.");
+      await fetchStudents();
+      await fetchStats();
       if (viewingStudent && (String(viewingStudent._id) === String(id) || String(viewingStudent.id) === String(id))) {
         setViewingStudent(prev => ({ ...prev, status: 'Active' }));
       }
@@ -735,6 +839,8 @@ export function AdminDashboard({ onLogout }) {
           { id: 'notifications', label: unreadNotifsCount > 0 ? `Alerts (${unreadNotifsCount})` : 'Alerts' },
           { id: 'admissions', label: 'Admissions' },
           { id: 'students', label: 'Students' },
+          { id: 'graduates', label: 'Graduates' },
+          { id: 'dropouts', label: 'Dropouts' },
           { id: 'instructors', label: 'Instructors' },
           { id: 'modules', label: 'Modules' },
           { id: 'slots', label: 'Slots' },
@@ -771,6 +877,34 @@ export function AdminDashboard({ onLogout }) {
         </button>
         <button className={activeTab === 'admissions' ? 'btn-primary' : 'glass-panel'} style={{ width: '100%', textAlign: 'left', padding: '10px 15px', border: 'none' }} onClick={() => setActiveTab('admissions')}>Admissions</button>
         <button className={activeTab === 'students' ? 'btn-primary' : 'glass-panel'} style={{ width: '100%', textAlign: 'left', padding: '10px 15px', border: 'none' }} onClick={() => setActiveTab('students')}>Students</button>
+        <button 
+          className={activeTab === 'graduates' ? 'btn-primary' : 'glass-panel'} 
+          style={{ width: '100%', textAlign: 'left', padding: '10px 15px', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.6rem' }} 
+          onClick={() => setActiveTab('graduates')}
+        >
+          <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <GraduationCap size={16} /> Graduates
+          </span>
+          {stats.graduated_students > 0 && (
+            <span style={{ background: 'rgba(46, 204, 113, 0.25)', color: '#2ecc71', padding: '2px 7px', borderRadius: '10px', fontSize: '0.72rem', fontWeight: 'bold' }}>
+              {stats.graduated_students}
+            </span>
+          )}
+        </button>
+        <button 
+          className={activeTab === 'dropouts' ? 'btn-primary' : 'glass-panel'} 
+          style={{ width: '100%', textAlign: 'left', padding: '10px 15px', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.6rem' }} 
+          onClick={() => setActiveTab('dropouts')}
+        >
+          <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <UserX size={16} /> Dropouts
+          </span>
+          {stats.dropout_students > 0 && (
+            <span style={{ background: 'rgba(231, 76, 60, 0.25)', color: '#e74c3c', padding: '2px 7px', borderRadius: '10px', fontSize: '0.72rem', fontWeight: 'bold' }}>
+              {stats.dropout_students}
+            </span>
+          )}
+        </button>
         <button className={activeTab === 'instructors' ? 'btn-primary' : 'glass-panel'} style={{ width: '100%', textAlign: 'left', padding: '10px 15px', border: 'none' }} onClick={() => setActiveTab('instructors')}>Instructors</button>
         <button className={activeTab === 'modules' ? 'btn-primary' : 'glass-panel'} style={{ width: '100%', textAlign: 'left', padding: '10px 15px', border: 'none' }} onClick={() => setActiveTab('modules')}>Modules</button>
         <button className={activeTab === 'slots' ? 'btn-primary' : 'glass-panel'} style={{ width: '100%', textAlign: 'left', padding: '10px 15px', border: 'none' }} onClick={() => setActiveTab('slots')}>Slots</button>
@@ -807,6 +941,20 @@ export function AdminDashboard({ onLogout }) {
               <div className="glass-panel" style={{ padding: '1.5rem', textAlign: 'center', borderLeft: '4px solid var(--color-primary)' }}>
                 <h4 style={{ color: '#aaa', fontSize: '0.85rem', marginBottom: '0.4rem' }}>Active Students</h4>
                 <p style={{ fontSize: '2.2rem', fontWeight: 'bold', color: 'var(--color-primary)' }}>{stats.total_students}</p>
+              </div>
+              <div className="glass-panel" style={{ padding: '1.5rem', textAlign: 'center', borderLeft: '4px solid #2ecc71', cursor: 'pointer' }} onClick={() => setActiveTab('graduates')} title="Click to view all graduated students">
+                <h4 style={{ color: '#aaa', fontSize: '0.85rem', marginBottom: '0.4rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px' }}>
+                  <GraduationCap size={15} color="#2ecc71" /> Graduates
+                </h4>
+                <p style={{ fontSize: '2.2rem', fontWeight: 'bold', color: '#2ecc71' }}>{stats.graduated_students || 0}</p>
+                <span style={{ fontSize: '0.72rem', color: '#8892b0' }}>فارغ التحصیل طلبا</span>
+              </div>
+              <div className="glass-panel" style={{ padding: '1.5rem', textAlign: 'center', borderLeft: '4px solid #e74c3c', cursor: 'pointer' }} onClick={() => setActiveTab('dropouts')} title="Click to view all dropout students">
+                <h4 style={{ color: '#aaa', fontSize: '0.85rem', marginBottom: '0.4rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px' }}>
+                  <UserX size={15} color="#e74c3c" /> Dropouts
+                </h4>
+                <p style={{ fontSize: '2.2rem', fontWeight: 'bold', color: '#e74c3c' }}>{stats.dropout_students || 0}</p>
+                <span style={{ fontSize: '0.72rem', color: '#8892b0' }}>چھوڑنے والے طلبا</span>
               </div>
               <div className="glass-panel" style={{ padding: '1.5rem', textAlign: 'center', borderLeft: '4px solid var(--color-accent)' }}>
                 <h4 style={{ color: '#aaa', fontSize: '0.85rem', marginBottom: '0.4rem' }}>Active Instructors</h4>
@@ -1053,9 +1201,10 @@ export function AdminDashboard({ onLogout }) {
 
                 <div style={{ display: 'flex', gap: '4px', background: 'rgba(0,0,0,0.3)', padding: '3px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)' }}>
                   {[
+                    { key: 'active', label: `Active (${students.filter(isStudentActive).length})` },
                     { key: 'all', label: `All (${students.length})` },
-                    { key: 'active', label: `Active (${students.filter(s => s.status !== 'Cancelled').length})` },
-                    { key: 'cancelled', label: `Cancelled (${students.filter(s => s.status === 'Cancelled').length})` }
+                    { key: 'graduated', label: `Graduates (${students.filter(isStudentGraduated).length})` },
+                    { key: 'dropout', label: `Dropouts (${students.filter(isStudentDropout).length})` }
                   ].map(tab => (
                     <button
                       key={tab.key}
@@ -1094,9 +1243,9 @@ export function AdminDashboard({ onLogout }) {
                 </thead>
                 <tbody>
                   {students.filter(s => {
-                    const isCancelled = s.status === 'Cancelled';
-                    if (studentFilter === 'active' && isCancelled) return false;
-                    if (studentFilter === 'cancelled' && !isCancelled) return false;
+                    if (studentFilter === 'active' && !isStudentActive(s)) return false;
+                    if (studentFilter === 'graduated' && !isStudentGraduated(s)) return false;
+                    if (studentFilter === 'dropout' && !isStudentDropout(s)) return false;
                     if (studentSearch.trim()) {
                       const q = studentSearch.toLowerCase();
                       const name = `${s.first_name || ''} ${s.last_name || ''} ${s.name || ''}`.toLowerCase();
@@ -1107,11 +1256,17 @@ export function AdminDashboard({ onLogout }) {
                     }
                     return true;
                   }).map(std => {
-                    const isCancelled = std.status === 'Cancelled';
+                    const isGrad = isStudentGraduated(std);
+                    const isDrop = isStudentDropout(std);
+                    const isActive = isStudentActive(std);
                     return (
-                      <tr key={std._id || std.id} style={{ opacity: isCancelled ? 0.75 : 1 }}>
+                      <tr key={std._id || std.id} style={{ opacity: isDrop ? 0.75 : 1 }}>
                         <td style={tableCellStyle}>
-                          <span style={{ fontWeight: '700', color: isCancelled ? '#e74c3c' : 'var(--color-primary)', fontSize: '0.85rem' }}>
+                          <span style={{ 
+                            fontWeight: '700', 
+                            color: isGrad ? '#2ecc71' : isDrop ? '#e74c3c' : 'var(--color-primary)', 
+                            fontSize: '0.85rem' 
+                          }}>
                             {std.student_code || 'PENDING'}
                           </span>
                         </td>
@@ -1158,11 +1313,11 @@ export function AdminDashboard({ onLogout }) {
                               borderRadius: '4px',
                               fontSize: '0.78rem',
                               fontWeight: '600',
-                              background: isCancelled ? 'rgba(231, 76, 60, 0.2)' : 'rgba(46, 204, 113, 0.2)',
-                              color: isCancelled ? '#e74c3c' : '#2ecc71',
-                              border: isCancelled ? '1px solid rgba(231, 76, 60, 0.3)' : '1px solid rgba(46, 204, 113, 0.3)'
+                              background: isGrad ? 'rgba(46, 204, 113, 0.2)' : isDrop ? 'rgba(231, 76, 60, 0.2)' : 'rgba(52, 152, 219, 0.2)',
+                              color: isGrad ? '#2ecc71' : isDrop ? '#e74c3c' : '#38bdf8',
+                              border: isGrad ? '1px solid rgba(46, 204, 113, 0.3)' : isDrop ? '1px solid rgba(231, 76, 60, 0.3)' : '1px solid rgba(56, 189, 248, 0.3)'
                             }}>
-                              {isCancelled ? 'Cancelled' : (std.status || 'Active')}
+                              {std.status || 'Active'}
                             </span>
                             {std.update_requested && (
                               <span style={{
@@ -1188,7 +1343,7 @@ export function AdminDashboard({ onLogout }) {
                             >
                               View Profile
                             </button>
-                            {!isCancelled ? (
+                            {isActive ? (
                               <>
                                 <button
                                   onClick={() => {
@@ -1202,12 +1357,20 @@ export function AdminDashboard({ onLogout }) {
                                   Assign/Edit
                                 </button>
                                 <button
-                                  onClick={() => handleCancelStudent(std._id || std.id, `${std.first_name} ${std.last_name || std.name || ''}`)}
+                                  onClick={() => handleOpenGraduateModal(std)}
                                   className="glass-panel"
-                                  style={{ padding: '6px 10px', fontSize: '0.8rem', color: '#e74c3c', border: '1px solid rgba(231, 76, 60, 0.4)', cursor: 'pointer' }}
-                                  title="Cancel/Drop student admission & revoke login"
+                                  style={{ padding: '6px 10px', fontSize: '0.8rem', color: '#2ecc71', border: '1px solid rgba(46, 204, 113, 0.4)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '3px' }}
+                                  title="Mark student as graduated"
                                 >
-                                  Cancel Admission
+                                  <GraduationCap size={13} /> Graduate
+                                </button>
+                                <button
+                                  onClick={() => handleOpenDropoutModal(std)}
+                                  className="glass-panel"
+                                  style={{ padding: '6px 10px', fontSize: '0.8rem', color: '#e74c3c', border: '1px solid rgba(231, 76, 60, 0.4)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '3px' }}
+                                  title="Mark student as dropout / cancel admission"
+                                >
+                                  <UserX size={13} /> Dropout
                                 </button>
                               </>
                             ) : (
@@ -1375,6 +1538,39 @@ export function AdminDashboard({ onLogout }) {
                       </div>
                     </div>
 
+                    {/* Graduation Details if Graduated */}
+                    {isStudentGraduated(viewingStudent) && (
+                      <div style={{ backgroundColor: 'rgba(46, 204, 113, 0.08)', padding: '1rem', borderRadius: '10px', border: '1px solid rgba(46, 204, 113, 0.3)' }}>
+                        <div style={{ color: '#2ecc71', fontWeight: 700, marginBottom: '0.5rem', fontSize: '0.92rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <GraduationCap size={18} /> Graduation Details (فارغ التحصیل ریکارڈ)
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.5rem' }}>
+                          <div><strong style={{ color: '#fff' }}>Graduation Date:</strong> {viewingStudent.graduated_at ? new Date(viewingStudent.graduated_at).toLocaleDateString('en-GB') : 'N/A'}</div>
+                          <div><strong style={{ color: '#fff' }}>Final Grade / Score:</strong> <span style={{ color: '#2ecc71', fontWeight: 'bold' }}>{viewingStudent.final_grade || 'Pass'} {viewingStudent.final_score ? `(${viewingStudent.final_score})` : ''}</span></div>
+                          <div style={{ gridColumn: '1 / -1' }}><strong style={{ color: '#fff' }}>Completed Course:</strong> {viewingStudent.graduation_course || viewingStudent.course || 'N/A'}</div>
+                          {viewingStudent.graduation_remarks && (
+                            <div style={{ gridColumn: '1 / -1' }}><strong style={{ color: '#fff' }}>Remarks / Honors:</strong> {viewingStudent.graduation_remarks}</div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Dropout Details if Dropped / Cancelled */}
+                    {isStudentDropout(viewingStudent) && (
+                      <div style={{ backgroundColor: 'rgba(231, 76, 60, 0.08)', padding: '1rem', borderRadius: '10px', border: '1px solid rgba(231, 76, 60, 0.3)' }}>
+                        <div style={{ color: '#e74c3c', fontWeight: 700, marginBottom: '0.5rem', fontSize: '0.92rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <UserX size={18} /> Dropout Details (داخلہ خارج ریکارڈ)
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.5rem' }}>
+                          <div><strong style={{ color: '#fff' }}>Dropout Date:</strong> {(viewingStudent.dropped_at || viewingStudent.cancelled_at) ? new Date(viewingStudent.dropped_at || viewingStudent.cancelled_at).toLocaleDateString('en-GB') : 'N/A'}</div>
+                          <div><strong style={{ color: '#fff' }}>Reason:</strong> <span style={{ color: '#e74c3c', fontWeight: 'bold' }}>{viewingStudent.dropout_reason || 'Administrative Cancellation'}</span></div>
+                          {viewingStudent.dropout_remarks && (
+                            <div style={{ gridColumn: '1 / -1' }}><strong style={{ color: '#fff' }}>Remarks / Notes:</strong> {viewingStudent.dropout_remarks}</div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
                     {/* Bio */}
                     {viewingStudent.bio && (
                       <div style={{ backgroundColor: 'rgba(0, 0, 0, 0.35)', padding: '1rem', borderRadius: '10px', border: '1px solid rgba(197, 229, 232, 0.12)' }}>
@@ -1385,7 +1581,7 @@ export function AdminDashboard({ onLogout }) {
                   </div>
 
                   <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1.5rem', gap: '0.75rem', flexWrap: 'wrap' }}>
-                    {viewingStudent.status !== 'Cancelled' ? (
+                    {isStudentActive(viewingStudent) ? (
                       <>
                         <button
                           onClick={() => {
@@ -1401,11 +1597,26 @@ export function AdminDashboard({ onLogout }) {
                           Assign Slot / Instructor
                         </button>
                         <button
-                          onClick={() => handleCancelStudent(viewingStudent._id || viewingStudent.id, `${viewingStudent.first_name} ${viewingStudent.last_name || viewingStudent.name || ''}`)}
+                          onClick={() => {
+                            const s = viewingStudent;
+                            setViewingStudent(null);
+                            handleOpenGraduateModal(s);
+                          }}
                           className="glass-panel"
-                          style={{ padding: '8px 16px', border: '1px solid rgba(231, 76, 60, 0.4)', color: '#e74c3c', cursor: 'pointer', fontSize: '0.85rem' }}
+                          style={{ padding: '8px 16px', border: '1px solid rgba(46, 204, 113, 0.4)', color: '#2ecc71', cursor: 'pointer', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '4px' }}
                         >
-                          Cancel Admission
+                          <GraduationCap size={15} /> Graduate Student
+                        </button>
+                        <button
+                          onClick={() => {
+                            const s = viewingStudent;
+                            setViewingStudent(null);
+                            handleOpenDropoutModal(s);
+                          }}
+                          className="glass-panel"
+                          style={{ padding: '8px 16px', border: '1px solid rgba(231, 76, 60, 0.4)', color: '#e74c3c', cursor: 'pointer', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '4px' }}
+                        >
+                          <UserX size={15} /> Mark Dropout
                         </button>
                       </>
                     ) : (
@@ -1428,6 +1639,337 @@ export function AdminDashboard({ onLogout }) {
                 </div>
               </div>
             )}
+          </div>
+        )}
+
+        {/* Dedicated Graduates View */}
+        {activeTab === 'graduates' && (
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                  <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: 'rgba(46, 204, 113, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#2ecc71' }}>
+                    <GraduationCap size={22} />
+                  </div>
+                  <h2 style={{ color: 'var(--color-white)', margin: 0, fontSize: '1.6rem' }}>
+                    Graduated Students <span style={{ fontSize: '1.1rem', color: '#2ecc71', fontWeight: 'normal' }}>(فارغ التحصیل طلبا)</span>
+                  </h2>
+                </div>
+                <p style={{ color: '#aaa', margin: '6px 0 0 0', fontSize: '0.9rem' }}>
+                  List of all students who successfully completed their Arabic learning courses and graduated.
+                </p>
+              </div>
+
+              {/* Search & Badge */}
+              <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                <div style={{ position: 'relative' }}>
+                  <input
+                    type="text"
+                    placeholder="Search graduates by name, ID, course, grade..."
+                    value={graduatesSearch}
+                    onChange={e => setGraduatesSearch(e.target.value)}
+                    style={{
+                      padding: '8px 14px 8px 36px',
+                      borderRadius: '8px',
+                      border: '1px solid rgba(255, 255, 255, 0.15)',
+                      background: 'rgba(0, 0, 0, 0.4)',
+                      color: '#fff',
+                      fontSize: '0.85rem',
+                      minWidth: '280px'
+                    }}
+                  />
+                  <Search size={16} color="#888" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
+                </div>
+                <div style={{ background: 'rgba(46, 204, 113, 0.15)', border: '1px solid rgba(46, 204, 113, 0.3)', padding: '6px 14px', borderRadius: '8px', color: '#2ecc71', fontWeight: 'bold', fontSize: '0.85rem' }}>
+                  Total: {students.filter(isStudentGraduated).length} Graduates
+                </div>
+              </div>
+            </div>
+
+            {/* Graduates Table */}
+            <div className="table-responsive-container">
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr>
+                    <th style={tableHeaderStyle}>Student ID</th>
+                    <th style={tableHeaderStyle}>Graduate Name</th>
+                    <th style={tableHeaderStyle}>Contact Info</th>
+                    <th style={tableHeaderStyle}>Completed Course</th>
+                    <th style={tableHeaderStyle}>Graduation Date</th>
+                    <th style={tableHeaderStyle}>Grade & Score</th>
+                    <th style={tableHeaderStyle}>Remarks</th>
+                    <th style={tableHeaderStyle}>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {students.filter(isStudentGraduated).filter(std => {
+                    if (!graduatesSearch.trim()) return true;
+                    const q = graduatesSearch.toLowerCase();
+                    const name = `${std.first_name || ''} ${std.last_name || ''} ${std.name || ''}`.toLowerCase();
+                    const email = (std.email || '').toLowerCase();
+                    const code = (std.student_code || '').toLowerCase();
+                    const course = (std.graduation_course || std.course || std.preferred_course || '').toLowerCase();
+                    const grade = (std.final_grade || '').toLowerCase();
+                    const remarks = (std.graduation_remarks || '').toLowerCase();
+                    return name.includes(q) || email.includes(q) || code.includes(q) || course.includes(q) || grade.includes(q) || remarks.includes(q);
+                  }).map(std => {
+                    const gradDate = std.graduated_at ? new Date(std.graduated_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : 'N/A';
+                    return (
+                      <tr key={std._id || std.id}>
+                        <td style={tableCellStyle}>
+                          <span style={{ fontWeight: '700', color: '#2ecc71', fontSize: '0.85rem' }}>
+                            {std.student_code || 'N/A'}
+                          </span>
+                        </td>
+                        <td style={tableCellStyle}>
+                          <div style={{ fontWeight: '600', color: '#fff' }}>{std.first_name} {std.last_name || std.name || ''}</div>
+                          {std.city && std.country && (
+                            <div style={{ fontSize: '0.75rem', color: '#8892b0' }}>{std.city}, {std.country}</div>
+                          )}
+                        </td>
+                        <td style={tableCellStyle}>
+                          <div style={{ fontSize: '0.85rem' }}>{std.email}</div>
+                          <div style={{ fontSize: '0.78rem', color: '#aaa' }}>{std.phone || 'No phone'}</div>
+                        </td>
+                        <td style={tableCellStyle}>
+                          <div style={{ fontWeight: '600', color: 'var(--color-primary)', fontSize: '0.85rem' }}>
+                            {std.graduation_course || std.course || std.preferred_course || 'Modern Standard Arabic'}
+                          </div>
+                          {std.instructor && (
+                            <div style={{ fontSize: '0.75rem', color: '#cbd5e1' }}>
+                              Instructor: {std.instructor}
+                            </div>
+                          )}
+                        </td>
+                        <td style={tableCellStyle}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.85rem', color: '#fff' }}>
+                            <Award size={14} color="#2ecc71" />
+                            {gradDate}
+                          </div>
+                        </td>
+                        <td style={tableCellStyle}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <span style={{
+                              padding: '3px 8px',
+                              borderRadius: '4px',
+                              fontSize: '0.78rem',
+                              fontWeight: '700',
+                              background: 'rgba(46, 204, 113, 0.2)',
+                              color: '#2ecc71',
+                              border: '1px solid rgba(46, 204, 113, 0.4)'
+                            }}>
+                              {std.final_grade || 'Pass'}
+                            </span>
+                            {std.final_score && (
+                              <span style={{ fontSize: '0.78rem', color: '#cbd5e1', fontWeight: '600' }}>
+                                ({std.final_score})
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                        <td style={tableCellStyle}>
+                          <div style={{ fontSize: '0.8rem', color: '#b0c4c6', maxWidth: '220px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={std.graduation_remarks || 'None'}>
+                            {std.graduation_remarks || 'Completed with distinction'}
+                          </div>
+                        </td>
+                        <td style={tableCellStyle}>
+                          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                            <button
+                              onClick={() => setViewingStudent(std)}
+                              className="glass-panel"
+                              style={{ padding: '6px 10px', fontSize: '0.8rem', border: '1px solid rgba(197, 229, 232, 0.25)', color: 'var(--color-primary)', cursor: 'pointer' }}
+                            >
+                              View Details
+                            </button>
+                            <button
+                              onClick={() => handleReactivateStudent(std._id || std.id, `${std.first_name} ${std.last_name || std.name || ''}`)}
+                              className="glass-panel"
+                              style={{ padding: '6px 10px', fontSize: '0.8rem', color: '#3498db', border: '1px solid rgba(52, 152, 219, 0.4)', cursor: 'pointer' }}
+                              title="Re-enroll or reactivate this student for further studies"
+                            >
+                              Re-Enroll
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                  {students.filter(isStudentGraduated).length === 0 && (
+                    <tr>
+                      <td colSpan={8} style={{ padding: '3rem', textAlign: 'center', color: '#aaa' }}>
+                        <GraduationCap size={40} color="#555" style={{ margin: '0 auto 1rem', display: 'block' }} />
+                        <div style={{ fontSize: '1rem', color: '#cbd5e1', marginBottom: '0.5rem' }}>No graduated students recorded yet.</div>
+                        <div style={{ fontSize: '0.85rem', color: '#888' }}>
+                          When an enrolled student completes their curriculum, click <strong>"Graduate"</strong> in the Students tab.
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* Dedicated Dropouts View */}
+        {activeTab === 'dropouts' && (
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                  <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: 'rgba(231, 76, 60, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#e74c3c' }}>
+                    <UserX size={22} />
+                  </div>
+                  <h2 style={{ color: 'var(--color-white)', margin: 0, fontSize: '1.6rem' }}>
+                    Dropout Students <span style={{ fontSize: '1.1rem', color: '#e74c3c', fontWeight: 'normal' }}>(طلبہ جنہوں نے چھوڑ دیا)</span>
+                  </h2>
+                </div>
+                <p style={{ color: '#aaa', margin: '6px 0 0 0', fontSize: '0.9rem' }}>
+                  List of students who withdrew, cancelled their enrollment, or discontinued classes.
+                </p>
+              </div>
+
+              {/* Search & Badge */}
+              <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                <div style={{ position: 'relative' }}>
+                  <input
+                    type="text"
+                    placeholder="Search dropouts by name, ID, reason, remarks..."
+                    value={dropoutsSearch}
+                    onChange={e => setDropoutsSearch(e.target.value)}
+                    style={{
+                      padding: '8px 14px 8px 36px',
+                      borderRadius: '8px',
+                      border: '1px solid rgba(255, 255, 255, 0.15)',
+                      background: 'rgba(0, 0, 0, 0.4)',
+                      color: '#fff',
+                      fontSize: '0.85rem',
+                      minWidth: '280px'
+                    }}
+                  />
+                  <Search size={16} color="#888" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
+                </div>
+                <div style={{ background: 'rgba(231, 76, 60, 0.15)', border: '1px solid rgba(231, 76, 60, 0.3)', padding: '6px 14px', borderRadius: '8px', color: '#e74c3c', fontWeight: 'bold', fontSize: '0.85rem' }}>
+                  Total: {students.filter(isStudentDropout).length} Dropouts
+                </div>
+              </div>
+            </div>
+
+            {/* Dropouts Table */}
+            <div className="table-responsive-container">
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr>
+                    <th style={tableHeaderStyle}>Student ID</th>
+                    <th style={tableHeaderStyle}>Student Name</th>
+                    <th style={tableHeaderStyle}>Contact Info</th>
+                    <th style={tableHeaderStyle}>Last Enrolled Course</th>
+                    <th style={tableHeaderStyle}>Dropout Date</th>
+                    <th style={tableHeaderStyle}>Reason for Dropping</th>
+                    <th style={tableHeaderStyle}>Remarks / Notes</th>
+                    <th style={tableHeaderStyle}>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {students.filter(isStudentDropout).filter(std => {
+                    if (!dropoutsSearch.trim()) return true;
+                    const q = dropoutsSearch.toLowerCase();
+                    const name = `${std.first_name || ''} ${std.last_name || ''} ${std.name || ''}`.toLowerCase();
+                    const email = (std.email || '').toLowerCase();
+                    const code = (std.student_code || '').toLowerCase();
+                    const course = (std.course || std.preferred_course || '').toLowerCase();
+                    const reason = (std.dropout_reason || '').toLowerCase();
+                    const remarks = (std.dropout_remarks || '').toLowerCase();
+                    return name.includes(q) || email.includes(q) || code.includes(q) || course.includes(q) || reason.includes(q) || remarks.includes(q);
+                  }).map(std => {
+                    const dropDate = (std.dropped_at || std.cancelled_at) ? new Date(std.dropped_at || std.cancelled_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : 'N/A';
+                    return (
+                      <tr key={std._id || std.id} style={{ opacity: 0.85 }}>
+                        <td style={tableCellStyle}>
+                          <span style={{ fontWeight: '700', color: '#e74c3c', fontSize: '0.85rem' }}>
+                            {std.student_code || 'N/A'}
+                          </span>
+                        </td>
+                        <td style={tableCellStyle}>
+                          <div style={{ fontWeight: '600', color: '#fff' }}>{std.first_name} {std.last_name || std.name || ''}</div>
+                          {std.city && std.country && (
+                            <div style={{ fontSize: '0.75rem', color: '#8892b0' }}>{std.city}, {std.country}</div>
+                          )}
+                        </td>
+                        <td style={tableCellStyle}>
+                          <div style={{ fontSize: '0.85rem' }}>{std.email}</div>
+                          <div style={{ fontSize: '0.78rem', color: '#aaa' }}>{std.phone || 'No phone'}</div>
+                        </td>
+                        <td style={tableCellStyle}>
+                          <div style={{ fontWeight: '600', color: 'var(--color-primary)', fontSize: '0.85rem' }}>
+                            {std.course || std.preferred_course || 'Modern Standard Arabic'}
+                          </div>
+                          {std.instructor && (
+                            <div style={{ fontSize: '0.75rem', color: '#cbd5e1' }}>
+                              Last Instructor: {std.instructor}
+                            </div>
+                          )}
+                        </td>
+                        <td style={tableCellStyle}>
+                          <div style={{ fontSize: '0.85rem', color: '#e0e0e0' }}>
+                            {dropDate}
+                          </div>
+                        </td>
+                        <td style={tableCellStyle}>
+                          <span style={{
+                            padding: '3px 8px',
+                            borderRadius: '4px',
+                            fontSize: '0.78rem',
+                            fontWeight: '600',
+                            background: 'rgba(231, 76, 60, 0.2)',
+                            color: '#e74c3c',
+                            border: '1px solid rgba(231, 76, 60, 0.4)',
+                            display: 'inline-block'
+                          }}>
+                            {std.dropout_reason || 'Administrative Cancellation'}
+                          </span>
+                        </td>
+                        <td style={tableCellStyle}>
+                          <div style={{ fontSize: '0.8rem', color: '#b0c4c6', maxWidth: '220px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={std.dropout_remarks || 'None'}>
+                            {std.dropout_remarks || 'No remarks recorded'}
+                          </div>
+                        </td>
+                        <td style={tableCellStyle}>
+                          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                            <button
+                              onClick={() => setViewingStudent(std)}
+                              className="glass-panel"
+                              style={{ padding: '6px 10px', fontSize: '0.8rem', border: '1px solid rgba(197, 229, 232, 0.25)', color: 'var(--color-primary)', cursor: 'pointer' }}
+                            >
+                              View Details
+                            </button>
+                            <button
+                              onClick={() => handleReactivateStudent(std._id || std.id, `${std.first_name} ${std.last_name || std.name || ''}`)}
+                              className="glass-panel"
+                              style={{ padding: '6px 10px', fontSize: '0.8rem', color: '#2ecc71', border: '1px solid rgba(46, 204, 113, 0.4)', cursor: 'pointer' }}
+                              title="Restore student to active status & re-enable login"
+                            >
+                              Reactivate
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                  {students.filter(isStudentDropout).length === 0 && (
+                    <tr>
+                      <td colSpan={8} style={{ padding: '3rem', textAlign: 'center', color: '#aaa' }}>
+                        <UserX size={40} color="#555" style={{ margin: '0 auto 1rem', display: 'block' }} />
+                        <div style={{ fontSize: '1rem', color: '#cbd5e1', marginBottom: '0.5rem' }}>No dropout students recorded.</div>
+                        <div style={{ fontSize: '0.85rem', color: '#888' }}>
+                          Students marked as dropped or cancelled will appear here with full reasons and remarks.
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
 
@@ -2465,6 +3007,210 @@ export function AdminDashboard({ onLogout }) {
                   style={{ padding: '8px 20px', fontSize: '0.88rem', cursor: isSubmittingAdmin ? 'not-allowed' : 'pointer' }}
                 >
                   {isSubmittingAdmin ? 'Creating...' : 'Create Admin'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+      {/* Graduate Student Modal */}
+      {graduatingStudent && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(3, 14, 15, 0.88)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 220, padding: '1rem' }}>
+          <div style={{ padding: '2rem', maxWidth: '500px', width: '100%', maxHeight: '90vh', overflowY: 'auto', borderRadius: '16px', backgroundColor: '#092528', border: '1px solid rgba(46, 204, 113, 0.4)', boxShadow: '0 25px 60px rgba(0, 0, 0, 0.95)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
+              <div style={{ width: '42px', height: '42px', borderRadius: '10px', background: 'rgba(46, 204, 113, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#2ecc71' }}>
+                <GraduationCap size={24} />
+              </div>
+              <div>
+                <h3 style={{ color: 'var(--color-white)', margin: 0, fontSize: '1.3rem' }}>Mark Student as Graduated</h3>
+                <p style={{ color: '#2ecc71', margin: '2px 0 0 0', fontSize: '0.85rem' }}>فارغ التحصیل کی تصدیق</p>
+              </div>
+            </div>
+
+            <p style={{ color: '#cbd5e1', fontSize: '0.9rem', marginBottom: '1.25rem' }}>
+              Student: <strong style={{ color: '#fff' }}>{graduatingStudent.first_name} {graduatingStudent.last_name || graduatingStudent.name || ''}</strong> ({graduatingStudent.student_code || 'ID Pending'})
+            </p>
+
+            <form onSubmit={handleGraduateSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div>
+                <label style={{ display: 'block', color: 'var(--color-primary)', marginBottom: '0.35rem', fontSize: '0.85rem' }}>
+                  Completed Course Title *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={graduateForm.graduation_course}
+                  onChange={e => setGraduateForm({ ...graduateForm, graduation_course: e.target.value })}
+                  style={{ ...inputStyle, width: '100%' }}
+                  placeholder="e.g. Modern Standard Arabic - Level 1"
+                />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div>
+                  <label style={{ display: 'block', color: 'var(--color-primary)', marginBottom: '0.35rem', fontSize: '0.85rem' }}>
+                    Final Grade *
+                  </label>
+                  <select
+                    value={graduateForm.final_grade}
+                    onChange={e => setGraduateForm({ ...graduateForm, final_grade: e.target.value })}
+                    style={{ ...inputStyle, width: '100%', background: '#071d20' }}
+                  >
+                    <option value="A+">A+ (Outstanding)</option>
+                    <option value="A">A (Excellent)</option>
+                    <option value="B+">B+ (Very Good)</option>
+                    <option value="B">B (Good)</option>
+                    <option value="C">C (Satisfactory)</option>
+                    <option value="Pass">Pass</option>
+                  </select>
+                </div>
+                <div>
+                  <label style={{ display: 'block', color: 'var(--color-primary)', marginBottom: '0.35rem', fontSize: '0.85rem' }}>
+                    Final Score / Percentage
+                  </label>
+                  <input
+                    type="text"
+                    value={graduateForm.final_score}
+                    onChange={e => setGraduateForm({ ...graduateForm, final_score: e.target.value })}
+                    style={{ ...inputStyle, width: '100%' }}
+                    placeholder="e.g. 94% or 470/500"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', color: 'var(--color-primary)', marginBottom: '0.35rem', fontSize: '0.85rem' }}>
+                  Graduation Date *
+                </label>
+                <input
+                  type="date"
+                  required
+                  value={graduateForm.graduation_date}
+                  onChange={e => setGraduateForm({ ...graduateForm, graduation_date: e.target.value })}
+                  style={{ ...inputStyle, width: '100%' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', color: 'var(--color-primary)', marginBottom: '0.35rem', fontSize: '0.85rem' }}>
+                  Graduation Remarks / Honors
+                </label>
+                <textarea
+                  rows={3}
+                  value={graduateForm.graduation_remarks}
+                  onChange={e => setGraduateForm({ ...graduateForm, graduation_remarks: e.target.value })}
+                  style={{ ...inputStyle, width: '100%', resize: 'vertical' }}
+                  placeholder="e.g. Excellent recitation, completed final exam with distinction..."
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '0.5rem' }}>
+                <button
+                  type="button"
+                  onClick={() => setGraduatingStudent(null)}
+                  className="glass-panel"
+                  style={{ padding: '8px 16px', border: 'none', color: '#cbd5e1', cursor: 'pointer', fontSize: '0.85rem' }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmittingGraduate}
+                  className="btn-primary"
+                  style={{ padding: '8px 20px', fontSize: '0.85rem', cursor: isSubmittingGraduate ? 'not-allowed' : 'pointer', background: '#2ecc71', borderColor: '#2ecc71' }}
+                >
+                  {isSubmittingGraduate ? 'Processing...' : 'Confirm Graduation'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Dropout Student Modal */}
+      {droppingStudent && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(3, 14, 15, 0.88)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 220, padding: '1rem' }}>
+          <div style={{ padding: '2rem', maxWidth: '500px', width: '100%', maxHeight: '90vh', overflowY: 'auto', borderRadius: '16px', backgroundColor: '#092528', border: '1px solid rgba(231, 76, 60, 0.4)', boxShadow: '0 25px 60px rgba(0, 0, 0, 0.95)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
+              <div style={{ width: '42px', height: '42px', borderRadius: '10px', background: 'rgba(231, 76, 60, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#e74c3c' }}>
+                <UserX size={24} />
+              </div>
+              <div>
+                <h3 style={{ color: 'var(--color-white)', margin: 0, fontSize: '1.3rem' }}>Mark Student as Dropout</h3>
+                <p style={{ color: '#e74c3c', margin: '2px 0 0 0', fontSize: '0.85rem' }}>داخلہ خارج / منسوخ کرنا</p>
+              </div>
+            </div>
+
+            <p style={{ color: '#cbd5e1', fontSize: '0.9rem', marginBottom: '1.25rem' }}>
+              Student: <strong style={{ color: '#fff' }}>{droppingStudent.first_name} {droppingStudent.last_name || droppingStudent.name || ''}</strong> ({droppingStudent.student_code || 'ID Pending'})
+            </p>
+
+            <form onSubmit={handleDropoutSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div>
+                <label style={{ display: 'block', color: 'var(--color-primary)', marginBottom: '0.35rem', fontSize: '0.85rem' }}>
+                  Dropout Reason *
+                </label>
+                <select
+                  value={dropoutForm.dropout_reason}
+                  onChange={e => setDropoutForm({ ...dropoutForm, dropout_reason: e.target.value })}
+                  style={{ ...inputStyle, width: '100%', background: '#071d20' }}
+                >
+                  <option value="Time constraints / Schedule conflict">Time constraints / Schedule conflict</option>
+                  <option value="Financial reasons / Fee constraints">Financial reasons / Fee constraints</option>
+                  <option value="Personal / Medical / Family commitments">Personal / Medical / Family commitments</option>
+                  <option value="Relocated / Moved abroad">Relocated / Moved abroad</option>
+                  <option value="Difficulty with curriculum / Course load">Difficulty with curriculum / Course load</option>
+                  <option value="Unresponsive / Long-term absent">Unresponsive / Long-term absent</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', color: 'var(--color-primary)', marginBottom: '0.35rem', fontSize: '0.85rem' }}>
+                  Dropout Effective Date *
+                </label>
+                <input
+                  type="date"
+                  required
+                  value={dropoutForm.dropped_at}
+                  onChange={e => setDropoutForm({ ...dropoutForm, dropped_at: e.target.value })}
+                  style={{ ...inputStyle, width: '100%' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', color: 'var(--color-primary)', marginBottom: '0.35rem', fontSize: '0.85rem' }}>
+                  Remarks / Notes
+                </label>
+                <textarea
+                  rows={3}
+                  value={dropoutForm.dropout_remarks}
+                  onChange={e => setDropoutForm({ ...dropoutForm, dropout_remarks: e.target.value })}
+                  style={{ ...inputStyle, width: '100%', resize: 'vertical' }}
+                  placeholder="Provide context (e.g. Student requested withdrawal due to university exam clashes)..."
+                />
+              </div>
+
+              <div style={{ backgroundColor: 'rgba(231, 76, 60, 0.1)', border: '1px solid rgba(231, 76, 60, 0.25)', borderRadius: '8px', padding: '0.75rem', fontSize: '0.8rem', color: '#ff9999' }}>
+                Note: Marking as Dropout will disable portal login. You can restore access anytime using <strong>Reactivate</strong>.
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '0.5rem' }}>
+                <button
+                  type="button"
+                  onClick={() => setDroppingStudent(null)}
+                  className="glass-panel"
+                  style={{ padding: '8px 16px', border: 'none', color: '#cbd5e1', cursor: 'pointer', fontSize: '0.85rem' }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmittingDropout}
+                  className="glass-panel"
+                  style={{ padding: '8px 20px', fontSize: '0.85rem', cursor: isSubmittingDropout ? 'not-allowed' : 'pointer', background: '#e74c3c', color: '#fff', border: 'none' }}
+                >
+                  {isSubmittingDropout ? 'Processing...' : 'Confirm Dropout'}
                 </button>
               </div>
             </form>

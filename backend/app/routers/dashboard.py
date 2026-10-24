@@ -20,8 +20,11 @@ async def get_dashboard_stats(admin_user: dict = Depends(require_admin)):
         approved = await db.admissions.count_documents({"status": "Approved"})
         canceled = await db.admissions.count_documents({"status": "Canceled"})
         total_students = await db.students.count_documents({})
-        active_students = await db.students.count_documents({"status": {"$ne": "Cancelled"}})
-        canceled_students = await db.students.count_documents({"status": "Cancelled"})
+        graduated_students = await db.students.count_documents({"status": {"$in": ["Graduated", "graduated"]}})
+        dropout_students = await db.students.count_documents({"status": {"$in": ["Cancelled", "cancelled", "Dropout", "dropout"]}})
+        active_students = await db.students.count_documents({"status": {"$nin": ["Graduated", "graduated", "Cancelled", "cancelled", "Dropout", "dropout"]}})
+        canceled_students = dropout_students
+
         total_instructors = await db.instructors.count_documents({})
         active_instructors = await db.instructors.count_documents({"is_active": {"$ne": False}})
         total_modules = await db.modules.count_documents({})
@@ -33,6 +36,8 @@ async def get_dashboard_stats(admin_user: dict = Depends(require_admin)):
             "canceled": canceled,
             "total_students": total_students,
             "active_students": active_students,
+            "graduated_students": graduated_students,
+            "dropout_students": dropout_students,
             "canceled_students": canceled_students,
             "total_instructors": total_instructors,
             "active_instructors": active_instructors,

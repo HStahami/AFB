@@ -1,7 +1,7 @@
 from bson import ObjectId
 from datetime import datetime
 from typing import Optional, List, Dict, Any
-from fastapi import APIRouter, HTTPException, Depends, status
+from fastapi import APIRouter, HTTPException, Depends, status, Query, Body
 from app.database import get_db
 from app.models import StudentProfileUpdate
 from app.core.dependencies import get_current_user, require_admin, verify_student_access
@@ -36,13 +36,26 @@ def _clean_doc(doc):
 
 
 @router.get("/", summary="Get all students (Admin Only)")
-async def get_all_students(admin_user: dict = Depends(require_admin)):
+async def get_all_students(
+    status: Optional[str] = Query(None, description="Filter by status: active, graduated, dropout, or all"),
+    admin_user: dict = Depends(require_admin)
+):
     db = get_db()
     if db is None:
         return []
     try:
+        query = {}
+        if status:
+            s = status.strip().lower()
+            if s == "active":
+                query["status"] = {"$nin": ["Graduated", "graduated", "Cancelled", "cancelled", "Dropout", "dropout"]}
+            elif s == "graduated":
+                query["status"] = {"$in": ["Graduated", "graduated"]}
+            elif s in ["dropout", "dropouts", "cancelled", "canceled"]:
+                query["status"] = {"$in": ["Cancelled", "cancelled", "Dropout", "dropout"]}
+
         students = []
-        async for doc in db.students.find().sort("approved_at", -1):
+        async for doc in db.students.find(query).sort("approved_at", -1):
             students.append(_clean_doc(doc))
         return students
     except Exception as e:
@@ -475,13 +488,219 @@ async def cancel_enrolled_student(
     return {"message": f"Admission for student {student.get('first_name', '')} {student.get('last_name', '') or student.get('name', 'Student')} has been cancelled. Portal login is now disabled."}
 
 
+@router.patch("/{student_id}/graduate", summary="Mark an enrolled student as Graduated (Admin Only)")
+async def graduate_enrolled_student(
+    student_id: str,
+    payload: Dict[str, Any] = Body(default_factory=dict),
+    admin_user: dict = Depends(require_admin)
+):
+    """
+    Marks an enrolled student as Graduated:
+    - Sets student document status as 'Graduated'
+    - Records graduation_date, final_grade, final_score, graduation_course, graduation_remarks
+    - Updates active enrollments to 'completed'
+    - Retains read-only portal access (status = 'graduated')
+    - Sends congratulatory notification
+    """
+    db = get_db()
+    try:
+        student_oid = ObjectId(student_id)
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid student ID format.")
+
+    student = await db.students.find_one({"_id": student_oid})
+    if not student:
+        raise HTTPException(status_code=404, detail="Student record not found.")
+
+    grad_date_str = payload.get("graduation_date")
+    grad_date = datetime.utcnow()
+    if grad_date_str:
+        try:
+            grad_date = datetime.fromisoformat(grad_date_str.replace("Z", "+00:00"))
+        except Exception:
+            try:
+                grad_date = datetime.strptime(grad_date_str, "%Y-%m-%d")
+            except Exception:
+                grad_date = datetime.utcnow()
+
+    final_grade = payload.get("final_grade") or "Mumtaz / A+ (Distinction)"
+    final_score = payload.get("final_score")
+    grad_course = payload.get("course") or student.get("course") or student.get("preferred_course") or "Alarabia Arabic Program"
+    grad_remarks = payload.get("graduation_remarks") or payload.get("remarks") or ""
+
+    update_doc = {
+        "status": "Graduated",
+        "graduated_at": grad_date,
+        "final_grade": final_grade,
+        "graduation_course": grad_course,
+        "graduation_remarks": grad_remarks,
+        "updated_at": datetime.utcnow()
+    }
+    if final_score is not None:
+        try:
+            update_doc["final_score"] = float(final_score)
+        except Exception:
+            update_doc["final_score"] = str(final_score)
+
+    # 1. Update Student status
+    await db.students.update_one(
+        {"_id": student_oid},
+        {"$set": update_doc}
+    )
+
+    # 2. Update User Account status to graduated (keep active for alumni/certificate view)
+    user_query = {}
+    if student.get("user_id"):
+        user_query = {"_id": student["user_id"]}
+    elif student.get("email"):
+        user_query = {"email": student["email"]}
+
+    if user_query:
+        await db.users.update_one(
+            user_query,
+            {"$set": {"status": "graduated", "updated_at": datetime.utcnow()}}
+        )
+
+    # 3. Mark enrollments as completed
+    await db.enrollments.update_many(
+        {"student_id": student_oid},
+        {"$set": {"status": "completed", "completion_date": grad_date, "updated_at": datetime.utcnow()}}
+    )
+
+    # 4. Create congratulatory notification
+    if student.get("user_id"):
+        await create_notification(
+            db=db,
+            recipient_user_id=student["user_id"],
+            title="Mabruk! Congratulations on Graduating!",
+            message=f"Congratulations {student.get('first_name', '')}! You have successfully completed {grad_course} with grade {final_grade}.",
+            notification_type="achievement",
+            related_entity_type="student",
+            related_entity_id=student_id
+        )
+
+    student_name = f"{student.get('first_name', '')} {student.get('last_name', '') or student.get('name', 'Student')}".strip()
+    return {
+        "message": f"Student {student_name} has been successfully graduated with honors.",
+        "student_id": student_id,
+        "status": "Graduated",
+        "final_grade": final_grade,
+        "final_score": update_doc.get("final_score"),
+        "graduation_course": grad_course,
+        "graduation_remarks": grad_remarks,
+        "graduated_at": grad_date.isoformat()
+    }
+
+
+@router.patch("/{student_id}/dropout", summary="Mark an enrolled student as Dropout (Admin Only)")
+async def dropout_enrolled_student(
+    student_id: str,
+    payload: Dict[str, Any] = Body(default_factory=dict),
+    admin_user: dict = Depends(require_admin)
+):
+    """
+    Marks an enrolled student as a Dropout:
+    - Sets student document status as 'Dropout'
+    - Records dropout_date, dropout_reason, dropout_remarks
+    - Deactivates user account (is_active = False, status = 'dropout')
+    - Updates active enrollments to 'dropped'
+    - Syncs linked admission form status to 'Canceled'
+    """
+    db = get_db()
+    try:
+        student_oid = ObjectId(student_id)
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid student ID format.")
+
+    student = await db.students.find_one({"_id": student_oid})
+    if not student:
+        raise HTTPException(status_code=404, detail="Student record not found.")
+
+    drop_date_str = payload.get("dropout_date")
+    drop_date = datetime.utcnow()
+    if drop_date_str:
+        try:
+            drop_date = datetime.fromisoformat(drop_date_str.replace("Z", "+00:00"))
+        except Exception:
+            try:
+                drop_date = datetime.strptime(drop_date_str, "%Y-%m-%d")
+            except Exception:
+                drop_date = datetime.utcnow()
+
+    dropout_reason = payload.get("dropout_reason") or "Personal / Family Reasons"
+    dropout_remarks = payload.get("dropout_remarks") or payload.get("remarks") or ""
+
+    # 1. Update Student status
+    await db.students.update_one(
+        {"_id": student_oid},
+        {
+            "$set": {
+                "status": "Dropout",
+                "dropped_at": drop_date,
+                "cancelled_at": drop_date,
+                "dropout_reason": dropout_reason,
+                "dropout_remarks": dropout_remarks,
+                "updated_at": datetime.utcnow()
+            }
+        }
+    )
+
+    # 2. Deactivate User Account
+    user_query = {}
+    if student.get("user_id"):
+        user_query = {"_id": student["user_id"]}
+    elif student.get("email"):
+        user_query = {"email": student["email"]}
+
+    if user_query:
+        await db.users.update_one(
+            user_query,
+            {
+                "$set": {
+                    "is_active": False,
+                    "status": "dropout",
+                    "updated_at": datetime.utcnow()
+                }
+            }
+        )
+
+    # 3. Update Enrollments
+    await db.enrollments.update_many(
+        {"student_id": student_oid},
+        {
+            "$set": {
+                "status": "dropped",
+                "dropped_at": drop_date,
+                "updated_at": datetime.utcnow()
+            }
+        }
+    )
+
+    # 4. Sync linked Admission Form if exists
+    if student.get("email"):
+        await db.admissions.update_many(
+            {"email": student["email"]},
+            {"$set": {"status": "Canceled"}}
+        )
+
+    student_name = f"{student.get('first_name', '')} {student.get('last_name', '') or student.get('name', 'Student')}".strip()
+    return {
+        "message": f"Student {student_name} has been marked as a dropout ({dropout_reason}). Portal login is disabled.",
+        "student_id": student_id,
+        "status": "Dropout",
+        "dropout_reason": dropout_reason,
+        "dropout_remarks": dropout_remarks,
+        "dropped_at": drop_date.isoformat()
+    }
+
+
 @router.patch("/{student_id}/reactivate", summary="Reactivate a cancelled enrolled student (Admin Only)")
 async def reactivate_enrolled_student(
     student_id: str,
     admin_user: dict = Depends(require_admin)
 ):
     """
-    Reactivates a previously cancelled student:
+    Reactivates a previously cancelled, dropout or graduated student:
     - Marks student document status as 'Active'
     - Reactivates user account (is_active = True, status = 'active')
     - Updates linked admission record status to 'Approved'
@@ -529,7 +748,7 @@ async def reactivate_enrolled_student(
 
     # 3. Update Enrollments
     await db.enrollments.update_many(
-        {"student_id": student_oid, "status": "cancelled"},
+        {"student_id": student_oid, "status": {"$in": ["cancelled", "dropped", "completed"]}},
         {
             "$set": {
                 "status": "active",
@@ -545,7 +764,12 @@ async def reactivate_enrolled_student(
             {"$set": {"status": "Approved"}}
         )
 
-    return {"message": f"Student {student.get('first_name', '')} {student.get('last_name', '') or student.get('name', 'Student')} has been reactivated successfully."}
+    student_name = f"{student.get('first_name', '')} {student.get('last_name', '') or student.get('name', 'Student')}".strip()
+    return {
+        "message": f"Student {student_name} has been reactivated successfully.",
+        "student_id": student_id,
+        "status": "Active"
+    }
 
 
 @router.get("/dashboard-summary", summary="Get comprehensive student dashboard data")
