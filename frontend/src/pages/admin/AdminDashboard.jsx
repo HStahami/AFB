@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Plus, Trash2, LogOut, Bell, CheckCircle2, Megaphone, Shield, MessageSquare, Send, RefreshCw, Mail, GraduationCap, UserX, Award, Search } from 'lucide-react';
+import { Plus, Trash2, LogOut, Bell, CheckCircle2, Megaphone, Shield, MessageSquare, Send, RefreshCw, Mail, Award, Search } from 'lucide-react';
 import { API_BASE, getAvatarUrl } from '../../api/client';
 import { inputStyle } from '../../components/common/styles';
 import { notificationsApi, messagesApi, studentsApi } from '../../api';
@@ -877,34 +877,8 @@ export function AdminDashboard({ onLogout }) {
         </button>
         <button className={activeTab === 'admissions' ? 'btn-primary' : 'glass-panel'} style={{ width: '100%', textAlign: 'left', padding: '10px 15px', border: 'none' }} onClick={() => setActiveTab('admissions')}>Admissions</button>
         <button className={activeTab === 'students' ? 'btn-primary' : 'glass-panel'} style={{ width: '100%', textAlign: 'left', padding: '10px 15px', border: 'none' }} onClick={() => setActiveTab('students')}>Students</button>
-        <button 
-          className={activeTab === 'graduates' ? 'btn-primary' : 'glass-panel'} 
-          style={{ width: '100%', textAlign: 'left', padding: '10px 15px', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.6rem' }} 
-          onClick={() => setActiveTab('graduates')}
-        >
-          <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <GraduationCap size={16} /> Graduates
-          </span>
-          {stats.graduated_students > 0 && (
-            <span style={{ background: 'rgba(46, 204, 113, 0.25)', color: '#2ecc71', padding: '2px 7px', borderRadius: '10px', fontSize: '0.72rem', fontWeight: 'bold' }}>
-              {stats.graduated_students}
-            </span>
-          )}
-        </button>
-        <button 
-          className={activeTab === 'dropouts' ? 'btn-primary' : 'glass-panel'} 
-          style={{ width: '100%', textAlign: 'left', padding: '10px 15px', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.6rem' }} 
-          onClick={() => setActiveTab('dropouts')}
-        >
-          <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <UserX size={16} /> Dropouts
-          </span>
-          {stats.dropout_students > 0 && (
-            <span style={{ background: 'rgba(231, 76, 60, 0.25)', color: '#e74c3c', padding: '2px 7px', borderRadius: '10px', fontSize: '0.72rem', fontWeight: 'bold' }}>
-              {stats.dropout_students}
-            </span>
-          )}
-        </button>
+        <button className={activeTab === 'graduates' ? 'btn-primary' : 'glass-panel'} style={{ width: '100%', textAlign: 'left', padding: '10px 15px', border: 'none' }} onClick={() => setActiveTab('graduates')}>Graduates</button>
+        <button className={activeTab === 'dropouts' ? 'btn-primary' : 'glass-panel'} style={{ width: '100%', textAlign: 'left', padding: '10px 15px', border: 'none' }} onClick={() => setActiveTab('dropouts')}>Dropouts</button>
         <button className={activeTab === 'instructors' ? 'btn-primary' : 'glass-panel'} style={{ width: '100%', textAlign: 'left', padding: '10px 15px', border: 'none' }} onClick={() => setActiveTab('instructors')}>Instructors</button>
         <button className={activeTab === 'modules' ? 'btn-primary' : 'glass-panel'} style={{ width: '100%', textAlign: 'left', padding: '10px 15px', border: 'none' }} onClick={() => setActiveTab('modules')}>Modules</button>
         <button className={activeTab === 'slots' ? 'btn-primary' : 'glass-panel'} style={{ width: '100%', textAlign: 'left', padding: '10px 15px', border: 'none' }} onClick={() => setActiveTab('slots')}>Slots</button>
@@ -943,18 +917,12 @@ export function AdminDashboard({ onLogout }) {
                 <p style={{ fontSize: '2.2rem', fontWeight: 'bold', color: 'var(--color-primary)' }}>{stats.total_students}</p>
               </div>
               <div className="glass-panel" style={{ padding: '1.5rem', textAlign: 'center', borderLeft: '4px solid #2ecc71', cursor: 'pointer' }} onClick={() => setActiveTab('graduates')} title="Click to view all graduated students">
-                <h4 style={{ color: '#aaa', fontSize: '0.85rem', marginBottom: '0.4rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px' }}>
-                  <GraduationCap size={15} color="#2ecc71" /> Graduates
-                </h4>
+                <h4 style={{ color: '#aaa', fontSize: '0.85rem', marginBottom: '0.4rem' }}>Graduates</h4>
                 <p style={{ fontSize: '2.2rem', fontWeight: 'bold', color: '#2ecc71' }}>{stats.graduated_students || 0}</p>
-                <span style={{ fontSize: '0.72rem', color: '#8892b0' }}>فارغ التحصیل طلبا</span>
               </div>
               <div className="glass-panel" style={{ padding: '1.5rem', textAlign: 'center', borderLeft: '4px solid #e74c3c', cursor: 'pointer' }} onClick={() => setActiveTab('dropouts')} title="Click to view all dropout students">
-                <h4 style={{ color: '#aaa', fontSize: '0.85rem', marginBottom: '0.4rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px' }}>
-                  <UserX size={15} color="#e74c3c" /> Dropouts
-                </h4>
+                <h4 style={{ color: '#aaa', fontSize: '0.85rem', marginBottom: '0.4rem' }}>Dropouts</h4>
                 <p style={{ fontSize: '2.2rem', fontWeight: 'bold', color: '#e74c3c' }}>{stats.dropout_students || 0}</p>
-                <span style={{ fontSize: '0.72rem', color: '#8892b0' }}>چھوڑنے والے طلبا</span>
               </div>
               <div className="glass-panel" style={{ padding: '1.5rem', textAlign: 'center', borderLeft: '4px solid var(--color-accent)' }}>
                 <h4 style={{ color: '#aaa', fontSize: '0.85rem', marginBottom: '0.4rem' }}>Active Instructors</h4>
@@ -1359,18 +1327,18 @@ export function AdminDashboard({ onLogout }) {
                                 <button
                                   onClick={() => handleOpenGraduateModal(std)}
                                   className="glass-panel"
-                                  style={{ padding: '6px 10px', fontSize: '0.8rem', color: '#2ecc71', border: '1px solid rgba(46, 204, 113, 0.4)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '3px' }}
+                                  style={{ padding: '6px 10px', fontSize: '0.8rem', color: '#2ecc71', border: '1px solid rgba(46, 204, 113, 0.4)', cursor: 'pointer' }}
                                   title="Mark student as graduated"
                                 >
-                                  <GraduationCap size={13} /> Graduate
+                                  Graduate
                                 </button>
                                 <button
                                   onClick={() => handleOpenDropoutModal(std)}
                                   className="glass-panel"
-                                  style={{ padding: '6px 10px', fontSize: '0.8rem', color: '#e74c3c', border: '1px solid rgba(231, 76, 60, 0.4)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '3px' }}
+                                  style={{ padding: '6px 10px', fontSize: '0.8rem', color: '#e74c3c', border: '1px solid rgba(231, 76, 60, 0.4)', cursor: 'pointer' }}
                                   title="Mark student as dropout / cancel admission"
                                 >
-                                  <UserX size={13} /> Dropout
+                                  Dropout
                                 </button>
                               </>
                             ) : (
@@ -1541,8 +1509,8 @@ export function AdminDashboard({ onLogout }) {
                     {/* Graduation Details if Graduated */}
                     {isStudentGraduated(viewingStudent) && (
                       <div style={{ backgroundColor: 'rgba(46, 204, 113, 0.08)', padding: '1rem', borderRadius: '10px', border: '1px solid rgba(46, 204, 113, 0.3)' }}>
-                        <div style={{ color: '#2ecc71', fontWeight: 700, marginBottom: '0.5rem', fontSize: '0.92rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <GraduationCap size={18} /> Graduation Details (فارغ التحصیل ریکارڈ)
+                        <div style={{ color: '#2ecc71', fontWeight: 700, marginBottom: '0.5rem', fontSize: '0.92rem' }}>
+                          Graduation Details
                         </div>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.5rem' }}>
                           <div><strong style={{ color: '#fff' }}>Graduation Date:</strong> {viewingStudent.graduated_at ? new Date(viewingStudent.graduated_at).toLocaleDateString('en-GB') : 'N/A'}</div>
@@ -1558,8 +1526,8 @@ export function AdminDashboard({ onLogout }) {
                     {/* Dropout Details if Dropped / Cancelled */}
                     {isStudentDropout(viewingStudent) && (
                       <div style={{ backgroundColor: 'rgba(231, 76, 60, 0.08)', padding: '1rem', borderRadius: '10px', border: '1px solid rgba(231, 76, 60, 0.3)' }}>
-                        <div style={{ color: '#e74c3c', fontWeight: 700, marginBottom: '0.5rem', fontSize: '0.92rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <UserX size={18} /> Dropout Details (داخلہ خارج ریکارڈ)
+                        <div style={{ color: '#e74c3c', fontWeight: 700, marginBottom: '0.5rem', fontSize: '0.92rem' }}>
+                          Dropout Details
                         </div>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.5rem' }}>
                           <div><strong style={{ color: '#fff' }}>Dropout Date:</strong> {(viewingStudent.dropped_at || viewingStudent.cancelled_at) ? new Date(viewingStudent.dropped_at || viewingStudent.cancelled_at).toLocaleDateString('en-GB') : 'N/A'}</div>
@@ -1603,9 +1571,9 @@ export function AdminDashboard({ onLogout }) {
                             handleOpenGraduateModal(s);
                           }}
                           className="glass-panel"
-                          style={{ padding: '8px 16px', border: '1px solid rgba(46, 204, 113, 0.4)', color: '#2ecc71', cursor: 'pointer', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '4px' }}
+                          style={{ padding: '8px 16px', border: '1px solid rgba(46, 204, 113, 0.4)', color: '#2ecc71', cursor: 'pointer', fontSize: '0.85rem' }}
                         >
-                          <GraduationCap size={15} /> Graduate Student
+                          Graduate Student
                         </button>
                         <button
                           onClick={() => {
@@ -1614,9 +1582,9 @@ export function AdminDashboard({ onLogout }) {
                             handleOpenDropoutModal(s);
                           }}
                           className="glass-panel"
-                          style={{ padding: '8px 16px', border: '1px solid rgba(231, 76, 60, 0.4)', color: '#e74c3c', cursor: 'pointer', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '4px' }}
+                          style={{ padding: '8px 16px', border: '1px solid rgba(231, 76, 60, 0.4)', color: '#e74c3c', cursor: 'pointer', fontSize: '0.85rem' }}
                         >
-                          <UserX size={15} /> Mark Dropout
+                          Mark Dropout
                         </button>
                       </>
                     ) : (
@@ -1647,16 +1615,9 @@ export function AdminDashboard({ onLogout }) {
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
               <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                  <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: 'rgba(46, 204, 113, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#2ecc71' }}>
-                    <GraduationCap size={22} />
-                  </div>
-                  <h2 style={{ color: 'var(--color-white)', margin: 0, fontSize: '1.6rem' }}>
-                    Graduated Students <span style={{ fontSize: '1.1rem', color: '#2ecc71', fontWeight: 'normal' }}>(فارغ التحصیل طلبا)</span>
-                  </h2>
-                </div>
-                <p style={{ color: '#aaa', margin: '6px 0 0 0', fontSize: '0.9rem' }}>
-                  List of all students who successfully completed their Arabic learning courses and graduated.
+                <h2 style={{ color: 'var(--color-white)', margin: 0, fontSize: '1.6rem' }}>Graduated Students</h2>
+                <p style={{ color: '#aaa', margin: '4px 0 0 0', fontSize: '0.9rem' }}>
+                  List of all students who successfully completed their courses and graduated.
                 </p>
               </div>
 
@@ -1797,7 +1758,6 @@ export function AdminDashboard({ onLogout }) {
                   {students.filter(isStudentGraduated).length === 0 && (
                     <tr>
                       <td colSpan={8} style={{ padding: '3rem', textAlign: 'center', color: '#aaa' }}>
-                        <GraduationCap size={40} color="#555" style={{ margin: '0 auto 1rem', display: 'block' }} />
                         <div style={{ fontSize: '1rem', color: '#cbd5e1', marginBottom: '0.5rem' }}>No graduated students recorded yet.</div>
                         <div style={{ fontSize: '0.85rem', color: '#888' }}>
                           When an enrolled student completes their curriculum, click <strong>"Graduate"</strong> in the Students tab.
@@ -1816,15 +1776,8 @@ export function AdminDashboard({ onLogout }) {
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
               <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                  <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: 'rgba(231, 76, 60, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#e74c3c' }}>
-                    <UserX size={22} />
-                  </div>
-                  <h2 style={{ color: 'var(--color-white)', margin: 0, fontSize: '1.6rem' }}>
-                    Dropout Students <span style={{ fontSize: '1.1rem', color: '#e74c3c', fontWeight: 'normal' }}>(طلبہ جنہوں نے چھوڑ دیا)</span>
-                  </h2>
-                </div>
-                <p style={{ color: '#aaa', margin: '6px 0 0 0', fontSize: '0.9rem' }}>
+                <h2 style={{ color: 'var(--color-white)', margin: 0, fontSize: '1.6rem' }}>Dropout Students</h2>
+                <p style={{ color: '#aaa', margin: '4px 0 0 0', fontSize: '0.9rem' }}>
                   List of students who withdrew, cancelled their enrollment, or discontinued classes.
                 </p>
               </div>
@@ -1959,7 +1912,6 @@ export function AdminDashboard({ onLogout }) {
                   {students.filter(isStudentDropout).length === 0 && (
                     <tr>
                       <td colSpan={8} style={{ padding: '3rem', textAlign: 'center', color: '#aaa' }}>
-                        <UserX size={40} color="#555" style={{ margin: '0 auto 1rem', display: 'block' }} />
                         <div style={{ fontSize: '1rem', color: '#cbd5e1', marginBottom: '0.5rem' }}>No dropout students recorded.</div>
                         <div style={{ fontSize: '0.85rem', color: '#888' }}>
                           Students marked as dropped or cancelled will appear here with full reasons and remarks.
@@ -3017,15 +2969,7 @@ export function AdminDashboard({ onLogout }) {
       {graduatingStudent && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(3, 14, 15, 0.88)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 220, padding: '1rem' }}>
           <div style={{ padding: '2rem', maxWidth: '500px', width: '100%', maxHeight: '90vh', overflowY: 'auto', borderRadius: '16px', backgroundColor: '#092528', border: '1px solid rgba(46, 204, 113, 0.4)', boxShadow: '0 25px 60px rgba(0, 0, 0, 0.95)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
-              <div style={{ width: '42px', height: '42px', borderRadius: '10px', background: 'rgba(46, 204, 113, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#2ecc71' }}>
-                <GraduationCap size={24} />
-              </div>
-              <div>
-                <h3 style={{ color: 'var(--color-white)', margin: 0, fontSize: '1.3rem' }}>Mark Student as Graduated</h3>
-                <p style={{ color: '#2ecc71', margin: '2px 0 0 0', fontSize: '0.85rem' }}>فارغ التحصیل کی تصدیق</p>
-              </div>
-            </div>
+            <h3 style={{ color: 'var(--color-white)', margin: '0 0 1rem 0', fontSize: '1.3rem' }}>Mark Student as Graduated</h3>
 
             <p style={{ color: '#cbd5e1', fontSize: '0.9rem', marginBottom: '1.25rem' }}>
               Student: <strong style={{ color: '#fff' }}>{graduatingStudent.first_name} {graduatingStudent.last_name || graduatingStudent.name || ''}</strong> ({graduatingStudent.student_code || 'ID Pending'})
@@ -3131,15 +3075,7 @@ export function AdminDashboard({ onLogout }) {
       {droppingStudent && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(3, 14, 15, 0.88)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 220, padding: '1rem' }}>
           <div style={{ padding: '2rem', maxWidth: '500px', width: '100%', maxHeight: '90vh', overflowY: 'auto', borderRadius: '16px', backgroundColor: '#092528', border: '1px solid rgba(231, 76, 60, 0.4)', boxShadow: '0 25px 60px rgba(0, 0, 0, 0.95)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
-              <div style={{ width: '42px', height: '42px', borderRadius: '10px', background: 'rgba(231, 76, 60, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#e74c3c' }}>
-                <UserX size={24} />
-              </div>
-              <div>
-                <h3 style={{ color: 'var(--color-white)', margin: 0, fontSize: '1.3rem' }}>Mark Student as Dropout</h3>
-                <p style={{ color: '#e74c3c', margin: '2px 0 0 0', fontSize: '0.85rem' }}>داخلہ خارج / منسوخ کرنا</p>
-              </div>
-            </div>
+            <h3 style={{ color: 'var(--color-white)', margin: '0 0 1rem 0', fontSize: '1.3rem' }}>Mark Student as Dropout</h3>
 
             <p style={{ color: '#cbd5e1', fontSize: '0.9rem', marginBottom: '1.25rem' }}>
               Student: <strong style={{ color: '#fff' }}>{droppingStudent.first_name} {droppingStudent.last_name || droppingStudent.name || ''}</strong> ({droppingStudent.student_code || 'ID Pending'})
