@@ -9,7 +9,7 @@ export function StudentReports() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    loadReport();
+    void loadReport();
   }, []);
 
   const loadReport = async () => {

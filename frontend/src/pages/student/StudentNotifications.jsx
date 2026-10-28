@@ -11,7 +11,7 @@ export function StudentNotifications() {
   const [message, setMessage] = useState(null);
 
   useEffect(() => {
-    loadNotifications();
+    void loadNotifications();
   }, []);
 
   const loadNotifications = async () => {

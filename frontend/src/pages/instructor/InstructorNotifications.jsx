@@ -10,7 +10,7 @@ export function InstructorNotifications() {
   const [message, setMessage] = useState(null);
 
   useEffect(() => {
-    loadNotifications();
+    void loadNotifications();
   }, []);
 
   const loadNotifications = async () => {

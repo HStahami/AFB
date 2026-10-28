@@ -31,7 +31,7 @@ export function InstructorSubmissions() {
   };
 
   useEffect(() => {
-    fetchSubmissions();
+    void fetchSubmissions();
   }, []);
 
   const openGradingModal = (sub) => {
@@ -52,7 +52,7 @@ export function InstructorSubmissions() {
     try {
       await assessmentsApi.grade({
         submission_id: selectedSubmission.id || selectedSubmission._id,
-        score: score ? parseFloat(score) : null,
+        score: score ? Number.parseFloat(score) : null,
         grade: grade || null,
         feedback
       });
@@ -60,7 +60,7 @@ export function InstructorSubmissions() {
       setGradeSuccess("Submission graded successfully! Student notified.");
       setTimeout(() => {
         setSelectedSubmission(null);
-        fetchSubmissions();
+        void fetchSubmissions();
       }, 1200);
     } catch (err) {
       setGradeError(err.message || "Failed to submit grade.");
@@ -285,10 +285,11 @@ export function InstructorSubmissions() {
             <form onSubmit={handleGradeSubmit} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
                 <div>
-                  <label style={{ display: "block", fontSize: "0.85rem", marginBottom: "0.3rem", color: "#b0c4c6" }}>
+                  <label htmlFor="submission-score" style={{ display: "block", fontSize: "0.85rem", marginBottom: "0.3rem", color: "#b0c4c6" }}>
                     Numeric Score (e.g. 95)
                   </label>
                   <input
+                    id="submission-score"
                     type="number"
                     step="0.5"
                     min="0"
@@ -301,10 +302,11 @@ export function InstructorSubmissions() {
                 </div>
 
                 <div>
-                  <label style={{ display: "block", fontSize: "0.85rem", marginBottom: "0.3rem", color: "#b0c4c6" }}>
+                  <label htmlFor="submission-grade" style={{ display: "block", fontSize: "0.85rem", marginBottom: "0.3rem", color: "#b0c4c6" }}>
                     Letter Grade / Status
                   </label>
                   <input
+                    id="submission-grade"
                     type="text"
                     placeholder="e.g. A+, Pass, Excellent"
                     value={grade}
@@ -315,10 +317,11 @@ export function InstructorSubmissions() {
               </div>
 
               <div>
-                <label style={{ display: "block", fontSize: "0.85rem", marginBottom: "0.3rem", color: "#b0c4c6" }}>
+                <label htmlFor="submission-feedback" style={{ display: "block", fontSize: "0.85rem", marginBottom: "0.3rem", color: "#b0c4c6" }}>
                   Feedback & Recommendations
                 </label>
                 <textarea
+                  id="submission-feedback"
                   rows={4}
                   placeholder="Provide personalized academic feedback to guide the student..."
                   value={feedback}

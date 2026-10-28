@@ -40,7 +40,7 @@ export function InstructorResources() {
   }, [selectedModule]);
 
   useEffect(() => {
-    loadData();
+    void loadData();
   }, [loadData]);
 
   const handleCreateResource = async (e) => {
@@ -408,10 +408,11 @@ export function InstructorResources() {
 
             <form onSubmit={handleCreateResource} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', color: '#8892b0', marginBottom: '0.4rem' }}>
+                <label htmlFor="resource-title" style={{ display: 'block', fontSize: '0.85rem', color: '#8892b0', marginBottom: '0.4rem' }}>
                   Resource Title *
                 </label>
                 <input
+                  id="resource-title"
                   type="text"
                   required
                   placeholder="e.g. Arabic Grammar Summary - Lesson 4"
@@ -432,10 +433,11 @@ export function InstructorResources() {
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.85rem', color: '#8892b0', marginBottom: '0.4rem' }}>
+                  <label htmlFor="resource-type" style={{ display: 'block', fontSize: '0.85rem', color: '#8892b0', marginBottom: '0.4rem' }}>
                     Resource Type *
                   </label>
                   <select
+                    id="resource-type"
                     value={formData.resource_type}
                     onChange={(e) => setFormData({ ...formData, resource_type: e.target.value })}
                     style={{
@@ -458,10 +460,11 @@ export function InstructorResources() {
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.85rem', color: '#8892b0', marginBottom: '0.4rem' }}>
+                  <label htmlFor="resource-module" style={{ display: 'block', fontSize: '0.85rem', color: '#8892b0', marginBottom: '0.4rem' }}>
                     Associated Module
                   </label>
                   <select
+                    id="resource-module"
                     value={formData.module_id}
                     onChange={(e) => setFormData({ ...formData, module_id: e.target.value })}
                     style={{
@@ -486,10 +489,11 @@ export function InstructorResources() {
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', color: '#8892b0', marginBottom: '0.4rem' }}>
+                <label htmlFor="resource-url" style={{ display: 'block', fontSize: '0.85rem', color: '#8892b0', marginBottom: '0.4rem' }}>
                   Resource URL / Cloudinary Link *
                 </label>
                 <input
+                  id="resource-url"
                   type="url"
                   required
                   placeholder="https://res.cloudinary.com/... or Google Drive link"
@@ -509,10 +513,11 @@ export function InstructorResources() {
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', color: '#8892b0', marginBottom: '0.4rem' }}>
+                <label htmlFor="resource-description" style={{ display: 'block', fontSize: '0.85rem', color: '#8892b0', marginBottom: '0.4rem' }}>
                   Description / Study Guidelines
                 </label>
                 <textarea
+                  id="resource-description"
                   rows="3"
                   placeholder="Brief note or instructions on how to use this resource..."
                   value={formData.description}

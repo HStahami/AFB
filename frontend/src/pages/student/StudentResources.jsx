@@ -9,7 +9,7 @@ export function StudentResources() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    loadResources();
+    void loadResources();
   }, []);
 
   const loadResources = async () => {

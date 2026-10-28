@@ -11,7 +11,7 @@ export function StudentCourseDetail() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    loadCourseDetails();
+    void loadCourseDetails();
   }, [id]);
 
   const loadCourseDetails = async () => {

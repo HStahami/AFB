@@ -9,7 +9,7 @@ export function StudentSubmissions() {
   const [selectedSub, setSelectedSub] = useState(null);
 
   useEffect(() => {
-    loadSubmissions();
+    void loadSubmissions();
   }, []);
 
   const loadSubmissions = async () => {

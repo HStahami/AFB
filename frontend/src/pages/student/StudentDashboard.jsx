@@ -11,8 +11,8 @@ export function StudentDashboard() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    loadDashboard(true);
-    const interval = setInterval(() => loadDashboard(false), 8000);
+    void loadDashboard(true);
+    const interval = setInterval(() => { void loadDashboard(false); }, 8000);
     return () => clearInterval(interval);
   }, []);
 

@@ -14,7 +14,7 @@ export function StudentNotes() {
   const [copiedId, setCopiedId] = useState(null);
 
   useEffect(() => {
-    fetchNotes();
+    void fetchNotes();
   }, []);
 
   const fetchNotes = async () => {
@@ -44,7 +44,7 @@ export function StudentNotes() {
         content: editContent
       });
       setSelectedNote(updated);
-      fetchNotes();
+      await fetchNotes();
     } catch {
       alert('Failed to update note.');
     } finally {
@@ -59,14 +59,14 @@ export function StudentNotes() {
       if (selectedNote && (selectedNote.id === id || selectedNote._id === id)) {
         setSelectedNote(null);
       }
-      fetchNotes();
+      await fetchNotes();
     } catch {
       alert('Failed to delete note.');
     }
   };
 
   const handleCopy = (note) => {
-    navigator.clipboard.writeText(`${note.title}\n\n${note.content}`);
+    void navigator.clipboard.writeText(`${note.title}\n\n${note.content}`);
     setCopiedId(note.id || note._id);
     setTimeout(() => setCopiedId(null), 2000);
   };
@@ -201,10 +201,8 @@ export function StudentNotes() {
                   flexDirection: 'column',
                   justifyContent: 'space-between',
                   gap: '1rem',
-                  transition: 'border-color 0.2s',
-                  cursor: 'pointer'
+                  transition: 'border-color 0.2s'
                 }}
-                onClick={() => handleOpenNote(n)}
               >
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
@@ -217,9 +215,23 @@ export function StudentNotes() {
                       </span>
                     )}
                   </div>
-                  <h3 style={{ color: '#fff', fontSize: '1.1rem', margin: '0 0 0.5rem 0', fontWeight: 600 }}>
-                    {n.title || 'Class Notes'}
-                  </h3>
+                  <button
+                    type="button"
+                    onClick={() => handleOpenNote(n)}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      padding: 0,
+                      textAlign: 'left',
+                      cursor: 'pointer',
+                      width: '100%',
+                      fontFamily: 'inherit'
+                    }}
+                  >
+                    <h3 style={{ color: '#fff', fontSize: '1.1rem', margin: '0 0 0.5rem 0', fontWeight: 600 }}>
+                      {n.title || 'Class Notes'}
+                    </h3>
+                  </button>
                   <p
                     style={{
                       color: '#94a3b8',
@@ -245,7 +257,6 @@ export function StudentNotes() {
                     borderTop: '1px solid rgba(255,255,255,0.06)',
                     paddingTop: '0.75rem'
                   }}
-                  onClick={e => e.stopPropagation()}
                 >
                   <button
                     onClick={() => handleOpenNote(n)}
@@ -298,6 +309,9 @@ export function StudentNotes() {
       {/* Note View / Edit Modal */}
       {selectedNote && (
         <div
+          role="button"
+          tabIndex={0}
+          aria-label="Close note modal"
           style={{
             position: 'fixed',
             inset: 0,
@@ -310,8 +324,10 @@ export function StudentNotes() {
             padding: '1rem'
           }}
           onClick={() => setSelectedNote(null)}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ' || e.key === 'Escape') setSelectedNote(null); }}
         >
           <div
+            role="presentation"
             style={{
               backgroundColor: '#072224',
               border: '1px solid rgba(0, 168, 150, 0.3)',
@@ -325,6 +341,7 @@ export function StudentNotes() {
               overflow: 'hidden'
             }}
             onClick={e => e.stopPropagation()}
+            onKeyDown={e => e.stopPropagation()}
           >
             {/* Modal Header */}
             <div

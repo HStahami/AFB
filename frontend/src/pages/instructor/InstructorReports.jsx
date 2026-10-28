@@ -14,7 +14,7 @@ export function InstructorReports() {
   const [reportLoading, setReportLoading] = useState(false);
 
   useEffect(() => {
-    loadData();
+    void loadData();
   }, []);
 
   const loadData = async () => {
@@ -59,14 +59,14 @@ export function InstructorReports() {
   const avgAttendance =
     totalStudents > 0
       ? Math.round(
-          filteredStudents.reduce((acc, st) => acc + (parseFloat(st.attendance_rate) || 0), 0) / totalStudents
+          filteredStudents.reduce((acc, st) => acc + (Number.parseFloat(st.attendance_rate) || 0), 0) / totalStudents
         )
       : 0;
 
   const avgCompletion =
     totalStudents > 0
       ? Math.round(
-          filteredStudents.reduce((acc, st) => acc + (parseFloat(st.task_completion_rate) || 0), 0) / totalStudents
+          filteredStudents.reduce((acc, st) => acc + (Number.parseFloat(st.task_completion_rate) || 0), 0) / totalStudents
         )
       : 0;
 
@@ -74,7 +74,7 @@ export function InstructorReports() {
   const avgScore =
     studentsWithScores.length > 0
       ? Math.round(
-          studentsWithScores.reduce((acc, st) => acc + (parseFloat(st.average_score) || 0), 0) /
+          studentsWithScores.reduce((acc, st) => acc + (Number.parseFloat(st.average_score) || 0), 0) /
             studentsWithScores.length
         )
       : null;
@@ -175,10 +175,11 @@ export function InstructorReports() {
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <label style={{ fontSize: '0.85rem', color: '#8892b0', fontWeight: 600 }}>
+          <label htmlFor="instructor-scope-filter" style={{ fontSize: '0.85rem', color: '#8892b0', fontWeight: 600 }}>
             Scope Filter:
           </label>
           <select
+            id="instructor-scope-filter"
             value={selectedSlotId}
             onChange={(e) => setSelectedSlotId(e.target.value)}
             style={{
@@ -369,7 +370,7 @@ export function InstructorReports() {
                   </td>
                   <td style={{ padding: '1rem', textAlign: 'right' }}>
                     <button
-                      onClick={() => openStudentDetailReport(st)}
+                      onClick={() => { void openStudentDetailReport(st); }}
                       className="glass-panel"
                       style={{
                         padding: '0.35rem 0.75rem',

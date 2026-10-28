@@ -17,7 +17,7 @@ export function StudentTasks() {
   const [modalError, setModalError] = useState(null);
 
   useEffect(() => {
-    loadTasks();
+    void loadTasks();
   }, []);
 
   const loadTasks = async () => {
@@ -454,10 +454,11 @@ export function StudentTasks() {
               /* Submission Form */
               <form onSubmit={handleSubmitTask} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.85rem', color: '#8892b0', marginBottom: '0.4rem' }}>
+                  <label htmlFor="submission-content" style={{ display: 'block', fontSize: '0.85rem', color: '#8892b0', marginBottom: '0.4rem' }}>
                     Your Solution / Homework Content *
                   </label>
                   <textarea
+                    id="submission-content"
                     rows="5"
                     required
                     placeholder="Type your translation, grammatical analysis, or homework notes here..."
@@ -478,10 +479,11 @@ export function StudentTasks() {
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.85rem', color: '#8892b0', marginBottom: '0.4rem' }}>
+                  <label htmlFor="submission-file" style={{ display: 'block', fontSize: '0.85rem', color: '#8892b0', marginBottom: '0.4rem' }}>
                     Attach Homework File (Optional PDF / Image / Document)
                   </label>
                   <input
+                    id="submission-file"
                     type="file"
                     onChange={(e) => setSelectedFile(e.target.files[0])}
                     style={{

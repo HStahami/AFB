@@ -24,7 +24,7 @@ export function InstructorStudents() {
         setLoading(false);
       }
     };
-    loadStudents();
+    void loadStudents();
   }, []);
 
   const distinctSlots = Array.from(new Set(students.map((s) => s.slot).filter(Boolean)));

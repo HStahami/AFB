@@ -40,7 +40,7 @@ export function InstructorTasks() {
   };
 
   useEffect(() => {
-    fetchTasksAndModules();
+    void fetchTasksAndModules();
   }, []);
 
   const handleCreateTask = async (e) => {
@@ -224,10 +224,10 @@ export function InstructorTasks() {
 
             <form onSubmit={handleCreateTask} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
               <div>
-                <label style={{ display: "block", fontSize: "0.85rem", marginBottom: "0.3rem", color: "#b0c4c6" }}>
+                <label htmlFor="task-module" style={{ display: "block", fontSize: "0.85rem", marginBottom: "0.3rem", color: "#b0c4c6" }}>
                   Learning Module
                 </label>
-                <select value={moduleId} onChange={(e) => setModuleId(e.target.value)} required style={inputStyle}>
+                <select id="task-module" value={moduleId} onChange={(e) => setModuleId(e.target.value)} required style={inputStyle}>
                   {modules.map((m) => (
                     <option key={m._id || m.id} value={m._id || m.id}>
                       {m.name || m.title || 'Module'}
@@ -237,10 +237,11 @@ export function InstructorTasks() {
               </div>
 
               <div>
-                <label style={{ display: "block", fontSize: "0.85rem", marginBottom: "0.3rem", color: "#b0c4c6" }}>
+                <label htmlFor="task-title" style={{ display: "block", fontSize: "0.85rem", marginBottom: "0.3rem", color: "#b0c4c6" }}>
                   Task Title
                 </label>
                 <input
+                  id="task-title"
                   type="text"
                   placeholder="e.g. Vocabulary & Translation Practice 1"
                   value={title}
@@ -251,10 +252,11 @@ export function InstructorTasks() {
               </div>
 
               <div>
-                <label style={{ display: "block", fontSize: "0.85rem", marginBottom: "0.3rem", color: "#b0c4c6" }}>
+                <label htmlFor="task-description" style={{ display: "block", fontSize: "0.85rem", marginBottom: "0.3rem", color: "#b0c4c6" }}>
                   Description / Prompt
                 </label>
                 <textarea
+                  id="task-description"
                   rows={3}
                   placeholder="Brief summary of the assignment requirements..."
                   value={description}
@@ -265,10 +267,11 @@ export function InstructorTasks() {
               </div>
 
               <div>
-                <label style={{ display: "block", fontSize: "0.85rem", marginBottom: "0.3rem", color: "#b0c4c6" }}>
+                <label htmlFor="task-instructions" style={{ display: "block", fontSize: "0.85rem", marginBottom: "0.3rem", color: "#b0c4c6" }}>
                   Detailed Instructions (Optional)
                 </label>
                 <textarea
+                  id="task-instructions"
                   rows={3}
                   placeholder="Specific rules, submission guidelines, references..."
                   value={instructions}
@@ -279,10 +282,11 @@ export function InstructorTasks() {
 
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
                 <div>
-                  <label style={{ display: "block", fontSize: "0.85rem", marginBottom: "0.3rem", color: "#b0c4c6" }}>
+                  <label htmlFor="task-due-date" style={{ display: "block", fontSize: "0.85rem", marginBottom: "0.3rem", color: "#b0c4c6" }}>
                     Due Date
                   </label>
                   <input
+                    id="task-due-date"
                     type="date"
                     value={dueDate}
                     onChange={(e) => setDueDate(e.target.value)}
@@ -291,10 +295,10 @@ export function InstructorTasks() {
                 </div>
 
                 <div>
-                  <label style={{ display: "block", fontSize: "0.85rem", marginBottom: "0.3rem", color: "#b0c4c6" }}>
+                  <label htmlFor="task-status" style={{ display: "block", fontSize: "0.85rem", marginBottom: "0.3rem", color: "#b0c4c6" }}>
                     Status
                   </label>
-                  <select value={taskStatus} onChange={(e) => setTaskStatus(e.target.value)} style={inputStyle}>
+                  <select id="task-status" value={taskStatus} onChange={(e) => setTaskStatus(e.target.value)} style={inputStyle}>
                     <option value="published">Published (Visible to Students)</option>
                     <option value="draft">Draft (Hidden)</option>
                   </select>
@@ -302,10 +306,11 @@ export function InstructorTasks() {
               </div>
 
               <div>
-                <label style={{ display: "block", fontSize: "0.85rem", marginBottom: "0.3rem", color: "#b0c4c6" }}>
+                <label htmlFor="task-attachment" style={{ display: "block", fontSize: "0.85rem", marginBottom: "0.3rem", color: "#b0c4c6" }}>
                   Attachment / Resource Link (Optional)
                 </label>
                 <input
+                  id="task-attachment"
                   type="url"
                   placeholder="https://... (Drive link, worksheet PDF)"
                   value={attachmentUrl}

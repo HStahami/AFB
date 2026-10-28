@@ -94,10 +94,11 @@ export function StudentLogin() {
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', textAlign: 'left' }}>
           <div>
-            <label style={{ display: 'block', fontSize: '0.8rem', color: '#8892b0', marginBottom: '0.4rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            <label htmlFor="student-login-identifier" style={{ display: 'block', fontSize: '0.8rem', color: '#8892b0', marginBottom: '0.4rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
               Student Code or Email
             </label>
             <input
+              id="student-login-identifier"
               type="text"
               required
               placeholder="e.g. AFB-2026-0001 or email@example.com"
@@ -117,11 +118,12 @@ export function StudentLogin() {
           </div>
 
           <div>
-            <label style={{ display: 'block', fontSize: '0.8rem', color: '#8892b0', marginBottom: '0.4rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            <label htmlFor="student-login-password" style={{ display: 'block', fontSize: '0.8rem', color: '#8892b0', marginBottom: '0.4rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
               Password
             </label>
             <div style={{ position: 'relative' }}>
               <input
+                id="student-login-password"
                 type={showPassword ? 'text' : 'password'}
                 required
                 placeholder="Enter your password"

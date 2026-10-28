@@ -37,7 +37,7 @@ export function StudentProfile() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    loadProfileAndData();
+    void loadProfileAndData();
   }, []);
 
   const loadProfileAndData = async () => {
@@ -452,10 +452,11 @@ export function StudentProfile() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.25rem' }}>
             {/* 1. Name */}
             <div>
-              <label style={{ display: 'block', fontSize: '0.85rem', color: '#94a3b8', marginBottom: '0.4rem', fontWeight: 500 }}>
+              <label htmlFor="student-profile-name" style={{ display: 'block', fontSize: '0.85rem', color: '#94a3b8', marginBottom: '0.4rem', fontWeight: 500 }}>
                 Name
               </label>
               <input
+                id="student-profile-name"
                 type="text"
                 value={formData.name}
                 disabled
@@ -475,10 +476,11 @@ export function StudentProfile() {
 
             {/* 2. Father/Guardian Name */}
             <div>
-              <label style={{ display: 'block', fontSize: '0.85rem', color: '#cbd5e1', marginBottom: '0.4rem', fontWeight: 500 }}>
+              <label htmlFor="student-profile-guardian" style={{ display: 'block', fontSize: '0.85rem', color: '#cbd5e1', marginBottom: '0.4rem', fontWeight: 500 }}>
                 Father / Guardian Name *
               </label>
               <input
+                id="student-profile-guardian"
                 type="text"
                 required
                 disabled={isCompleted}
@@ -501,10 +503,11 @@ export function StudentProfile() {
 
             {/* 3. Email */}
             <div>
-              <label style={{ display: 'block', fontSize: '0.85rem', color: '#94a3b8', marginBottom: '0.4rem', fontWeight: 500 }}>
+              <label htmlFor="student-profile-email" style={{ display: 'block', fontSize: '0.85rem', color: '#94a3b8', marginBottom: '0.4rem', fontWeight: 500 }}>
                 Email
               </label>
               <input
+                id="student-profile-email"
                 type="email"
                 value={formData.email}
                 disabled
@@ -524,10 +527,11 @@ export function StudentProfile() {
 
             {/* 4. Phone Number */}
             <div>
-              <label style={{ display: 'block', fontSize: '0.85rem', color: '#cbd5e1', marginBottom: '0.4rem', fontWeight: 500 }}>
+              <label htmlFor="student-profile-phone" style={{ display: 'block', fontSize: '0.85rem', color: '#cbd5e1', marginBottom: '0.4rem', fontWeight: 500 }}>
                 Phone Number *
               </label>
               <input
+                id="student-profile-phone"
                 type="tel"
                 required
                 disabled={isCompleted}
@@ -550,10 +554,11 @@ export function StudentProfile() {
 
             {/* 5. Father/Guardian Number */}
             <div>
-              <label style={{ display: 'block', fontSize: '0.85rem', color: '#cbd5e1', marginBottom: '0.4rem', fontWeight: 500 }}>
+              <label htmlFor="student-profile-guardian-phone" style={{ display: 'block', fontSize: '0.85rem', color: '#cbd5e1', marginBottom: '0.4rem', fontWeight: 500 }}>
                 Father / Guardian Number *
               </label>
               <input
+                id="student-profile-guardian-phone"
                 type="tel"
                 required
                 disabled={isCompleted}
@@ -576,10 +581,11 @@ export function StudentProfile() {
 
             {/* 6. Date of Birth */}
             <div>
-              <label style={{ display: 'block', fontSize: '0.85rem', color: '#cbd5e1', marginBottom: '0.4rem', fontWeight: 500 }}>
+              <label htmlFor="student-profile-dob" style={{ display: 'block', fontSize: '0.85rem', color: '#cbd5e1', marginBottom: '0.4rem', fontWeight: 500 }}>
                 Date of Birth *
               </label>
               <input
+                id="student-profile-dob"
                 type="date"
                 required
                 disabled={isCompleted}
@@ -601,10 +607,11 @@ export function StudentProfile() {
 
             {/* 7. Country */}
             <div>
-              <label style={{ display: 'block', fontSize: '0.85rem', color: '#cbd5e1', marginBottom: '0.4rem', fontWeight: 500 }}>
+              <label htmlFor="student-profile-country" style={{ display: 'block', fontSize: '0.85rem', color: '#cbd5e1', marginBottom: '0.4rem', fontWeight: 500 }}>
                 Country *
               </label>
               <input
+                id="student-profile-country"
                 type="text"
                 required
                 disabled={isCompleted}
@@ -627,10 +634,11 @@ export function StudentProfile() {
 
             {/* 8. City */}
             <div>
-              <label style={{ display: 'block', fontSize: '0.85rem', color: '#cbd5e1', marginBottom: '0.4rem', fontWeight: 500 }}>
+              <label htmlFor="student-profile-city" style={{ display: 'block', fontSize: '0.85rem', color: '#cbd5e1', marginBottom: '0.4rem', fontWeight: 500 }}>
                 City *
               </label>
               <input
+                id="student-profile-city"
                 type="text"
                 required
                 disabled={isCompleted}
@@ -653,10 +661,11 @@ export function StudentProfile() {
 
             {/* 9. Address */}
             <div style={{ gridColumn: '1 / -1' }}>
-              <label style={{ display: 'block', fontSize: '0.85rem', color: '#cbd5e1', marginBottom: '0.4rem', fontWeight: 500 }}>
+              <label htmlFor="student-profile-address" style={{ display: 'block', fontSize: '0.85rem', color: '#cbd5e1', marginBottom: '0.4rem', fontWeight: 500 }}>
                 Address *
               </label>
               <input
+                id="student-profile-address"
                 type="text"
                 required
                 disabled={isCompleted}
@@ -687,10 +696,11 @@ export function StudentProfile() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.25rem' }}>
             {/* 10. Education */}
             <div>
-              <label style={{ display: 'block', fontSize: '0.85rem', color: '#cbd5e1', marginBottom: '0.4rem', fontWeight: 500 }}>
+              <label htmlFor="student-profile-education" style={{ display: 'block', fontSize: '0.85rem', color: '#cbd5e1', marginBottom: '0.4rem', fontWeight: 500 }}>
                 Education *
               </label>
               <select
+                id="student-profile-education"
                 required
                 disabled={isCompleted}
                 name="education"
@@ -720,10 +730,11 @@ export function StudentProfile() {
 
             {/* 11. How did you hear about us? */}
             <div>
-              <label style={{ display: 'block', fontSize: '0.85rem', color: '#cbd5e1', marginBottom: '0.4rem', fontWeight: 500 }}>
+              <label htmlFor="student-profile-referral" style={{ display: 'block', fontSize: '0.85rem', color: '#cbd5e1', marginBottom: '0.4rem', fontWeight: 500 }}>
                 How did you hear about us? *
               </label>
               <select
+                id="student-profile-referral"
                 required
                 disabled={isCompleted}
                 name="referral_source"
@@ -760,10 +771,11 @@ export function StudentProfile() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.25rem' }}>
             {/* Course */}
             <div>
-              <label style={{ display: 'block', fontSize: '0.85rem', color: '#cbd5e1', marginBottom: '0.4rem', fontWeight: 500 }}>
+              <label htmlFor="student-profile-course" style={{ display: 'block', fontSize: '0.85rem', color: '#cbd5e1', marginBottom: '0.4rem', fontWeight: 500 }}>
                 Course *
               </label>
               <select
+                id="student-profile-course"
                 required
                 disabled={isCompleted}
                 name="course"
@@ -789,10 +801,11 @@ export function StudentProfile() {
             {/* Dynamic Modules Options based on Course */}
             {formData.course === 'Modern Standard Arabic' && (
               <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', color: '#cbd5e1', marginBottom: '0.4rem', fontWeight: 500 }}>
+                <label htmlFor="student-profile-modules-opt" style={{ display: 'block', fontSize: '0.85rem', color: '#cbd5e1', marginBottom: '0.4rem', fontWeight: 500 }}>
                   Modules (Options) *
                 </label>
                 <select
+                  id="student-profile-modules-opt"
                   required
                   disabled={isCompleted}
                   name="selected_module"
@@ -820,10 +833,11 @@ export function StudentProfile() {
 
             {formData.course === 'Arabic Training (MENA)' && (
               <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', color: '#cbd5e1', marginBottom: '0.4rem', fontWeight: 500 }}>
+                <label htmlFor="student-profile-module-track" style={{ display: 'block', fontSize: '0.85rem', color: '#cbd5e1', marginBottom: '0.4rem', fontWeight: 500 }}>
                   Module / Training Track *
                 </label>
                 <select
+                  id="student-profile-module-track"
                   name="selected_module"
                   value="Team Training"
                   disabled
@@ -846,10 +860,11 @@ export function StudentProfile() {
 
             {/* Days */}
             <div>
-              <label style={{ display: 'block', fontSize: '0.85rem', color: '#cbd5e1', marginBottom: '0.4rem', fontWeight: 500 }}>
+              <label htmlFor="student-profile-days" style={{ display: 'block', fontSize: '0.85rem', color: '#cbd5e1', marginBottom: '0.4rem', fontWeight: 500 }}>
                 Days *
               </label>
               <select
+                id="student-profile-days"
                 required
                 disabled={isCompleted}
                 name="preferred_days"
@@ -876,11 +891,12 @@ export function StudentProfile() {
 
             {/* Class Type: for Modern Standard Arabic & Arabic For Kids */}
             <div>
-              <label style={{ display: 'block', fontSize: '0.85rem', color: '#cbd5e1', marginBottom: '0.4rem', fontWeight: 500 }}>
+              <label htmlFor="student-profile-class-type" style={{ display: 'block', fontSize: '0.85rem', color: '#cbd5e1', marginBottom: '0.4rem', fontWeight: 500 }}>
                 Class Type *
               </label>
               {formData.course === 'Arabic Training (MENA)' ? (
                 <select
+                  id="student-profile-class-type"
                   value="Team Training"
                   disabled
                   style={{
@@ -899,6 +915,7 @@ export function StudentProfile() {
                 </select>
               ) : formData.preferred_days === 'Weekdays' ? (
                 <select
+                  id="student-profile-class-type-weekdays"
                   value="1 on 1"
                   disabled
                   style={{
@@ -917,6 +934,7 @@ export function StudentProfile() {
                 </select>
               ) : (
                 <select
+                  id="student-profile-class-type-custom"
                   name="preferred_class_type"
                   disabled={isCompleted}
                   value={formData.preferred_class_type}
@@ -940,10 +958,11 @@ export function StudentProfile() {
 
             {/* Preferred Time Slot (Student's suggestion) */}
             <div style={{ gridColumn: '1 / -1' }}>
-              <label style={{ display: 'block', fontSize: '0.85rem', color: '#cbd5e1', marginBottom: '0.4rem', fontWeight: 500 }}>
+              <label htmlFor="student-profile-time-slot" style={{ display: 'block', fontSize: '0.85rem', color: '#cbd5e1', marginBottom: '0.4rem', fontWeight: 500 }}>
                 Preferred Time Slot (Your Suggestion) *
               </label>
               <input
+                id="student-profile-time-slot"
                 type="text"
                 required
                 disabled={isCompleted}
@@ -1000,10 +1019,11 @@ export function StudentProfile() {
             Academic Bio & Arabic Goals
           </h2>
           <div>
-            <label style={{ display: 'block', fontSize: '0.85rem', color: '#cbd5e1', marginBottom: '0.4rem', fontWeight: 500 }}>
+            <label htmlFor="student-profile-bio" style={{ display: 'block', fontSize: '0.85rem', color: '#cbd5e1', marginBottom: '0.4rem', fontWeight: 500 }}>
               About You / Goals in Arabic Learning
             </label>
             <textarea
+              id="student-profile-bio"
               name="bio"
               disabled={isCompleted}
               value={formData.bio}
@@ -1109,10 +1129,11 @@ export function StudentProfile() {
 
             <form onSubmit={handleRequestUpdateSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
               <div>
-                <label style={{ display: 'block', color: 'var(--color-primary)', marginBottom: '0.4rem', fontSize: '0.85rem', fontWeight: 600 }}>
+                <label htmlFor="student-profile-update-reason" style={{ display: 'block', color: 'var(--color-primary)', marginBottom: '0.4rem', fontSize: '0.85rem', fontWeight: 600 }}>
                   Requested Changes / Reason *
                 </label>
                 <textarea
+                  id="student-profile-update-reason"
                   required
                   rows={4}
                   value={updateReason}

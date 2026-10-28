@@ -28,7 +28,7 @@ export function StudentClassroom() {
         setLoading(false);
       }
     };
-    fetchProfile();
+    void fetchProfile();
   }, []);
 
   const student = profile?.student || profile;
@@ -58,8 +58,8 @@ export function StudentClassroom() {
       }
     };
 
-    checkLive();
-    const interval = setInterval(checkLive, 6000);
+    void checkLive();
+    const interval = setInterval(() => { void checkLive(); }, 6000);
     return () => {
       isCancelled = true;
       clearInterval(interval);
@@ -86,7 +86,7 @@ export function StudentClassroom() {
         // non-blocking
       }
     };
-    if (slotKey) checkExistingAttendance();
+    if (slotKey) void checkExistingAttendance();
     return () => { isCancelled = true; };
   }, [slotKey]);
 
@@ -103,7 +103,7 @@ export function StudentClassroom() {
       joinTime = Date.now().toString();
       sessionStorage.setItem(sessionStorageKey, joinTime);
     }
-    const joinTimestamp = parseInt(joinTime, 10);
+    const joinTimestamp = Number.parseInt(joinTime, 10);
 
     const updateTimerAndCheckIn = async () => {
       const elapsed = Math.floor((Date.now() - joinTimestamp) / 1000);
@@ -121,8 +121,8 @@ export function StudentClassroom() {
       }
     };
 
-    updateTimerAndCheckIn();
-    const interval = setInterval(updateTimerAndCheckIn, 5000);
+    void updateTimerAndCheckIn();
+    const interval = setInterval(() => { void updateTimerAndCheckIn(); }, 5000);
     return () => clearInterval(interval);
   }, [isLive, slotKey, attendanceMarked]);
 

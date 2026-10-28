@@ -129,7 +129,8 @@ export function StudentMessages() {
               {threads.map((t) => {
                 const isSelected = activeThread && (activeThread._id || activeThread.id) === (t._id || t.id);
                 return (
-                  <div
+                  <button
+                    type="button"
                     key={t._id || t.id}
                     onClick={() => setActiveThread(t)}
                     style={{
@@ -138,7 +139,10 @@ export function StudentMessages() {
                       cursor: "pointer",
                       background: isSelected ? "rgba(197, 229, 232, 0.15)" : "rgba(255, 255, 255, 0.03)",
                       border: isSelected ? "1px solid var(--color-primary)" : "1px solid rgba(255, 255, 255, 0.05)",
-                      transition: "all 0.2s"
+                      transition: "all 0.2s",
+                      width: "100%",
+                      textAlign: "left",
+                      fontFamily: "inherit"
                     }}
                   >
                     <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "4px" }}>
@@ -154,7 +158,7 @@ export function StudentMessages() {
                     <p style={{ color: "#8892b0", fontSize: "0.82rem", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                       {t.last_message || "Start chatting..."}
                     </p>
-                  </div>
+                  </button>
                 );
               })}
             </div>

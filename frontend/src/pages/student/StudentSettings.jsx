@@ -197,11 +197,12 @@ export function StudentSettings() {
 
         <form onSubmit={handlePasswordChange} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
           <div>
-            <label style={{ display: 'block', fontSize: '0.85rem', color: '#cbd5e1', marginBottom: '0.4rem', fontWeight: 500 }}>
+            <label htmlFor="student-curr-password" style={{ display: 'block', fontSize: '0.85rem', color: '#cbd5e1', marginBottom: '0.4rem', fontWeight: 500 }}>
               Current Password
             </label>
             <div style={{ position: 'relative' }}>
               <input
+                id="student-curr-password"
                 type={showCurrPass ? 'text' : 'password'}
                 name="current_password"
                 value={formData.current_password}
@@ -233,11 +234,12 @@ export function StudentSettings() {
           </div>
 
           <div>
-            <label style={{ display: 'block', fontSize: '0.85rem', color: '#cbd5e1', marginBottom: '0.4rem', fontWeight: 500 }}>
+            <label htmlFor="student-new-password" style={{ display: 'block', fontSize: '0.85rem', color: '#cbd5e1', marginBottom: '0.4rem', fontWeight: 500 }}>
               New Password (minimum 8 characters)
             </label>
             <div style={{ position: 'relative' }}>
               <input
+                id="student-new-password"
                 type={showNewPass ? 'text' : 'password'}
                 name="new_password"
                 value={formData.new_password}
@@ -270,11 +272,12 @@ export function StudentSettings() {
           </div>
 
           <div>
-            <label style={{ display: 'block', fontSize: '0.85rem', color: '#cbd5e1', marginBottom: '0.4rem', fontWeight: 500 }}>
+            <label htmlFor="student-confirm-password" style={{ display: 'block', fontSize: '0.85rem', color: '#cbd5e1', marginBottom: '0.4rem', fontWeight: 500 }}>
               Confirm New Password
             </label>
             <div style={{ position: 'relative' }}>
               <input
+                id="student-confirm-password"
                 type={showConfirmPass ? 'text' : 'password'}
                 name="confirm_password"
                 value={formData.confirm_password}

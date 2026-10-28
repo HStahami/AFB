@@ -43,7 +43,7 @@ export function InstructorStudentDetail() {
     };
 
     if (id) {
-      fetchStudentData();
+      void fetchStudentData();
     }
   }, [id]);
 

@@ -8,7 +8,7 @@ export function StudentAttendance() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    loadAttendanceData();
+    void loadAttendanceData();
   }, []);
 
   const loadAttendanceData = async () => {

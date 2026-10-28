@@ -43,8 +43,8 @@ export function Home() {
       }
     };
 
-    fetchModules();
-    fetchInstructors();
+    void fetchModules();
+    void fetchInstructors();
   }, []);
 
   const reviews = [

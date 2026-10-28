@@ -137,8 +137,9 @@ export function Admission() {
 
             <div className="form-grid-2">
               <div>
-                <label style={{ display: 'block', color: 'var(--color-primary)', fontSize: '0.85rem', marginBottom: '0.4rem', fontWeight: '500' }}>First Name *</label>
+                <label htmlFor="admission-first-name" style={{ display: 'block', color: 'var(--color-primary)', fontSize: '0.85rem', marginBottom: '0.4rem', fontWeight: '500' }}>First Name *</label>
                 <input
+                  id="admission-first-name"
                   type="text"
                   name="first_name"
                   placeholder="e.g. Abdullah"
@@ -150,8 +151,9 @@ export function Admission() {
                 />
               </div>
               <div>
-                <label style={{ display: 'block', color: 'var(--color-primary)', fontSize: '0.85rem', marginBottom: '0.4rem', fontWeight: '500' }}>Last Name *</label>
+                <label htmlFor="admission-last-name" style={{ display: 'block', color: 'var(--color-primary)', fontSize: '0.85rem', marginBottom: '0.4rem', fontWeight: '500' }}>Last Name *</label>
                 <input
+                  id="admission-last-name"
                   type="text"
                   name="last_name"
                   placeholder="e.g. Khan"
@@ -165,8 +167,9 @@ export function Admission() {
             </div>
 
             <div>
-              <label style={{ display: 'block', color: 'var(--color-primary)', fontSize: '0.85rem', marginBottom: '0.4rem', fontWeight: '500' }}>Email Address *</label>
+              <label htmlFor="admission-email" style={{ display: 'block', color: 'var(--color-primary)', fontSize: '0.85rem', marginBottom: '0.4rem', fontWeight: '500' }}>Email Address *</label>
               <input
+                id="admission-email"
                 type="email"
                 name="email"
                 placeholder="e.g. student@example.com"
@@ -179,8 +182,9 @@ export function Admission() {
             </div>
 
             <div>
-              <label style={{ display: 'block', color: 'var(--color-primary)', fontSize: '0.85rem', marginBottom: '0.4rem', fontWeight: '500' }}>WhatsApp / Phone Number *</label>
+              <label htmlFor="admission-phone" style={{ display: 'block', color: 'var(--color-primary)', fontSize: '0.85rem', marginBottom: '0.4rem', fontWeight: '500' }}>WhatsApp / Phone Number *</label>
               <input
+                id="admission-phone"
                 type="tel"
                 name="phone"
                 placeholder="e.g. +92 300 1234567"
@@ -193,8 +197,9 @@ export function Admission() {
             </div>
 
             <div>
-              <label style={{ display: 'block', color: 'var(--color-primary)', fontSize: '0.85rem', marginBottom: '0.4rem', fontWeight: '500' }}>Interested Course *</label>
+              <label htmlFor="admission-course" style={{ display: 'block', color: 'var(--color-primary)', fontSize: '0.85rem', marginBottom: '0.4rem', fontWeight: '500' }}>Interested Course *</label>
               <select
+                id="admission-course"
                 name="course"
                 value={formData.course}
                 onChange={handleChange}

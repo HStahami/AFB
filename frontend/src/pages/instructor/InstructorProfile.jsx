@@ -29,7 +29,7 @@ export function InstructorProfile() {
   const [passwordError, setPasswordError] = useState(null);
 
   useEffect(() => {
-    loadProfile();
+    void loadProfile();
   }, []);
 
   const loadProfile = async () => {
@@ -281,10 +281,11 @@ export function InstructorProfile() {
 
             <form onSubmit={handleProfileSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', color: '#8892b0', marginBottom: '0.4rem' }}>
+                <label htmlFor="instructor-specialization" style={{ display: 'block', fontSize: '0.85rem', color: '#8892b0', marginBottom: '0.4rem' }}>
                   Professional Specialization / Title
                 </label>
                 <input
+                  id="instructor-specialization"
                   type="text"
                   placeholder="e.g. Classical Arabic Grammar, Tajweed & Quranic Studies"
                   value={formData.specialization}
@@ -303,10 +304,11 @@ export function InstructorProfile() {
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', color: '#8892b0', marginBottom: '0.4rem' }}>
+                <label htmlFor="instructor-avatar-url" style={{ display: 'block', fontSize: '0.85rem', color: '#8892b0', marginBottom: '0.4rem' }}>
                   Avatar Image URL
                 </label>
                 <input
+                  id="instructor-avatar-url"
                   type="url"
                   placeholder="https://res.cloudinary.com/... or profile image link"
                   value={formData.avatar_url}
@@ -325,10 +327,11 @@ export function InstructorProfile() {
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', color: '#8892b0', marginBottom: '0.4rem' }}>
+                <label htmlFor="instructor-bio" style={{ display: 'block', fontSize: '0.85rem', color: '#8892b0', marginBottom: '0.4rem' }}>
                   Biographical Summary
                 </label>
                 <textarea
+                  id="instructor-bio"
                   rows="4"
                   placeholder="Tell your students about your teaching experience, educational background, and areas of expertise..."
                   value={formData.bio}
@@ -406,10 +409,11 @@ export function InstructorProfile() {
 
           <form onSubmit={handlePasswordSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
             <div>
-              <label style={{ display: 'block', fontSize: '0.85rem', color: '#8892b0', marginBottom: '0.4rem' }}>
+              <label htmlFor="instructor-curr-pwd" style={{ display: 'block', fontSize: '0.85rem', color: '#8892b0', marginBottom: '0.4rem' }}>
                 Current Password *
               </label>
               <input
+                id="instructor-curr-pwd"
                 type="password"
                 required
                 value={passwordData.current_password}
@@ -428,10 +432,11 @@ export function InstructorProfile() {
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: '0.85rem', color: '#8892b0', marginBottom: '0.4rem' }}>
+              <label htmlFor="instructor-new-pwd" style={{ display: 'block', fontSize: '0.85rem', color: '#8892b0', marginBottom: '0.4rem' }}>
                 New Password * (Min 8 chars)
               </label>
               <input
+                id="instructor-new-pwd"
                 type="password"
                 required
                 minLength={8}
@@ -451,10 +456,11 @@ export function InstructorProfile() {
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: '0.85rem', color: '#8892b0', marginBottom: '0.4rem' }}>
+              <label htmlFor="instructor-conf-pwd" style={{ display: 'block', fontSize: '0.85rem', color: '#8892b0', marginBottom: '0.4rem' }}>
                 Confirm New Password *
               </label>
               <input
+                id="instructor-conf-pwd"
                 type="password"
                 required
                 minLength={8}
