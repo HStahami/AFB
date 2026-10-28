@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link, useLocation, useNavigate, Outlet } from "react-router-dom";
+import { Link, useLocation, Outlet } from "react-router-dom";
 import {
   LayoutDashboard,
   Users,
@@ -27,7 +27,6 @@ import { inputStyle } from "../common/styles";
 export function InstructorLayout({ children }) {
   const { user, logout } = useAuth();
   const location = useLocation();
-  const navigate = useNavigate();
 
   const [mobileOpen, setMobileOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -53,7 +52,7 @@ export function InstructorLayout({ children }) {
         const notifs = await notificationsApi.getAll();
         const unread = notifs.filter((n) => !n.is_read).length;
         setUnreadCount(unread);
-      } catch (err) {
+      } catch {
         // silent fallback
       }
     };

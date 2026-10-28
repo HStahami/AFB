@@ -9,9 +9,9 @@ import { Link } from 'react-router-dom';
 export function StudentClassroom() {
   const { user } = useAuth();
   const [profile, setProfile] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [_loading, setLoading] = useState(true);
   const [isLive, setIsLive] = useState(false);
-  const [checkingLive, setCheckingLive] = useState(true);
+  const [_checkingLive, setCheckingLive] = useState(true);
   const [activeTabMobile, setActiveTabMobile] = useState('video'); // 'video' | 'notes'
   const [fullVideoMode, setFullVideoMode] = useState(false);
   const [attendanceMarked, setAttendanceMarked] = useState(false);
@@ -82,7 +82,7 @@ export function StudentClassroom() {
             setMinutesRemaining(0);
           }
         }
-      } catch (e) {
+      } catch {
         // non-blocking
       }
     };

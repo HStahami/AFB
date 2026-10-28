@@ -1,6 +1,7 @@
-from datetime import datetime
+from datetime import timezone, datetime
 from app.config import settings
 from app.core.security import hash_password
+from app.services.credential_service import generate_secure_temporary_password
 
 
 async def init_database(db):
@@ -82,8 +83,8 @@ async def init_database(db):
                 "status": "active",
                 "first_login": False,
                 "profile_completed": True,
-                "created_at": datetime.utcnow(),
-                "updated_at": datetime.utcnow()
+                "created_at": datetime.now(timezone.utc),
+                "updated_at": datetime.now(timezone.utc)
             }
             await db.users.insert_one(admin_doc)
             print(f"[INIT DB] Bootstrapped initial admin: '{admin_username}' (Argon2id)")
@@ -103,7 +104,7 @@ async def init_database(db):
 
     # 4. Non-destructive student_code generation for existing students
     try:
-        current_year = datetime.utcnow().year
+        current_year = datetime.now(timezone.utc).year
         counter = 1
         async for s in db.students.find({"student_code": {"$exists": False}}).sort("approved_at", 1):
             code = f"AFB-{current_year}-{counter:04d}"
@@ -129,7 +130,7 @@ async def init_database(db):
 
             if not existing_user:
                 # Provision user account with Argon2id hash
-                default_password = code or "Alarabia2026!"
+                default_password = code or generate_secure_temporary_password(10)
                 user_doc = {
                     "username": code or email,
                     "email": email,
@@ -139,8 +140,8 @@ async def init_database(db):
                     "first_login": True,
                     "profile_completed": False,
                     "student_code": code,
-                    "created_at": datetime.utcnow(),
-                    "updated_at": datetime.utcnow()
+                    "created_at": datetime.now(timezone.utc),
+                    "updated_at": datetime.now(timezone.utc)
                 }
                 res = await db.users.insert_one(user_doc)
                 user_id = res.inserted_id
@@ -164,9 +165,9 @@ async def init_database(db):
                     "slot_id": s.get("slot_id"),
                     "module_id": None,
                     "status": "active",
-                    "start_date": datetime.utcnow(),
-                    "created_at": datetime.utcnow(),
-                    "updated_at": datetime.utcnow()
+                    "start_date": datetime.now(timezone.utc),
+                    "created_at": datetime.now(timezone.utc),
+                    "updated_at": datetime.now(timezone.utc)
                 })
     except Exception as e:
         print(f"[INIT DB] Note on student user linkage & enrollment backfill: {e}")

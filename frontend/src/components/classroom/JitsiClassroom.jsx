@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Video, Loader2, AlertCircle, RefreshCw, CheckCircle2, ArrowLeft } from 'lucide-react';
+import { Loader2, AlertCircle, RefreshCw, CheckCircle2, ArrowLeft } from 'lucide-react';
 
 export function JitsiClassroom({
   roomName,
@@ -167,6 +167,7 @@ export function JitsiClassroom({
       }
     };
 
+    const currentContainer = containerRef.current;
     initJitsi();
 
     return () => {
@@ -174,13 +175,13 @@ export function JitsiClassroom({
       if (jitsiApiRef.current) {
         try {
           jitsiApiRef.current.dispose();
-        } catch (e) {
-          console.error('Error disposing Jitsi instance on unmount:', e);
+        } catch {
+          // ignore cleanup error
         }
         jitsiApiRef.current = null;
       }
-      if (containerRef.current) {
-        containerRef.current.innerHTML = '';
+      if (currentContainer) {
+        currentContainer.innerHTML = '';
       }
     };
   }, [cleanRoomName, formattedDisplayName, hasLeft, rejoinKey, isInstructor]);

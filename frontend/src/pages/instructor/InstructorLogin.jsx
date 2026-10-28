@@ -1,6 +1,6 @@
-﻿import React, { useState } from "react";
+import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { BookOpen, Lock, AlertCircle } from "lucide-react";
+import { BookOpen, AlertCircle } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { inputStyle } from "../../components/common/styles";
 

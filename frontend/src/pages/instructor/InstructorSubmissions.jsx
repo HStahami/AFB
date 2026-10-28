@@ -1,5 +1,5 @@
-﻿import React, { useState, useEffect } from "react";
-import { FileText, CheckCircle, Clock, Search, X, Award, ExternalLink } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { FileText, Search, X, ExternalLink } from "lucide-react";
 import { submissionsApi, assessmentsApi } from "../../api";
 import { inputStyle } from "../../components/common/styles";
 

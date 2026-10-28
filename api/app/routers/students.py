@@ -1,5 +1,5 @@
 from bson import ObjectId
-from datetime import datetime
+from datetime import timezone, datetime
 from typing import Optional, List, Dict, Any
 from fastapi import APIRouter, HTTPException, Depends, status, Query, Body
 from app.database import get_db
@@ -221,7 +221,7 @@ async def update_my_profile(
             else:
                 update_dict[k] = v
 
-    update_dict["updated_at"] = datetime.utcnow()
+    update_dict["updated_at"] = datetime.now(timezone.utc)
     update_dict["profile_completed"] = True
 
     await db.students.update_one(
@@ -236,7 +236,7 @@ async def update_my_profile(
             "profile_completed": True,
             "first_login": False,
             "onboarding_status": "completed",
-            "updated_at": datetime.utcnow()
+            "updated_at": datetime.now(timezone.utc)
         }}
     )
 
@@ -344,7 +344,7 @@ async def assign_slot_instructor(
             "instructor": instructor,
             "instructor_id": inst_oid,
             "slot_id": slot_oid,
-            "updated_at": datetime.utcnow()
+            "updated_at": datetime.now(timezone.utc)
         }
 
         await db.students.update_one(
@@ -362,7 +362,7 @@ async def assign_slot_instructor(
                         "instructor_id": inst_oid,
                         "slot_id": slot_oid,
                         "status": "active",
-                        "updated_at": datetime.utcnow()
+                        "updated_at": datetime.now(timezone.utc)
                     }
                 }
             )
@@ -373,9 +373,9 @@ async def assign_slot_instructor(
                 "slot_id": slot_oid,
                 "module_id": None,
                 "status": "active",
-                "start_date": datetime.utcnow(),
-                "created_at": datetime.utcnow(),
-                "updated_at": datetime.utcnow()
+                "start_date": datetime.now(timezone.utc),
+                "created_at": datetime.now(timezone.utc),
+                "updated_at": datetime.now(timezone.utc)
             })
 
         # Send notification to student
@@ -442,8 +442,8 @@ async def cancel_enrolled_student(
         {
             "$set": {
                 "status": "Cancelled",
-                "cancelled_at": datetime.utcnow(),
-                "updated_at": datetime.utcnow()
+                "cancelled_at": datetime.now(timezone.utc),
+                "updated_at": datetime.now(timezone.utc)
             }
         }
     )
@@ -462,7 +462,7 @@ async def cancel_enrolled_student(
                 "$set": {
                     "is_active": False,
                     "status": "cancelled",
-                    "updated_at": datetime.utcnow()
+                    "updated_at": datetime.now(timezone.utc)
                 }
             }
         )
@@ -473,7 +473,7 @@ async def cancel_enrolled_student(
         {
             "$set": {
                 "status": "cancelled",
-                "updated_at": datetime.utcnow()
+                "updated_at": datetime.now(timezone.utc)
             }
         }
     )
@@ -513,7 +513,7 @@ async def graduate_enrolled_student(
         raise HTTPException(status_code=404, detail="Student record not found.")
 
     grad_date_str = payload.get("graduation_date")
-    grad_date = datetime.utcnow()
+    grad_date = datetime.now(timezone.utc)
     if grad_date_str:
         try:
             grad_date = datetime.fromisoformat(grad_date_str.replace("Z", "+00:00"))
@@ -521,7 +521,7 @@ async def graduate_enrolled_student(
             try:
                 grad_date = datetime.strptime(grad_date_str, "%Y-%m-%d")
             except Exception:
-                grad_date = datetime.utcnow()
+                grad_date = datetime.now(timezone.utc)
 
     final_grade = payload.get("final_grade") or "Mumtaz / A+ (Distinction)"
     final_score = payload.get("final_score")
@@ -534,7 +534,7 @@ async def graduate_enrolled_student(
         "final_grade": final_grade,
         "graduation_course": grad_course,
         "graduation_remarks": grad_remarks,
-        "updated_at": datetime.utcnow()
+        "updated_at": datetime.now(timezone.utc)
     }
     if final_score is not None:
         try:
@@ -558,13 +558,13 @@ async def graduate_enrolled_student(
     if user_query:
         await db.users.update_one(
             user_query,
-            {"$set": {"status": "graduated", "updated_at": datetime.utcnow()}}
+            {"$set": {"status": "graduated", "updated_at": datetime.now(timezone.utc)}}
         )
 
     # 3. Mark enrollments as completed
     await db.enrollments.update_many(
         {"student_id": student_oid},
-        {"$set": {"status": "completed", "completion_date": grad_date, "updated_at": datetime.utcnow()}}
+        {"$set": {"status": "completed", "completion_date": grad_date, "updated_at": datetime.now(timezone.utc)}}
     )
 
     # 4. Create congratulatory notification
@@ -617,7 +617,7 @@ async def dropout_enrolled_student(
         raise HTTPException(status_code=404, detail="Student record not found.")
 
     drop_date_str = payload.get("dropout_date")
-    drop_date = datetime.utcnow()
+    drop_date = datetime.now(timezone.utc)
     if drop_date_str:
         try:
             drop_date = datetime.fromisoformat(drop_date_str.replace("Z", "+00:00"))
@@ -625,7 +625,7 @@ async def dropout_enrolled_student(
             try:
                 drop_date = datetime.strptime(drop_date_str, "%Y-%m-%d")
             except Exception:
-                drop_date = datetime.utcnow()
+                drop_date = datetime.now(timezone.utc)
 
     dropout_reason = payload.get("dropout_reason") or "Personal / Family Reasons"
     dropout_remarks = payload.get("dropout_remarks") or payload.get("remarks") or ""
@@ -640,7 +640,7 @@ async def dropout_enrolled_student(
                 "cancelled_at": drop_date,
                 "dropout_reason": dropout_reason,
                 "dropout_remarks": dropout_remarks,
-                "updated_at": datetime.utcnow()
+                "updated_at": datetime.now(timezone.utc)
             }
         }
     )
@@ -659,7 +659,7 @@ async def dropout_enrolled_student(
                 "$set": {
                     "is_active": False,
                     "status": "dropout",
-                    "updated_at": datetime.utcnow()
+                    "updated_at": datetime.now(timezone.utc)
                 }
             }
         )
@@ -671,7 +671,7 @@ async def dropout_enrolled_student(
             "$set": {
                 "status": "dropped",
                 "dropped_at": drop_date,
-                "updated_at": datetime.utcnow()
+                "updated_at": datetime.now(timezone.utc)
             }
         }
     )
@@ -721,8 +721,8 @@ async def reactivate_enrolled_student(
         {
             "$set": {
                 "status": "Active",
-                "reactivated_at": datetime.utcnow(),
-                "updated_at": datetime.utcnow()
+                "reactivated_at": datetime.now(timezone.utc),
+                "updated_at": datetime.now(timezone.utc)
             }
         }
     )
@@ -741,7 +741,7 @@ async def reactivate_enrolled_student(
                 "$set": {
                     "is_active": True,
                     "status": "active",
-                    "updated_at": datetime.utcnow()
+                    "updated_at": datetime.now(timezone.utc)
                 }
             }
         )
@@ -752,7 +752,7 @@ async def reactivate_enrolled_student(
         {
             "$set": {
                 "status": "active",
-                "updated_at": datetime.utcnow()
+                "updated_at": datetime.now(timezone.utc)
             }
         }
     )
@@ -1051,7 +1051,7 @@ async def get_student_courses(current_user: dict = Depends(get_current_user)):
             "title": leg_title,
             "module_id": str(module["_id"]) if module else "default",
             "status": "active",
-            "start_date": student.get("approved_at", datetime.utcnow()).isoformat() if student.get("approved_at") else None,
+            "start_date": student.get("approved_at", datetime.now(timezone.utc)).isoformat() if student.get("approved_at") else None,
             "module": {
                 "id": str(module["_id"]) if module else "default",
                 "title": leg_title,
@@ -1107,8 +1107,8 @@ async def request_profile_update(
             "$set": {
                 "update_requested": True,
                 "update_request_note": reason.strip(),
-                "update_requested_at": datetime.utcnow(),
-                "updated_at": datetime.utcnow()
+                "update_requested_at": datetime.now(timezone.utc),
+                "updated_at": datetime.now(timezone.utc)
             }
         }
     )
@@ -1154,7 +1154,7 @@ async def dismiss_update_request(
             "$set": {
                 "update_requested": False,
                 "update_request_note": None,
-                "updated_at": datetime.utcnow()
+                "updated_at": datetime.now(timezone.utc)
             }
         }
     )

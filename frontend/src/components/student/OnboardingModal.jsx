@@ -4,7 +4,6 @@ import { authApi, studentsApi, modulesApi, slotsApi } from '../../api';
 
 export function OnboardingModal({ user, onComplete }) {
   const isFirstLogin = !!user?.first_login;
-  const isProfileIncomplete = !user?.profile_completed;
 
   // Step 1 if first_login, Step 2 if profile_completed is false
   const [step, setStep] = useState(isFirstLogin ? 1 : 2);
@@ -44,8 +43,8 @@ export function OnboardingModal({ user, onComplete }) {
     bio: '',
   });
 
-  const [modulesList, setModulesList] = useState([]);
-  const [slotsList, setSlotsList] = useState([]);
+  const [_modulesList, setModulesList] = useState([]);
+  const [_slotsList, setSlotsList] = useState([]);
   const [initialLoading, setInitialLoading] = useState(true);
   const [profileLoading, setProfileLoading] = useState(false);
   const [profileError, setProfileError] = useState(null);

@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import timezone, datetime
 from typing import Optional, List
 from bson import ObjectId
 from fastapi import APIRouter, HTTPException, Depends, status
@@ -55,7 +55,7 @@ async def mark_notification_read(id: str, current_user: dict = Depends(get_curre
             "_id": notif_oid,
             "$or": [{"recipient_user_id": current_user["_id"]}, {"user_id": current_user["_id"]}]
         },
-        {"$set": {"is_read": True, "read_at": datetime.utcnow()}}
+        {"$set": {"is_read": True, "read_at": datetime.now(timezone.utc)}}
     )
     if res.matched_count == 0:
         raise HTTPException(status_code=404, detail="Notification not found.")
@@ -70,7 +70,7 @@ async def mark_all_notifications_read(current_user: dict = Depends(get_current_u
             "$or": [{"recipient_user_id": current_user["_id"]}, {"user_id": current_user["_id"]}],
             "is_read": False
         },
-        {"$set": {"is_read": True, "read_at": datetime.utcnow()}}
+        {"$set": {"is_read": True, "read_at": datetime.now(timezone.utc)}}
     )
     return {"message": "All notifications marked as read."}
 
@@ -129,7 +129,7 @@ async def broadcast_notification(
     if not recipients:
         raise HTTPException(status_code=404, detail="No matching active recipient accounts found.")
 
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     docs = []
     for r_oid in recipients:
         docs.append({

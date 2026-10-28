@@ -338,7 +338,7 @@ export function AdminDashboard({ onLogout }) {
         return;
       }
       fetchAdmins();
-    } catch (err) {
+    } catch {
       alert('Error updating administrator status.');
     }
   };
@@ -358,7 +358,7 @@ export function AdminDashboard({ onLogout }) {
         return;
       }
       fetchAdmins();
-    } catch (err) {
+    } catch {
       alert('Error deleting administrator account.');
     }
   };
@@ -413,7 +413,7 @@ export function AdminDashboard({ onLogout }) {
       if (!res.ok) throw new Error();
       alert("Fee email queued!");
       fetchAdmissions();
-    } catch (e) { alert("Failed to send fee email"); }
+    } catch { alert("Failed to send fee email"); }
   };
 
   const handleApprove = async (id) => {
@@ -423,7 +423,7 @@ export function AdminDashboard({ onLogout }) {
       alert("Admission Approved! Student record created.");
       fetchAdmissions();
       fetchStats();
-    } catch (e) { alert("Failed to approve"); }
+    } catch { alert("Failed to approve"); }
   };
 
   const handleCancel = async (id) => {
@@ -433,7 +433,7 @@ export function AdminDashboard({ onLogout }) {
       alert("Admission Canceled.");
       fetchAdmissions();
       fetchStats();
-    } catch (e) { alert("Failed to cancel"); }
+    } catch { alert("Failed to cancel"); }
   };
 
   const handleOpenGraduateModal = (std) => {
@@ -509,23 +509,6 @@ export function AdminDashboard({ onLogout }) {
     }
   };
 
-  const handleCancelStudent = async (id, name) => {
-    if (!confirm(`Are you sure you want to cancel the admission for ${name || 'this student'}? Their portal access will be revoked immediately.`)) return;
-    try {
-      await studentsApi.dropout(id, {
-        dropped_at: new Date().toISOString().split('T')[0],
-        dropout_reason: 'Administrative Cancellation',
-        dropout_remarks: 'Admission cancelled by administrator.'
-      });
-      alert("Student admission has been cancelled. Portal login is now disabled.");
-      await fetchStudents();
-      await fetchStats();
-      if (viewingStudent && (String(viewingStudent._id) === String(id) || String(viewingStudent.id) === String(id))) {
-        setViewingStudent(prev => ({ ...prev, status: 'Dropout' }));
-      }
-    } catch (e) { alert("Failed to cancel student admission"); }
-  };
-
   const handleReactivateStudent = async (id, name) => {
     if (!confirm(`Are you sure you want to reactivate admission for ${name || 'this student'}?`)) return;
     try {
@@ -536,7 +519,7 @@ export function AdminDashboard({ onLogout }) {
       if (viewingStudent && (String(viewingStudent._id) === String(id) || String(viewingStudent.id) === String(id))) {
         setViewingStudent(prev => ({ ...prev, status: 'Active' }));
       }
-    } catch (e) { alert("Failed to reactivate student"); }
+    } catch { alert("Failed to reactivate student"); }
   };
 
   const handleAddOrUpdateInstructor = async (e) => {
@@ -650,7 +633,7 @@ export function AdminDashboard({ onLogout }) {
       if (!res.ok) throw new Error();
       fetchInstructors();
       fetchStats();
-    } catch (e) { alert("Failed to delete instructor"); }
+    } catch { alert("Failed to delete instructor"); }
   };
 
   // Module Actions
@@ -721,7 +704,7 @@ export function AdminDashboard({ onLogout }) {
       if (!res.ok) throw new Error();
       fetchModules();
       fetchStats();
-    } catch (e) { alert("Failed to delete module"); }
+    } catch { alert("Failed to delete module"); }
   };
 
   // Slot Actions
@@ -784,7 +767,7 @@ export function AdminDashboard({ onLogout }) {
       if (!res.ok) throw new Error();
       fetchSlots();
       fetchStats();
-    } catch (e) { alert("Failed to delete slot"); }
+    } catch { alert("Failed to delete slot"); }
   };
 
   const handleAssignSubmit = async (e) => {
@@ -798,7 +781,7 @@ export function AdminDashboard({ onLogout }) {
       alert("Slot & Instructor assigned! Email sent to student.");
       setSelectedStudent(null);
       fetchStudents();
-    } catch (e) { alert("Failed to assign"); }
+    } catch { alert("Failed to assign"); }
   };
 
   const tableStyle = { width: '100%', borderCollapse: 'collapse' };

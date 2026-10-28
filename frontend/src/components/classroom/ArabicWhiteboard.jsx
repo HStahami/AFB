@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { PenTool, Eraser, RotateCcw, Trash2, Download, Check, Sparkles } from 'lucide-react';
+import { PenTool, Eraser, RotateCcw, Trash2, Download, Check } from 'lucide-react';
 
 const COLORS = [
   { label: 'White', value: '#ffffff' },
@@ -52,7 +52,7 @@ export function ArabicWhiteboard({ slotName = "Classroom" }) {
     try {
       const dataUrl = canvas.toDataURL();
       setHistory(prev => [...prev.slice(-15), dataUrl]);
-    } catch (e) {
+    } catch {
       // ignore
     }
   };

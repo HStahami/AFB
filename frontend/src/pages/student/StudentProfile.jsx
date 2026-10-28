@@ -7,8 +7,8 @@ export function StudentProfile() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [profile, setProfile] = useState(null);
-  const [modulesList, setModulesList] = useState([]);
-  const [slotsList, setSlotsList] = useState([]);
+  const [_modulesList, setModulesList] = useState([]);
+  const [_slotsList, setSlotsList] = useState([]);
   const [showUpdateRequestModal, setShowUpdateRequestModal] = useState(false);
   const [updateReason, setUpdateReason] = useState('');
   const [sendingRequest, setSendingRequest] = useState(false);

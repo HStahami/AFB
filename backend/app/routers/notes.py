@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import timezone, datetime
 from typing import List, Optional
 from bson import ObjectId
 from fastapi import APIRouter, HTTPException, Depends, Query, status
@@ -80,7 +80,7 @@ async def create_note(
         if student:
             student_id = str(student["_id"])
 
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     doc = {
         "user_id": current_user["_id"],
         "student_id": student_id,
@@ -113,7 +113,7 @@ async def update_note(
     if not existing:
         raise HTTPException(status_code=404, detail="Note not found.")
 
-    update_fields = {"updated_at": datetime.utcnow()}
+    update_fields = {"updated_at": datetime.now(timezone.utc)}
     if data.title is not None:
         update_fields["title"] = data.title.strip() or "Class Notes"
     if data.content is not None:

@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import timezone, datetime
 from typing import List, Optional
 from bson import ObjectId
 from fastapi import APIRouter, HTTPException, Depends, status
@@ -77,9 +77,9 @@ async def create_assessment(
             "score": data.score,
             "grade": data.grade,
             "feedback": data.feedback,
-            "assessed_at": datetime.utcnow(),
-            "created_at": datetime.utcnow(),
-            "updated_at": datetime.utcnow()
+            "assessed_at": datetime.now(timezone.utc),
+            "created_at": datetime.now(timezone.utc),
+            "updated_at": datetime.now(timezone.utc)
         }
         res = await db.assessments.insert_one(assessment_doc)
         assessment_id = res.inserted_id
@@ -88,7 +88,7 @@ async def create_assessment(
         # Update submission status to reviewed
         await db.submissions.update_one(
             {"_id": sub_oid},
-            {"$set": {"status": "reviewed", "feedback": data.feedback, "updated_at": datetime.utcnow()}}
+            {"$set": {"status": "reviewed", "feedback": data.feedback, "updated_at": datetime.now(timezone.utc)}}
         )
 
         # Notify student

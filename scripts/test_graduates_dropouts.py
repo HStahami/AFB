@@ -1,7 +1,7 @@
 import asyncio
 import os
 import sys
-from datetime import datetime
+from datetime import timezone, datetime
 from bson import ObjectId
 import httpx
 from dotenv import load_dotenv
@@ -33,7 +33,7 @@ async def run_graduates_dropouts_tests():
             "password_hash": hash_password("AdminPass123!"),
             "role": "admin",
             "is_active": True,
-            "created_at": datetime.utcnow()
+            "created_at": datetime.now(timezone.utc)
         })
         admin_user = await db.users.find_one({"_id": res.inserted_id})
 
@@ -54,7 +54,7 @@ async def run_graduates_dropouts_tests():
         "password_hash": hash_password("TestStudent123!"),
         "role": "student",
         "is_active": True,
-        "created_at": datetime.utcnow()
+        "created_at": datetime.now(timezone.utc)
     })
     student_user_id = student_user_res.inserted_id
 
@@ -67,7 +67,7 @@ async def run_graduates_dropouts_tests():
         "student_code": "AFB-TEST-GRAD",
         "course": "Modern Standard Arabic",
         "status": "Active",
-        "created_at": datetime.utcnow()
+        "created_at": datetime.now(timezone.utc)
     })
     student_id = str(student_res.inserted_id)
 
@@ -76,7 +76,7 @@ async def run_graduates_dropouts_tests():
         "student_id": ObjectId(student_id),
         "course_title": "Modern Standard Arabic",
         "status": "active",
-        "created_at": datetime.utcnow()
+        "created_at": datetime.now(timezone.utc)
     })
 
     async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:

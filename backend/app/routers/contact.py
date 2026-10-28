@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import timezone, datetime
 from fastapi import APIRouter, HTTPException, Depends
 from app.database import get_db
 from app.models import ContactCreate
@@ -13,7 +13,7 @@ async def submit_contact(data: ContactCreate):
 
     document = {
         **data.model_dump(),
-        "created_at": datetime.utcnow()
+        "created_at": datetime.now(timezone.utc)
     }
 
     try:

@@ -32,7 +32,7 @@ class Settings(BaseSettings):
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24
     ADMIN_USERNAME: str = os.getenv("ADMIN_USERNAME", "admin")
-    ADMIN_PASSWORD: str = os.getenv("ADMIN_PASSWORD", "admin123")
+    ADMIN_PASSWORD: str = os.getenv("ADMIN_PASSWORD", "")
 
     # Cloudinary configuration (optional, falls back gracefully to safe handling)
     CLOUDINARY_CLOUD_NAME: str = os.getenv("CLOUDINARY_CLOUD_NAME", "")
@@ -86,7 +86,10 @@ def validate_production_config(cfg: Settings) -> None:
         if not jwt_secret or jwt_secret.lower() == "secret":
             print("[SECURITY WARNING] Running with development JWT secret key. DO NOT USE IN PRODUCTION.")
             if not cfg.JWT_SECRET_KEY:
-                cfg.JWT_SECRET_KEY = "afb-development-fallback-secret-key-32chars-min"
+                import secrets
+                cfg.JWT_SECRET_KEY = secrets.token_hex(32)
+        if not cfg.ADMIN_PASSWORD:
+            cfg.ADMIN_PASSWORD = os.getenv("DEFAULT_ADMIN_PASSWORD", "")
 
 settings = Settings()
 validate_production_config(settings)

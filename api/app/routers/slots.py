@@ -1,5 +1,5 @@
 from bson import ObjectId
-from datetime import datetime
+from datetime import timezone, datetime
 from typing import Optional
 from fastapi import APIRouter, HTTPException, Form, Depends
 from app.database import get_db
@@ -46,7 +46,7 @@ async def create_slot(
             "days": days.strip(),
             "time": time.strip(),
             "status": status if status in ["Active", "Inactive"] else "Active",
-            "created_at": datetime.utcnow()
+            "created_at": datetime.now(timezone.utc)
         }
         result = await db.slots.insert_one(doc)
         return {"message": "Slot created successfully.", "id": str(result.inserted_id)}
@@ -73,7 +73,7 @@ async def update_slot(
             "days": days.strip(),
             "time": time.strip(),
             "status": status if status in ["Active", "Inactive"] else "Active",
-            "updated_at": datetime.utcnow()
+            "updated_at": datetime.now(timezone.utc)
         }
 
         await db.slots.update_one({"_id": ObjectId(slot_id)}, {"$set": update_data})
@@ -125,7 +125,7 @@ async def get_slot_live_status(slot_id: str):
                 "status": "Active",
                 "is_general": True,
                 "is_live": False,
-                "created_at": datetime.utcnow()
+                "created_at": datetime.now(timezone.utc)
             })
             slot = await db.slots.find_one({"_id": res.inserted_id})
 
@@ -206,7 +206,7 @@ async def start_class(
                         "status": "Active",
                         "is_general": True,
                         "is_live": False,
-                        "created_at": datetime.utcnow()
+                        "created_at": datetime.now(timezone.utc)
                     })
                     slot = await db.slots.find_one({"_id": res.inserted_id})
             else:
@@ -215,7 +215,7 @@ async def start_class(
         if not slot:
             raise HTTPException(status_code=404, detail="Slot not found")
 
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         await db.slots.update_one(
             {"_id": slot["_id"]},
             {"$set": {
@@ -285,7 +285,7 @@ async def end_class(
         if not slot:
             raise HTTPException(status_code=404, detail="Slot not found")
 
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         await db.slots.update_one(
             {"_id": slot["_id"]},
             {"$set": {

@@ -1,7 +1,7 @@
 import re
 from urllib.parse import quote_plus
 from bson import ObjectId
-from datetime import datetime
+from datetime import timezone, datetime
 from fastapi import APIRouter, HTTPException, File, UploadFile, Form, Depends, status, Request
 from typing import Optional, List
 from app.database import get_db
@@ -113,7 +113,7 @@ async def update_my_profile(
         raise HTTPException(status_code=404, detail="Instructor profile not found.")
 
     content_type = request.headers.get("content-type", "")
-    update_dict = {"updated_at": datetime.utcnow()}
+    update_dict = {"updated_at": datetime.now(timezone.utc)}
 
     if "application/json" in content_type:
         body = await request.json()
@@ -206,7 +206,7 @@ async def get_instructor_dashboard_stats(current_user: dict = Depends(get_curren
     }) if task_ids else 0
 
     # 4. Attendance Today
-    today_str = datetime.utcnow().strftime("%Y-%m-%d")
+    today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     attendance_today = await db.attendance.count_documents({
         "instructor_id": inst_oid,
         "date": today_str
@@ -431,8 +431,8 @@ async def add_instructor(
             "status": "active",
             "first_login": True,
             "profile_completed": True,
-            "created_at": datetime.utcnow(),
-            "updated_at": datetime.utcnow()
+            "created_at": datetime.now(timezone.utc),
+            "updated_at": datetime.now(timezone.utc)
         }
         res_user = await db.users.insert_one(user_doc)
         user_id = res_user.inserted_id
@@ -447,7 +447,7 @@ async def add_instructor(
             "specialty": specialty or about or "",
             "avatar": avatar_url,
             "is_active": True,
-            "created_at": datetime.utcnow()
+            "created_at": datetime.now(timezone.utc)
         }
         result = await db.instructors.insert_one(doc)
         inst_id = result.inserted_id
@@ -511,7 +511,7 @@ async def update_instructor(
             "about": about or specialty or "",
             "specialty": specialty or about or "",
             "is_active": is_active if is_active is not None else existing.get("is_active", True),
-            "updated_at": datetime.utcnow()
+            "updated_at": datetime.now(timezone.utc)
         }
         if email_clean:
             update_data["email"] = email_clean
@@ -524,7 +524,7 @@ async def update_instructor(
         # Synchronize linked account in db.users
         user_id = existing.get("user_id")
         user_updates = {
-            "updated_at": datetime.utcnow(),
+            "updated_at": datetime.now(timezone.utc),
             "status": "active" if update_data["is_active"] else "inactive"
         }
         if email_clean:
@@ -607,7 +607,7 @@ async def resend_instructor_credentials_api(
                     "password_hash": pwd_hash,
                     "first_login": True,
                     "status": "active",
-                    "updated_at": datetime.utcnow()
+                    "updated_at": datetime.now(timezone.utc)
                 }}
             )
         else:
@@ -628,8 +628,8 @@ async def resend_instructor_credentials_api(
                 "status": "active",
                 "first_login": True,
                 "profile_completed": True,
-                "created_at": datetime.utcnow(),
-                "updated_at": datetime.utcnow()
+                "created_at": datetime.now(timezone.utc),
+                "updated_at": datetime.now(timezone.utc)
             })
             await db.instructors.update_one(
                 {"_id": existing["_id"]},

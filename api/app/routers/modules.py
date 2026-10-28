@@ -1,5 +1,5 @@
 from bson import ObjectId
-from datetime import datetime
+from datetime import timezone, datetime
 from typing import Optional
 from fastapi import APIRouter, HTTPException, File, UploadFile, Form, Depends
 from app.database import get_db
@@ -60,7 +60,7 @@ async def create_module(
             "order": int(order) if order is not None else 1,
             "image": image_url,
             "is_active": True,
-            "created_at": datetime.utcnow()
+            "created_at": datetime.now(timezone.utc)
         }
         result = await db.modules.insert_one(doc)
         return {"message": "Module created successfully.", "id": str(result.inserted_id), "image": image_url}
@@ -92,7 +92,7 @@ async def update_module(
             "description": description or "",
             "order": int(order) if order is not None else 1,
             "is_active": is_active if is_active is not None else existing.get("is_active", True),
-            "updated_at": datetime.utcnow()
+            "updated_at": datetime.now(timezone.utc)
         }
 
         if image and image.filename:

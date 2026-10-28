@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import timezone, datetime
 from typing import Optional, List
 from bson import ObjectId
 from pydantic import BaseModel, EmailStr, Field
@@ -111,7 +111,7 @@ async def create_admin_account(
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email address is already registered.")
 
     hashed_pw = hash_password(req.password)
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
 
     admin_doc = {
         "username": clean_username,
@@ -203,7 +203,7 @@ async def toggle_admin_status(
             "$set": {
                 "is_active": new_is_active,
                 "status": new_status,
-                "updated_at": datetime.utcnow()
+                "updated_at": datetime.now(timezone.utc)
             }
         }
     )

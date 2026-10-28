@@ -1,4 +1,4 @@
-﻿from datetime import datetime
+﻿from datetime import timezone, datetime
 from typing import List, Optional
 from bson import ObjectId
 from fastapi import APIRouter, HTTPException, Depends, status
@@ -45,10 +45,10 @@ async def create_enrollment(
             "instructor_id": instructor_oid,
             "slot_id": slot_oid,
             "status": data.status or "active",
-            "start_date": data.start_date or datetime.utcnow(),
+            "start_date": data.start_date or datetime.now(timezone.utc),
             "end_date": data.end_date,
-            "created_at": datetime.utcnow(),
-            "updated_at": datetime.utcnow()
+            "created_at": datetime.now(timezone.utc),
+            "updated_at": datetime.now(timezone.utc)
         }
         res = await db.enrollments.insert_one(doc)
         doc["_id"] = res.inserted_id
@@ -136,7 +136,7 @@ async def update_enrollment(
     if "slot_id" in update_fields and update_fields["slot_id"]:
         update_fields["slot_id"] = ObjectId(update_fields["slot_id"])
 
-    update_fields["updated_at"] = datetime.utcnow()
+    update_fields["updated_at"] = datetime.now(timezone.utc)
 
     res = await db.enrollments.update_one({"_id": enr_oid}, {"$set": update_fields})
     if res.matched_count == 0:

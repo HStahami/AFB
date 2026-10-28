@@ -1,6 +1,6 @@
-﻿import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Users, Search, Filter, ArrowRight, Mail, Phone, Calendar } from "lucide-react";
+import { Users, Search, ArrowRight, Mail, Phone, Calendar } from "lucide-react";
 import { instructorsApi } from "../../api";
 import { getAvatarUrl } from "../../api/client";
 import { inputStyle } from "../../components/common/styles";

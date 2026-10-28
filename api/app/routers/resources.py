@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import timezone, datetime
 from typing import List, Optional
 from bson import ObjectId
 from fastapi import APIRouter, HTTPException, Depends, status
@@ -47,8 +47,8 @@ async def create_resource(
             "type": data.type or "document",
             "url": data.url,
             "storage_provider": data.storage_provider or "cloudinary",
-            "created_at": datetime.utcnow(),
-            "updated_at": datetime.utcnow()
+            "created_at": datetime.now(timezone.utc),
+            "updated_at": datetime.now(timezone.utc)
         }
         res = await db.resources.insert_one(resource_doc)
         resource_doc["_id"] = res.inserted_id

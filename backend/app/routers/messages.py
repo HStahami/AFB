@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import timezone, datetime
 from typing import Optional, List
 from bson import ObjectId
 from fastapi import APIRouter, HTTPException, Depends, status
@@ -87,7 +87,7 @@ async def get_chat_threads(current_user: dict = Depends(get_current_user)):
                         "instructor_user_id": str(inst["user_id"]),
                         "instructor_name": inst.get("name", "Instructor"),
                         "last_message": "No messages exchanged yet.",
-                        "last_message_at": s.get("created_at") or datetime.utcnow(),
+                        "last_message_at": s.get("created_at") or datetime.now(timezone.utc),
                         "unread_count_student": 0,
                         "unread_count_instructor": 0
                     }
@@ -131,7 +131,7 @@ async def get_chat_threads(current_user: dict = Depends(get_current_user)):
                         "instructor_user_id": str(inst_user["_id"]),
                         "instructor_name": instructor.get("name", "Instructor"),
                         "last_message": "No messages yet. Click to start conversation.",
-                        "last_message_at": datetime.utcnow(),
+                        "last_message_at": datetime.now(timezone.utc),
                         "unread_count_student": 0,
                         "unread_count_instructor": 0
                     }
@@ -171,7 +171,7 @@ async def get_chat_threads(current_user: dict = Depends(get_current_user)):
                             "instructor_user_id": user_id_str,
                             "instructor_name": instructor.get("name", "Instructor"),
                             "last_message": "No messages yet.",
-                            "last_message_at": datetime.utcnow(),
+                            "last_message_at": datetime.now(timezone.utc),
                             "unread_count_student": 0,
                             "unread_count_instructor": 0
                         }
@@ -297,7 +297,7 @@ async def send_message(payload: SendMessageRequest, current_user: dict = Depends
         "receiver_user_id": recipient_user_id_str,
         "content": payload.content.strip(),
         "is_read": False,
-        "created_at": datetime.utcnow()
+        "created_at": datetime.now(timezone.utc)
     }
 
     res = await db.messages.insert_one(message_doc)
@@ -316,7 +316,7 @@ async def send_message(payload: SendMessageRequest, current_user: dict = Depends
                 "instructor_user_id": instructor_user_id_str,
                 "instructor_name": instructor_name,
                 "last_message": payload.content.strip(),
-                "last_message_at": datetime.utcnow(),
+                "last_message_at": datetime.now(timezone.utc),
                 "last_sender_role": role
             },
             "$inc": {unread_field: 1}
@@ -336,7 +336,7 @@ async def mark_thread_read(thread_id: str, current_user: dict = Depends(get_curr
 
     await db.messages.update_many(
         {"thread_id": thread_id, "receiver_user_id": user_id_str, "is_read": False},
-        {"$set": {"is_read": True, "read_at": datetime.utcnow()}}
+        {"$set": {"is_read": True, "read_at": datetime.now(timezone.utc)}}
     )
 
     reset_field = "unread_count_student" if role == "student" else "unread_count_instructor"

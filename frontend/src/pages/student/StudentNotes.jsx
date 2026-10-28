@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BookOpen, Search, Plus, Trash2, Calendar, FileText, Download, Copy, Check, Clock, Edit3, X, ArrowRight } from 'lucide-react';
+import { BookOpen, Search, Trash2, Calendar, Download, Copy, Check, X, ArrowRight } from 'lucide-react';
 import { notesApi } from '../../api';
 import { Link } from 'react-router-dom';
 
@@ -45,7 +45,7 @@ export function StudentNotes() {
       });
       setSelectedNote(updated);
       fetchNotes();
-    } catch (err) {
+    } catch {
       alert('Failed to update note.');
     } finally {
       setIsSaving(false);
@@ -60,7 +60,7 @@ export function StudentNotes() {
         setSelectedNote(null);
       }
       fetchNotes();
-    } catch (err) {
+    } catch {
       alert('Failed to delete note.');
     }
   };

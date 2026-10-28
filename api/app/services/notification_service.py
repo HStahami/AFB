@@ -1,4 +1,4 @@
-﻿from datetime import datetime
+﻿from datetime import timezone, datetime
 from typing import Optional
 from bson import ObjectId
 
@@ -29,7 +29,7 @@ async def create_notification(
             "related_entity_type": related_entity_type,
             "related_entity_id": str(related_entity_id) if related_entity_id else None,
             "is_read": False,
-            "created_at": datetime.utcnow()
+            "created_at": datetime.now(timezone.utc)
         }
         res = await db.notifications.insert_one(doc)
         return str(res.inserted_id)

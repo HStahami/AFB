@@ -1,6 +1,6 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { modulesApi, tasksApi, resourcesApi, instructorsApi } from '../../api';
+import { modulesApi, tasksApi, resourcesApi } from '../../api';
 
 export function StudentCourseDetail() {
   const { id } = useParams();

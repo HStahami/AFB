@@ -3,10 +3,6 @@ import { useParams, Link } from "react-router-dom";
 import {
   ArrowLeft,
   User,
-  Mail,
-  Phone,
-  Calendar,
-  MapPin,
   Shield,
   AlertCircle
 } from "lucide-react";

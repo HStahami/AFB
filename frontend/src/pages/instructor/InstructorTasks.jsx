@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { CheckSquare, Plus, Trash2, Calendar, AlertCircle, X, Check } from "lucide-react";
+import { CheckSquare, Plus, Trash2, Calendar, X } from "lucide-react";
 import { tasksApi, modulesApi } from "../../api";
 import { inputStyle } from "../../components/common/styles";
 

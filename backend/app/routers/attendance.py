@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import timezone, datetime
 from typing import List, Optional
 from bson import ObjectId
 from fastapi import APIRouter, HTTPException, Depends, status, Query
@@ -129,10 +129,10 @@ async def record_attendance(
                 "slot_id": slot_oid,
                 "status": data.status.lower(),
                 "remarks": data.remarks,
-                "updated_at": datetime.utcnow()
+                "updated_at": datetime.now(timezone.utc)
             },
             "$setOnInsert": {
-                "created_at": datetime.utcnow()
+                "created_at": datetime.now(timezone.utc)
             }
         }
         await db.attendance.update_one(attendance_filter, update_doc, upsert=True)
@@ -216,10 +216,10 @@ async def record_attendance_bulk(
                     "slot_id": slot_oid,
                     "status": item.status.lower(),
                     "remarks": item.remarks,
-                    "updated_at": datetime.utcnow()
+                    "updated_at": datetime.now(timezone.utc)
                 },
                 "$setOnInsert": {
-                    "created_at": datetime.utcnow()
+                    "created_at": datetime.now(timezone.utc)
                 }
             }
             await db.attendance.update_one(attendance_filter, update_doc, upsert=True)
@@ -325,7 +325,7 @@ async def auto_checkin(
                 "message": "Class is not currently live. Attendance is only recorded when class is live."
             }
 
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         today_str = now.strftime("%Y-%m-%d")
 
         attendance_filter = {

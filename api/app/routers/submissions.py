@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import timezone, datetime
 from typing import List, Optional
 from bson import ObjectId
 from fastapi import APIRouter, HTTPException, Depends, status, Query
@@ -100,14 +100,14 @@ async def create_submission(
         sub_doc = {
             "task_id": task_oid,
             "student_id": student["_id"],
-            "submitted_at": datetime.utcnow(),
+            "submitted_at": datetime.now(timezone.utc),
             "content": data.content,
             "attachment_urls": attachments,
             "file_url": data.file_url or (attachments[0] if attachments else None),
             "status": "submitted",
             "feedback": None,
-            "created_at": datetime.utcnow(),
-            "updated_at": datetime.utcnow()
+            "created_at": datetime.now(timezone.utc),
+            "updated_at": datetime.now(timezone.utc)
         }
         res = await db.submissions.insert_one(sub_doc)
         sub_id = res.inserted_id

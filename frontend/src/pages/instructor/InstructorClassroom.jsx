@@ -89,7 +89,7 @@ export function InstructorClassroom() {
         const records = await attendanceApi.getAll({ date: today, slot_id: slotKey });
         const present = (records || []).filter(r => r.status === 'present').length;
         if (!isCancelled) setAttendeesCount(present);
-      } catch (e) {
+      } catch {
         // non-blocking
       }
     };

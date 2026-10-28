@@ -17,7 +17,7 @@ export function Contact() {
     try {
       await contactApi.submit(formData);
       setSuccess(true);
-    } catch (e) {
+    } catch {
       alert("Failed to send message. Please try again.");
     }
   };

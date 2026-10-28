@@ -1,5 +1,5 @@
 from bson import ObjectId
-from datetime import datetime
+from datetime import timezone, datetime
 from fastapi import APIRouter, HTTPException, Depends, status
 from app.database import get_db
 from app.models import AdmissionCreate, FeeStatusUpdate
@@ -55,8 +55,8 @@ async def submit_admission(data: AdmissionCreate):
         "status": "Pending",
         "fee_status": "pending",
         "fee_instructions_sent": True,
-        "fee_instructions_sent_at": datetime.utcnow(),
-        "created_at": datetime.utcnow()
+        "fee_instructions_sent_at": datetime.now(timezone.utc),
+        "created_at": datetime.now(timezone.utc)
     }
 
     if db is None:
@@ -142,7 +142,7 @@ async def update_fee_status(
     try:
         result = await db.admissions.update_one(
             {"_id": ObjectId(form_id)},
-            {"$set": {"fee_status": data.fee_status.lower(), "fee_updated_at": datetime.utcnow()}}
+            {"$set": {"fee_status": data.fee_status.lower(), "fee_updated_at": datetime.now(timezone.utc)}}
         )
         if result.matched_count == 0:
             raise HTTPException(status_code=404, detail="Admission form not found")
@@ -170,7 +170,7 @@ async def send_fee_email(form_id: str, admin_user: dict = Depends(require_admin)
             {"_id": ObjectId(form_id)},
             {"$set": {
                 "fee_instructions_sent": True,
-                "fee_instructions_sent_at": datetime.utcnow(),
+                "fee_instructions_sent_at": datetime.now(timezone.utc),
                 "status": "Fee Email Sent"
             }}
         )
@@ -213,7 +213,7 @@ async def approve_admission(form_id: str, admin_user: dict = Depends(require_adm
             }
 
         # 2. Generate Unique Sequential Student Code (AFB-YYYY-XXXX)
-        current_year = datetime.utcnow().year
+        current_year = datetime.now(timezone.utc).year
         total_count = await db.students.count_documents({}) + 1
         student_code = f"AFB-{current_year}-{total_count:04d}"
         while (
@@ -251,8 +251,8 @@ async def approve_admission(form_id: str, admin_user: dict = Depends(require_adm
                 "first_login": True,
                 "profile_completed": False,
                 "student_code": student_code,
-                "created_at": datetime.utcnow(),
-                "updated_at": datetime.utcnow()
+                "created_at": datetime.now(timezone.utc),
+                "updated_at": datetime.now(timezone.utc)
             }
             res_user = await db.users.insert_one(user_doc)
             user_id = res_user.inserted_id
@@ -269,10 +269,10 @@ async def approve_admission(form_id: str, admin_user: dict = Depends(require_adm
             "instructor": None,
             "instructor_id": None,
             "slot_id": None,
-            "approved_at": datetime.utcnow(),
+            "approved_at": datetime.now(timezone.utc),
             "approved_by": admin_user.get("username", "admin"),
             "credentials_delivered": True,
-            "credentials_sent_at": datetime.utcnow()
+            "credentials_sent_at": datetime.now(timezone.utc)
         }
         res_student = await db.students.insert_one(student_doc)
         new_student_id = res_student.inserted_id
@@ -286,7 +286,7 @@ async def approve_admission(form_id: str, admin_user: dict = Depends(require_adm
                 "approved_by": admin_user.get("username", "admin"),
                 "student_code": student_code,
                 "credentials_delivered": True,
-                "credentials_sent_at": datetime.utcnow()
+                "credentials_sent_at": datetime.now(timezone.utc)
             }}
         )
 

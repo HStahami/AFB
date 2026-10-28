@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import timezone, datetime
 from bson import ObjectId
 from fastapi import APIRouter, HTTPException, Depends, status
 from app.config import settings
@@ -94,7 +94,7 @@ async def login(data: LoginRequest):
 
     # Bootstrap fallback for Admin if users collection is empty
     if not user and (identifier_lower == settings.ADMIN_USERNAME.lower() or identifier_lower == "admin"):
-        if data.password == settings.ADMIN_PASSWORD:
+        if settings.ADMIN_PASSWORD and data.password == settings.ADMIN_PASSWORD:
             admin_doc = {
                 "username": settings.ADMIN_USERNAME.strip().lower(),
                 "email": (settings.EMAIL_FROM or "admin@alarabia.edu").strip().lower(),
@@ -103,8 +103,8 @@ async def login(data: LoginRequest):
                 "status": "active",
                 "first_login": False,
                 "profile_completed": True,
-                "created_at": datetime.utcnow(),
-                "updated_at": datetime.utcnow()
+                "created_at": datetime.now(timezone.utc),
+                "updated_at": datetime.now(timezone.utc)
             }
             res = await db.users.insert_one(admin_doc)
             user = admin_doc
@@ -134,7 +134,7 @@ async def login(data: LoginRequest):
     # Update last login timestamp
     await db.users.update_one(
         {"_id": user["_id"]},
-        {"$set": {"last_login_at": datetime.utcnow()}}
+        {"$set": {"last_login_at": datetime.now(timezone.utc)}}
     )
 
     token_data = {
@@ -189,7 +189,7 @@ async def change_password(
             "$set": {
                 "password_hash": new_hash,
                 "first_login": False,
-                "updated_at": datetime.utcnow()
+                "updated_at": datetime.now(timezone.utc)
             }
         }
     )

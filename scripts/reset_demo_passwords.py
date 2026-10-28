@@ -1,5 +1,4 @@
-
-import asyncio, sys
+import asyncio, sys, os
 from datetime import datetime, timezone
 sys.path.insert(0, 'backend')
 from app.database import get_db, connect_to_mongo
@@ -9,8 +8,9 @@ async def main():
     await connect_to_mongo()
     db = get_db()
     
+    demo_pass = os.getenv("DEMO_DEFAULT_PASSWORD", "DemoSecurePass2026!")
     # 1. Admin
-    admin_hash = hash_password('admin123')
+    admin_hash = hash_password(os.getenv("ADMIN_PASSWORD", demo_pass))
     await db.users.update_one(
         {'role': 'admin'},
         {'$set': {
@@ -27,7 +27,7 @@ async def main():
     )
     
     # 2. Student
-    student_hash = hash_password('Student123!')
+    student_hash = hash_password(os.getenv("STUDENT_PASSWORD", demo_pass))
     await db.users.update_one(
         {'email': 'student@alarabia.edu'},
         {'$set': {
@@ -45,7 +45,7 @@ async def main():
     )
     
     # 3. Instructor
-    inst_hash = hash_password('Instructor123!')
+    inst_hash = hash_password(os.getenv("INSTRUCTOR_PASSWORD", demo_pass))
     await db.users.update_one(
         {'email': 'instructor@alarabia.edu'},
         {'$set': {

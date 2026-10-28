@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Video, BookOpen } from 'lucide-react';
-import { studentsApi, reportsApi } from '../../api';
+import { BookOpen } from 'lucide-react';
+import { studentsApi } from '../../api';
 import { useAuth } from '../../context/AuthContext';
 
 export function StudentDashboard() {

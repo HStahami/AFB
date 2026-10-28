@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import timezone, datetime
 from typing import List, Optional
 from bson import ObjectId
 from fastapi import APIRouter, HTTPException, Depends, status
@@ -58,8 +58,8 @@ async def create_task(
             "due_date": data.due_date,
             "status": data.status or "published",
             "attachments": data.attachments or [],
-            "created_at": datetime.utcnow(),
-            "updated_at": datetime.utcnow()
+            "created_at": datetime.now(timezone.utc),
+            "updated_at": datetime.now(timezone.utc)
         }
         res = await db.tasks.insert_one(task_doc)
         task_id = res.inserted_id
