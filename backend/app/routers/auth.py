@@ -43,11 +43,19 @@ async def _resolve_user_response(db, user: dict) -> UserResponse:
     else:
         onboarding_status = "completed"
 
+    is_sys_admin = (
+        role == "admin" and (
+            user.get("is_system_admin") is True or
+            user.get("username", "").strip().lower() == settings.ADMIN_USERNAME.strip().lower()
+        )
+    )
+
     return UserResponse(
         id=str(user["_id"]),
         username=user.get("username", ""),
         email=user.get("email", ""),
         role=role,
+        is_system_admin=is_sys_admin,
         status=user.get("status", "active"),
         first_login=first_login,
         profile_completed=profile_completed,
@@ -100,6 +108,7 @@ async def login(data: LoginRequest):
                 "email": (settings.EMAIL_FROM or "admin@alarabia.edu").strip().lower(),
                 "password_hash": hash_password(settings.ADMIN_PASSWORD),
                 "role": "admin",
+                "is_system_admin": True,
                 "status": "active",
                 "first_login": False,
                 "profile_completed": True,

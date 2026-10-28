@@ -4,8 +4,9 @@ from bson import ObjectId
 from pydantic import BaseModel, EmailStr, Field
 from fastapi import APIRouter, HTTPException, Depends, status
 
+from app.config import settings
 from app.database import get_db
-from app.core.dependencies import require_admin, get_current_user
+from app.core.dependencies import require_admin, require_system_admin, is_system_admin_user
 from app.core.security import hash_password
 from app.services.notification_service import create_notification
 
@@ -25,7 +26,15 @@ class UpdateAdminRequest(BaseModel):
     full_name: Optional[str] = None
 
 
+class ChangeAdminPasswordRequest(BaseModel):
+    new_password: str = Field(..., min_length=6)
+
+
 def _clean_admin_doc(doc: dict) -> dict:
+    is_sys = (
+        doc.get("is_system_admin") is True or
+        doc.get("username", "").strip().lower() == settings.ADMIN_USERNAME.strip().lower()
+    )
     return {
         "id": str(doc["_id"]),
         "_id": str(doc["_id"]),
@@ -33,6 +42,7 @@ def _clean_admin_doc(doc: dict) -> dict:
         "email": doc.get("email", ""),
         "full_name": doc.get("full_name", doc.get("name", "")),
         "role": doc.get("role", "admin"),
+        "is_system_admin": is_sys,
         "status": doc.get("status", "active"),
         "is_active": doc.get("is_active", True),
         "first_login": doc.get("first_login", False),
@@ -66,18 +76,25 @@ async def list_admins(
     return admins
 
 
-@router.post("", summary="Create a new administrator account (Admin Only)")
-@router.post("/", summary="Create a new administrator account (Admin Only)")
+@router.post("", summary="Create a new administrator account (System Admin Only)")
+@router.post("/", summary="Create a new administrator account (System Admin Only)")
 async def create_admin_account(
     req: CreateAdminRequest,
-    current_admin: dict = Depends(require_admin)
+    current_admin: dict = Depends(require_system_admin)
 ):
     """
-    Creates a new administrator account:
-    - Verifies unique username and email
-    - Hashes password using Argon2id
-    - Dispatches in-system admin notification
+    Creates a new generated administrator account:
+    - Restricted exclusively to the System Administrator.
+    - Generated admins have is_system_admin=False.
+    - Verifies unique username and email.
+    - Hashes password using Argon2id.
     """
+    if not is_system_admin_user(current_admin):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Permission denied. Only the System Administrator can create new administrator accounts."
+        )
+
     db = get_db()
     if db is None:
         raise HTTPException(
@@ -119,6 +136,7 @@ async def create_admin_account(
         "full_name": clean_full_name,
         "password_hash": hashed_pw,
         "role": "admin",
+        "is_system_admin": False,
         "status": "active",
         "is_active": True,
         "first_login": False,
@@ -153,16 +171,99 @@ async def create_admin_account(
     }
 
 
-@router.patch("/{admin_id}/toggle-status", summary="Toggle administrator active/inactive status (Admin Only)")
-async def toggle_admin_status(
+@router.patch("/{admin_id}/password", summary="Change administrator password")
+@router.put("/{admin_id}/password", summary="Change administrator password")
+async def change_admin_password(
     admin_id: str,
+    req: ChangeAdminPasswordRequest,
     current_admin: dict = Depends(require_admin)
 ):
     """
-    Enables or disables an administrator account.
-    Prevents self-deactivation and ensures at least one active admin exists.
+    Password change rules:
+    - System Admin can change ANY admin's password.
+    - Generated Admins can ONLY change their OWN password.
+    - Generated Admins are strictly forbidden from changing any other admin's password.
+    - System Administrator password cannot be modified by any generated admin.
     """
     db = get_db()
+    if db is None:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Database service unavailable.")
+
+    try:
+        target_oid = ObjectId(admin_id)
+    except Exception:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid administrator ID format.")
+
+    target_admin = await db.users.find_one({"_id": target_oid, "role": "admin"})
+    if not target_admin:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Administrator account not found.")
+
+    is_sys = is_system_admin_user(current_admin)
+    is_self = (str(current_admin.get("_id")) == admin_id or str(current_admin.get("id")) == admin_id)
+
+    # Generated admins can ONLY change their own password
+    if not is_sys and not is_self:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Permission denied. Generated administrators can only change their own password."
+        )
+
+    # Generated admin cannot touch system admin
+    if not is_sys and is_system_admin_user(target_admin):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Permission denied. You cannot modify the System Administrator's account."
+        )
+
+    if len(req.new_password) < 6:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Password must be at least 6 characters long.")
+
+    hashed_pw = hash_password(req.new_password)
+    now = datetime.now(timezone.utc)
+    await db.users.update_one(
+        {"_id": target_oid},
+        {"$set": {"password_hash": hashed_pw, "updated_at": now}}
+    )
+
+    if not is_self:
+        try:
+            await create_notification(
+                db=db,
+                recipient_user_id=target_oid,
+                title="Password Changed by System Administrator",
+                message=f"Your administrator password was reset by System Administrator ({current_admin.get('username')}).",
+                notification_type="admin_security",
+                related_entity_type="user",
+                related_entity_id=str(target_oid)
+            )
+        except Exception as e:
+            print(f"[ADMIN NOTIF] Failed to send password reset notice: {e}")
+
+    return {"message": "Administrator password updated successfully.", "admin_id": admin_id}
+
+
+@router.patch("/{admin_id}/toggle-status", summary="Toggle administrator active/inactive status (System Admin Only)")
+async def toggle_admin_status(
+    admin_id: str,
+    current_admin: dict = Depends(require_system_admin)
+):
+    """
+    Enables or disables an administrator account:
+    - Only the System Administrator can deactivate or activate administrators.
+    - Generated admins are strictly forbidden from toggling admin status.
+    - The System Administrator CANNOT be deactivated by anyone.
+    - Prevents self-deactivation.
+    """
+    if not is_system_admin_user(current_admin):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Permission denied. Only the System Administrator can activate or deactivate administrators."
+        )
+
+    db = get_db()
+    if db is None:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Database service unavailable.")
+
     try:
         target_oid = ObjectId(admin_id)
     except Exception:
@@ -178,6 +279,13 @@ async def toggle_admin_status(
     target_admin = await db.users.find_one({"_id": target_oid, "role": "admin"})
     if not target_admin:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Administrator account not found.")
+
+    # Cannot deactivate the System Administrator account
+    if is_system_admin_user(target_admin):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="The System Administrator account cannot be deactivated."
+        )
 
     is_currently_active = target_admin.get("is_active", True) and target_admin.get("status", "active") == "active"
     new_is_active = not is_currently_active
@@ -216,16 +324,28 @@ async def toggle_admin_status(
     }
 
 
-@router.delete("/{admin_id}", summary="Delete an administrator account (Admin Only)")
+@router.delete("/{admin_id}", summary="Delete an administrator account (System Admin Only)")
 async def delete_admin_account(
     admin_id: str,
-    current_admin: dict = Depends(require_admin)
+    current_admin: dict = Depends(require_system_admin)
 ):
     """
-    Permanently removes an administrator account.
-    Prevents self-deletion and ensures at least one active admin remains.
+    Permanently removes an administrator account:
+    - Only the System Administrator can delete administrators.
+    - Generated admins are strictly forbidden from deleting administrators.
+    - The System Administrator CANNOT be deleted.
+    - Prevents self-deletion.
     """
+    if not is_system_admin_user(current_admin):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Permission denied. Only the System Administrator can delete administrators."
+        )
+
     db = get_db()
+    if db is None:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Database service unavailable.")
+
     try:
         target_oid = ObjectId(admin_id)
     except Exception:
@@ -240,6 +360,12 @@ async def delete_admin_account(
     target_admin = await db.users.find_one({"_id": target_oid, "role": "admin"})
     if not target_admin:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Administrator account not found.")
+
+    if is_system_admin_user(target_admin):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="The System Administrator account cannot be deleted."
+        )
 
     active_admins_count = await db.users.count_documents({
         "role": "admin",

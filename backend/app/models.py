@@ -43,6 +43,7 @@ class UserResponse(BaseModel):
     username: str
     email: str
     role: str
+    is_system_admin: Optional[bool] = False
     status: str = "active"
     first_login: bool = False
     profile_completed: bool = True

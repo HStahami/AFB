@@ -93,6 +93,32 @@ require_instructor = require_roles(["instructor", "admin"])
 require_student = require_roles(["student", "admin"])
 
 
+def is_system_admin_user(user: dict) -> bool:
+    """
+    Returns True if the authenticated user is the Root / System Administrator.
+    """
+    if not user or user.get("role") != "admin":
+        return False
+    from app.config import settings
+    return (
+        user.get("is_system_admin") is True or
+        user.get("username", "").strip().lower() == settings.ADMIN_USERNAME.strip().lower()
+    )
+
+
+async def require_system_admin(current_user: dict = Depends(require_admin)) -> dict:
+    """
+    Ensures the authenticated admin is the System Administrator.
+    Restricts administrative actions such as deactivating other admins or creating new admins.
+    """
+    if not is_system_admin_user(current_user):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access forbidden: This action can only be performed by the System Administrator."
+        )
+    return current_user
+
+
 async def get_student_context(current_user: dict = Depends(get_current_user)) -> dict:
     """
     Ensures the user is a student or admin, and resolves their linked student record.

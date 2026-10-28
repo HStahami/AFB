@@ -69,27 +69,40 @@ async def init_database(db):
         print(f"[INIT DB] Note on user schema normalization: {e}")
 
 
-    # 2. Idempotent Admin Bootstrap
+    # 2. Idempotent Admin Bootstrap & System Administrator Security
     try:
-        admin_count = await db.users.count_documents({"role": "admin"})
-        if admin_count == 0:
-            admin_username = settings.ADMIN_USERNAME.strip().lower()
-            admin_email = (settings.EMAIL_FROM or f"{admin_username}@alarabia.edu").strip().lower()
+        admin_username = settings.ADMIN_USERNAME.strip().lower()
+        admin_email = (settings.EMAIL_FROM or f"{admin_username}@alarabia.edu").strip().lower()
+
+        existing_sys_admin = await db.users.find_one({"username": admin_username, "role": "admin"})
+        if not existing_sys_admin:
             admin_doc = {
                 "username": admin_username,
                 "email": admin_email,
                 "password_hash": hash_password(settings.ADMIN_PASSWORD),
                 "role": "admin",
+                "is_system_admin": True,
                 "status": "active",
+                "is_active": True,
                 "first_login": False,
                 "profile_completed": True,
                 "created_at": datetime.now(timezone.utc),
                 "updated_at": datetime.now(timezone.utc)
             }
             await db.users.insert_one(admin_doc)
-            print(f"[INIT DB] Bootstrapped initial admin: '{admin_username}' (Argon2id)")
+            print(f"[INIT DB] Bootstrapped System Administrator: '{admin_username}' (Argon2id)")
         else:
-            print("[INIT DB] Admin user already exists. Preserving existing account.")
+            # Enforce is_system_admin flag on system admin
+            await db.users.update_one(
+                {"_id": existing_sys_admin["_id"]},
+                {"$set": {"is_system_admin": True, "is_active": True, "status": "active"}}
+            )
+
+        # Enforce is_system_admin=False on all generated admins
+        await db.users.update_many(
+            {"username": {"$ne": admin_username}, "role": "admin", "is_system_admin": {"$ne": False}},
+            {"$set": {"is_system_admin": False}}
+        )
     except Exception as e:
         print(f"[INIT DB] Note on admin verification: {e}")
 

@@ -1,10 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Plus, Trash2, LogOut, Bell, CheckCircle2, Megaphone, Shield, MessageSquare, Send, RefreshCw, Mail, Award, Search } from 'lucide-react';
+import { Plus, Trash2, LogOut, Bell, CheckCircle2, Megaphone, Shield, MessageSquare, Send, RefreshCw, Mail, Award, Search, Key } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 import { API_BASE, getAvatarUrl } from '../../api/client';
 import { inputStyle } from '../../components/common/styles';
 import { notificationsApi, messagesApi, studentsApi } from '../../api';
 
 export function AdminDashboard({ onLogout }) {
+  const { user: authUser } = useAuth();
+  const isCurrentSystemAdmin = authUser?.is_system_admin === true || authUser?.username === 'admin';
   const [activeTab, setActiveTab] = useState('overview');
   const [stats, setStats] = useState({ total: 0, pending: 0, approved: 0, canceled: 0, total_students: 0, total_instructors: 0, total_modules: 0, graduated_students: 0, dropout_students: 0 });
   const [admissions, setAdmissions] = useState([]);
@@ -60,6 +63,12 @@ export function AdminDashboard({ onLogout }) {
   const [adminFormError, setAdminFormError] = useState('');
   const [showAddAdminModal, setShowAddAdminModal] = useState(false);
   const [isSubmittingAdmin, setIsSubmittingAdmin] = useState(false);
+  const [changePwdAdmin, setChangePwdAdmin] = useState(null);
+  const [resetPwdInput, setResetPwdInput] = useState('');
+  const [resetPwdConfirm, setResetPwdConfirm] = useState('');
+  const [resetPwdLoading, setResetPwdLoading] = useState(false);
+  const [resetPwdError, setResetPwdError] = useState('');
+  const [resetPwdSuccess, setResetPwdSuccess] = useState('');
 
   // Announcements Broadcast State
   const [bcTitle, setBcTitle] = useState('');
@@ -323,6 +332,56 @@ export function AdminDashboard({ onLogout }) {
       setAdminFormError(err.message || 'Error creating administrator account.');
     } finally {
       setIsSubmittingAdmin(false);
+    }
+  };
+
+  const handleOpenPasswordModal = (adm) => {
+    setChangePwdAdmin(adm);
+    setResetPwdInput('');
+    setResetPwdConfirm('');
+    setResetPwdError('');
+    setResetPwdSuccess('');
+  };
+
+  const handleResetAdminPassword = async (e) => {
+    e.preventDefault();
+    if (!resetPwdInput || resetPwdInput.length < 6) {
+      setResetPwdError('Password must be at least 6 characters long.');
+      return;
+    }
+    if (resetPwdInput !== resetPwdConfirm) {
+      setResetPwdError('Passwords do not match.');
+      return;
+    }
+
+    setResetPwdLoading(true);
+    setResetPwdError('');
+    setResetPwdSuccess('');
+
+    try {
+      const res = await fetch(`${API_BASE}/admins/${changePwdAdmin._id || changePwdAdmin.id}/password`, {
+        method: 'PATCH',
+        headers: {
+          ...headers,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ new_password: resetPwdInput })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.detail || 'Failed to update administrator password.');
+      }
+      setResetPwdSuccess('Password updated successfully!');
+      setTimeout(() => {
+        setChangePwdAdmin(null);
+        setResetPwdInput('');
+        setResetPwdConfirm('');
+        setResetPwdSuccess('');
+      }, 1400);
+    } catch (err) {
+      setResetPwdError(err.message || 'Failed to update administrator password.');
+    } finally {
+      setResetPwdLoading(false);
     }
   };
 
@@ -2382,17 +2441,24 @@ export function AdminDashboard({ onLogout }) {
                   Manage authorized administrator accounts, permissions, and security status.
                 </p>
               </div>
-              <button
-                onClick={() => {
-                  setAdminFormError('');
-                  setAdminFormSuccess('');
-                  setShowAddAdminModal(true);
-                }}
-                className="btn-primary"
-                style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '10px 18px', fontSize: '0.9rem', cursor: 'pointer' }}
-              >
-                <Plus size={16} /> Add Administrator
-              </button>
+              {isCurrentSystemAdmin ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAdminFormError('');
+                    setAdminFormSuccess('');
+                    setShowAddAdminModal(true);
+                  }}
+                  className="btn-primary"
+                  style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '10px 18px', fontSize: '0.9rem', cursor: 'pointer' }}
+                >
+                  <Plus size={16} /> Add Administrator
+                </button>
+              ) : (
+                <div style={{ color: '#8892b0', fontSize: '0.85rem', background: 'rgba(255,255,255,0.04)', padding: '6px 12px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.08)' }}>
+                  👑 Administrative management restricted to System Admin
+                </div>
+              )}
             </div>
 
             {/* Quick Stats & Search Bar */}
@@ -2469,17 +2535,34 @@ export function AdminDashboard({ onLogout }) {
                             <div style={{ color: '#e0e0e0', fontSize: '0.9rem' }}>{adm.email}</div>
                           </td>
                           <td style={tableCellStyle}>
-                            <span style={{
-                              padding: '3px 9px',
-                              borderRadius: '4px',
-                              fontSize: '0.78rem',
-                              fontWeight: '600',
-                              background: 'rgba(0, 168, 150, 0.2)',
-                              color: 'var(--color-primary)',
-                              border: '1px solid rgba(0, 168, 150, 0.35)'
-                            }}>
-                              Administrator
-                            </span>
+                            {adm.is_system_admin || adm.username === 'admin' ? (
+                              <span style={{
+                                padding: '3px 9px',
+                                borderRadius: '4px',
+                                fontSize: '0.78rem',
+                                fontWeight: '700',
+                                background: 'rgba(234, 179, 8, 0.15)',
+                                color: '#facc15',
+                                border: '1px solid rgba(234, 179, 8, 0.35)',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px'
+                              }}>
+                                👑 System Admin
+                              </span>
+                            ) : (
+                              <span style={{
+                                padding: '3px 9px',
+                                borderRadius: '4px',
+                                fontSize: '0.78rem',
+                                fontWeight: '600',
+                                background: 'rgba(0, 168, 150, 0.2)',
+                                color: 'var(--color-primary)',
+                                border: '1px solid rgba(0, 168, 150, 0.35)'
+                              }}>
+                                Administrator
+                              </span>
+                            )}
                           </td>
                           <td style={tableCellStyle}>
                             <span style={{
@@ -2500,35 +2583,92 @@ export function AdminDashboard({ onLogout }) {
                             </div>
                           </td>
                           <td style={tableCellStyle}>
-                            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                              <button
-                                onClick={() => handleToggleAdminStatus(adm._id || adm.id, adm.username)}
-                                className="glass-panel"
-                                style={{
-                                  padding: '5px 10px',
-                                  fontSize: '0.8rem',
-                                  cursor: 'pointer',
-                                  color: isActive ? '#e74c3c' : '#2ecc71',
-                                  border: isActive ? '1px solid rgba(231, 76, 60, 0.4)' : '1px solid rgba(46, 204, 113, 0.4)'
-                                }}
-                                title={isActive ? 'Deactivate this admin account' : 'Reactivate this admin account'}
-                              >
-                                {isActive ? 'Deactivate' : 'Activate'}
-                              </button>
-                              <button
-                                onClick={() => handleDeleteAdmin(adm._id || adm.id, adm.username)}
-                                className="glass-panel"
-                                style={{
-                                  padding: '5px 10px',
-                                  fontSize: '0.8rem',
-                                  cursor: 'pointer',
-                                  color: '#ff6b6b',
-                                  border: '1px solid rgba(255, 107, 107, 0.4)'
-                                }}
-                                title="Delete admin"
-                              >
-                                <Trash2 size={13} style={{ display: 'inline', verticalAlign: 'middle' }} />
-                              </button>
+                            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
+                              {/* Case 1: Logged in as System Admin */}
+                              {isCurrentSystemAdmin && (
+                                <>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleOpenPasswordModal(adm)}
+                                    className="glass-panel"
+                                    style={{
+                                      padding: '5px 10px',
+                                      fontSize: '0.8rem',
+                                      cursor: 'pointer',
+                                      color: 'var(--color-primary)',
+                                      border: '1px solid rgba(197, 229, 232, 0.35)',
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      gap: '4px'
+                                    }}
+                                    title={adm.username === authUser?.username ? 'Change your own password' : `Reset password for ${adm.username}`}
+                                  >
+                                    <Key size={13} /> {adm.username === authUser?.username ? 'Change Password' : 'Reset Password'}
+                                  </button>
+                                  {!(adm.is_system_admin || adm.username === 'admin') && (
+                                    <>
+                                      <button
+                                        type="button"
+                                        onClick={() => handleToggleAdminStatus(adm._id || adm.id, adm.username)}
+                                        className="glass-panel"
+                                        style={{
+                                          padding: '5px 10px',
+                                          fontSize: '0.8rem',
+                                          cursor: 'pointer',
+                                          color: isActive ? '#e74c3c' : '#2ecc71',
+                                          border: isActive ? '1px solid rgba(231, 76, 60, 0.4)' : '1px solid rgba(46, 204, 113, 0.4)'
+                                        }}
+                                        title={isActive ? 'Deactivate this admin account' : 'Reactivate this admin account'}
+                                      >
+                                        {isActive ? 'Deactivate' : 'Activate'}
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => handleDeleteAdmin(adm._id || adm.id, adm.username)}
+                                        className="glass-panel"
+                                        style={{
+                                          padding: '5px 10px',
+                                          fontSize: '0.8rem',
+                                          cursor: 'pointer',
+                                          color: '#ff6b6b',
+                                          border: '1px solid rgba(255, 107, 107, 0.4)'
+                                        }}
+                                        title="Delete admin"
+                                      >
+                                        <Trash2 size={13} style={{ display: 'inline', verticalAlign: 'middle' }} />
+                                      </button>
+                                    </>
+                                  )}
+                                </>
+                              )}
+
+                              {/* Case 2: Logged in as Generated Admin */}
+                              {!isCurrentSystemAdmin && (
+                                (adm.username === authUser?.username || (authUser?.id && (authUser.id === adm._id || authUser.id === adm.id))) ? (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleOpenPasswordModal(adm)}
+                                    className="glass-panel"
+                                    style={{
+                                      padding: '5px 10px',
+                                      fontSize: '0.8rem',
+                                      cursor: 'pointer',
+                                      color: 'var(--color-primary)',
+                                      border: '1px solid rgba(197, 229, 232, 0.35)',
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      gap: '4px'
+                                    }}
+                                    title="Change your own password"
+                                  >
+                                    <Key size={13} /> Change My Password
+                                  </button>
+                                ) : (
+                                  <span style={{ color: '#64748b', fontSize: '0.8rem', fontStyle: 'italic' }}>
+                                    Restricted
+                                  </span>
+                                )
+                              )}
                             </div>
                           </td>
                         </tr>
@@ -2829,6 +2969,122 @@ export function AdminDashboard({ onLogout }) {
           </div>
         )}
       </div>
+
+            {/* Change / Reset Admin Password Modal */}
+      {changePwdAdmin && (
+        <div
+          role="button"
+          tabIndex={0}
+          aria-label="Close password modal"
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100vw',
+            height: '100vh',
+            background: 'rgba(3, 15, 16, 0.88)',
+            backdropFilter: 'blur(10px)',
+            WebkitBackdropFilter: 'blur(10px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999,
+            padding: '1rem'
+          }}
+          onClick={() => setChangePwdAdmin(null)}
+          onKeyDown={(e) => { if (e.key === 'Escape') setChangePwdAdmin(null); }}
+        >
+          <div
+            role="presentation"
+            style={{
+              background: '#092528',
+              border: '1px solid rgba(197, 229, 232, 0.25)',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.7)',
+              borderRadius: '12px',
+              width: '100%',
+              maxWidth: '460px',
+              padding: '2rem',
+              position: 'relative'
+            }}
+            onClick={(e) => e.stopPropagation()}
+            onKeyDown={(e) => e.stopPropagation()}
+          >
+            <h3 style={{ color: 'var(--color-white)', marginTop: 0, marginBottom: '0.4rem', fontSize: '1.3rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Key size={18} color="var(--color-primary)" />
+              {isCurrentSystemAdmin && (changePwdAdmin._id !== authUser?.id && changePwdAdmin.username !== authUser?.username)
+                ? `Reset Password: ${changePwdAdmin.username}`
+                : 'Change My Password'}
+            </h3>
+            <p style={{ color: '#aaa', fontSize: '0.85rem', marginBottom: '1.5rem' }}>
+              Enter a new secure password (minimum 6 characters).
+            </p>
+
+            {resetPwdError && (
+              <div style={{ background: 'rgba(231, 76, 60, 0.15)', border: '1px solid rgba(231, 76, 60, 0.3)', color: '#ff6b6b', padding: '10px 14px', borderRadius: '6px', fontSize: '0.88rem', marginBottom: '1rem' }}>
+                {resetPwdError}
+              </div>
+            )}
+            {resetPwdSuccess && (
+              <div style={{ background: 'rgba(46, 204, 113, 0.15)', border: '1px solid rgba(46, 204, 113, 0.3)', color: '#2ecc71', padding: '10px 14px', borderRadius: '6px', fontSize: '0.88rem', marginBottom: '1rem' }}>
+                {resetPwdSuccess}
+              </div>
+            )}
+
+            <form onSubmit={handleResetAdminPassword}>
+              <div style={{ marginBottom: '1rem' }}>
+                <label htmlFor="admin_reset_new_pwd" style={{ display: 'block', color: 'var(--color-white)', fontSize: '0.85rem', marginBottom: '4px', fontWeight: 500 }}>
+                  New Password *
+                </label>
+                <input
+                  id="admin_reset_new_pwd"
+                  type="password"
+                  required
+                  minLength={6}
+                  placeholder="Enter new password (min 6 chars)"
+                  value={resetPwdInput}
+                  onChange={(e) => setResetPwdInput(e.target.value)}
+                  style={inputStyle}
+                />
+              </div>
+
+              <div style={{ marginBottom: '1.5rem' }}>
+                <label htmlFor="admin_reset_confirm_pwd" style={{ display: 'block', color: 'var(--color-white)', fontSize: '0.85rem', marginBottom: '4px', fontWeight: 500 }}>
+                  Confirm New Password *
+                </label>
+                <input
+                  id="admin_reset_confirm_pwd"
+                  type="password"
+                  required
+                  minLength={6}
+                  placeholder="Confirm new password"
+                  value={resetPwdConfirm}
+                  onChange={(e) => setResetPwdConfirm(e.target.value)}
+                  style={inputStyle}
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+                <button
+                  type="button"
+                  onClick={() => setChangePwdAdmin(null)}
+                  className="glass-panel"
+                  style={{ padding: '8px 18px', border: 'none', color: '#cbd5e1', cursor: 'pointer', fontSize: '0.88rem' }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={resetPwdLoading}
+                  className="btn-primary"
+                  style={{ padding: '8px 20px', cursor: resetPwdLoading ? 'not-allowed' : 'pointer', fontSize: '0.88rem', opacity: resetPwdLoading ? 0.7 : 1 }}
+                >
+                  {resetPwdLoading ? 'Saving...' : 'Update Password'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Create New Admin Modal */}
       {showAddAdminModal && (
