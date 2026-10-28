@@ -168,7 +168,7 @@ export function JitsiClassroom({
     };
 
     const currentContainer = containerRef.current;
-    initJitsi();
+    void initJitsi();
 
     return () => {
       isMounted = false;

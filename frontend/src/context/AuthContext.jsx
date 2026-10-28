@@ -71,7 +71,7 @@ export function AuthProvider({ children }) {
       }
     };
 
-    verifySession();
+    void verifySession();
 
     const handleExpired = () => logout();
     window.addEventListener("auth-expired", handleExpired);

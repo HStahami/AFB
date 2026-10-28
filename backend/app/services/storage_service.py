@@ -1,6 +1,7 @@
 import os
 import re
 import uuid
+import anyio
 from typing import Optional
 from fastapi import UploadFile
 from app.config import settings
@@ -115,10 +116,10 @@ async def upload_media_file(
             "Media storage service (Cloudinary) is not configured for production environment."
         )
 
-    os.makedirs("uploads", exist_ok=True)
-    filepath = os.path.join("uploads", safe_filename)
-    with open(filepath, "wb") as f:
-        f.write(content)
+    uploads_dir = anyio.Path("uploads")
+    await uploads_dir.mkdir(parents=True, exist_ok=True)
+    filepath = uploads_dir / safe_filename
+    await filepath.write_bytes(content)
     return f"/uploads/{safe_filename}"
 
 

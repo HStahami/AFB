@@ -2,7 +2,7 @@ import sys
 import os
 import argparse
 import asyncio
-from datetime import datetime
+from datetime import datetime, timezone
 
 # Add backend directory to sys.path
 backend_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "backend"))
@@ -54,8 +54,8 @@ async def create_admin(username: str, email: str, password: str):
             "is_active": True,
             "first_login": False,
             "profile_completed": True,
-            "created_at": datetime.utcnow(),
-            "updated_at": datetime.utcnow()
+            "created_at": datetime.now(timezone.utc),
+            "updated_at": datetime.now(timezone.utc)
         }
 
         res = await db.users.insert_one(admin_doc)

@@ -56,8 +56,8 @@ export function InstructorLayout({ children }) {
         // silent fallback
       }
     };
-    fetchUnread();
-    const interval = setInterval(fetchUnread, 30000);
+    void fetchUnread();
+    const interval = setInterval(() => { void fetchUnread(); }, 30000);
     return () => clearInterval(interval);
   }, []);
 
@@ -277,12 +277,18 @@ export function InstructorLayout({ children }) {
       {/* Mobile Drawer (Slide-over overlay on mobile) */}
       {mobileOpen && (
         <div
+          role="button"
+          tabIndex={0}
+          aria-label="Close mobile menu"
           className="portal-mobile-drawer-backdrop"
           onClick={() => setMobileOpen(false)}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ' || e.key === 'Escape') setMobileOpen(false); }}
         >
           <div
+            role="presentation"
             className="portal-mobile-drawer"
             onClick={(e) => e.stopPropagation()}
+            onKeyDown={(e) => e.stopPropagation()}
           >
             {/* Drawer Header */}
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingBottom: "1rem", borderBottom: "1px solid rgba(255, 255, 255, 0.08)" }}>
@@ -480,10 +486,11 @@ export function InstructorLayout({ children }) {
 
             <form onSubmit={handlePasswordChange} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
               <div>
-                <label style={{ display: "block", fontSize: "0.8rem", marginBottom: "0.35rem", color: "#b0c4c6" }}>
+                <label htmlFor="inst_old_password" style={{ display: "block", fontSize: "0.8rem", marginBottom: "0.35rem", color: "#b0c4c6" }}>
                   Current Temporary Password
                 </label>
                 <input
+                  id="inst_old_password"
                   type="password"
                   value={oldPassword}
                   onChange={(e) => setOldPassword(e.target.value)}
@@ -494,10 +501,11 @@ export function InstructorLayout({ children }) {
               </div>
 
               <div>
-                <label style={{ display: "block", fontSize: "0.8rem", marginBottom: "0.35rem", color: "#b0c4c6" }}>
+                <label htmlFor="inst_new_password" style={{ display: "block", fontSize: "0.8rem", marginBottom: "0.35rem", color: "#b0c4c6" }}>
                   New Secure Password
                 </label>
                 <input
+                  id="inst_new_password"
                   type="password"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
@@ -508,10 +516,11 @@ export function InstructorLayout({ children }) {
               </div>
 
               <div>
-                <label style={{ display: "block", fontSize: "0.8rem", marginBottom: "0.35rem", color: "#b0c4c6" }}>
+                <label htmlFor="inst_confirm_password" style={{ display: "block", fontSize: "0.8rem", marginBottom: "0.35rem", color: "#b0c4c6" }}>
                   Confirm New Password
                 </label>
                 <input
+                  id="inst_confirm_password"
                   type="password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}

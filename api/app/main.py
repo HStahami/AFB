@@ -3,6 +3,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 import os
+from pathlib import Path
 from app.database import connect_to_mongo, close_mongo_connection
 from app.routers import (
     admissions, students, instructors, modules, slots, contact, auth, dashboard,
@@ -202,10 +203,14 @@ if os.path.exists(frontend_dist):
     async def serve_spa(full_path: str = ""):
         if full_path.startswith("api") or full_path.startswith("uploads") or full_path in ["docs", "redoc", "openapi.json", "health"]:
             return {"detail": "Not Found"}
-        file_path = os.path.join(frontend_dist, full_path)
-        if full_path and os.path.isfile(file_path):
-            return FileResponse(file_path)
-        return FileResponse(os.path.join(frontend_dist, "index.html"))
+        base_path = Path(frontend_dist).resolve()
+        try:
+            target_path = (base_path / full_path.lstrip("/\\")).resolve()
+            if (base_path in target_path.parents or target_path == base_path) and full_path and target_path.is_file():
+                return FileResponse(str(target_path))
+        except (ValueError, RuntimeError):
+            pass
+        return FileResponse(str(base_path / "index.html"))
 else:
     @app.get("/", tags=["Health"])
     async def root():

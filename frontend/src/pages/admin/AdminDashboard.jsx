@@ -142,7 +142,7 @@ export function AdminDashboard({ onLogout }) {
         const first = list[0];
         const firstId = first.thread_id || first._id || first.id;
         setAuditActiveThread(first);
-        if (firstId) fetchAuditHistory(firstId);
+        if (firstId) void fetchAuditHistory(firstId);
       }
     } catch (err) {
       console.error("Error fetching audit threads:", err);
@@ -167,7 +167,7 @@ export function AdminDashboard({ onLogout }) {
   const handleSelectAuditThread = (thread) => {
     const threadId = thread.thread_id || thread._id || thread.id;
     setAuditActiveThread(thread);
-    if (threadId) fetchAuditHistory(threadId);
+    if (threadId) void fetchAuditHistory(threadId);
   };
 
   const token = localStorage.getItem('token') || localStorage.getItem('adminToken');
@@ -247,14 +247,14 @@ export function AdminDashboard({ onLogout }) {
   const handleMarkAllNotifsRead = async () => {
     try {
       await fetch(`${API_BASE}/notifications/read-all`, { method: 'PATCH', headers });
-      fetchNotifications();
+      void fetchNotifications();
     } catch (e) { console.error(e); }
   };
 
   const handleMarkSingleNotifRead = async (id) => {
     try {
       await fetch(`${API_BASE}/notifications/${id}/read`, { method: 'PATCH', headers });
-      fetchNotifications();
+      void fetchNotifications();
     } catch (e) { console.error(e); }
   };
 
@@ -314,7 +314,7 @@ export function AdminDashboard({ onLogout }) {
       setNewAdminFullName('');
       setNewAdminPassword('');
       setNewAdminConfirmPassword('');
-      fetchAdmins();
+      void fetchAdmins();
       setTimeout(() => {
         setShowAddAdminModal(false);
         setAdminFormSuccess('');
@@ -337,7 +337,7 @@ export function AdminDashboard({ onLogout }) {
         alert(data.detail || 'Failed to update administrator status.');
         return;
       }
-      fetchAdmins();
+      await fetchAdmins();
     } catch {
       alert('Error updating administrator status.');
     }
@@ -357,7 +357,7 @@ export function AdminDashboard({ onLogout }) {
         alert(data.detail || 'Failed to delete administrator account.');
         return;
       }
-      fetchAdmins();
+      await fetchAdmins();
     } catch {
       alert('Error deleting administrator account.');
     }
@@ -373,8 +373,8 @@ export function AdminDashboard({ onLogout }) {
         if (viewingStudent && (viewingStudent._id === studentId || viewingStudent.id === studentId)) {
           setViewingStudent(prev => prev ? { ...prev, update_requested: false, update_request_note: null } : null);
         }
-        fetchStudents();
-        fetchNotifications();
+        await fetchStudents();
+        await fetchNotifications();
       }
     } catch (err) {
       console.error('Error dismissing update request:', err);
@@ -382,27 +382,27 @@ export function AdminDashboard({ onLogout }) {
   };
 
   useEffect(() => {
-    fetchStats();
-    fetchInstructors();
-    fetchSlots();
-    fetchNotifications();
+    void fetchStats();
+    void fetchInstructors();
+    void fetchSlots();
+    void fetchNotifications();
 
-    const notifTimer = setInterval(fetchNotifications, 25000);
+    const notifTimer = setInterval(() => { void fetchNotifications(); }, 25000);
 
-    if (activeTab === 'admissions') fetchAdmissions();
+    if (activeTab === 'admissions') void fetchAdmissions();
     if (activeTab === 'students' || activeTab === 'graduates' || activeTab === 'dropouts') { 
-      fetchStudents(); 
-      fetchInstructors(); 
-      fetchSlots(); 
+      void fetchStudents(); 
+      void fetchInstructors(); 
+      void fetchSlots(); 
     }
-    if (activeTab === 'instructors') fetchInstructors();
-    if (activeTab === 'modules') fetchModules();
-    if (activeTab === 'slots') fetchSlots();
-    if (activeTab === 'contacts') fetchContacts();
-    if (activeTab === 'notifications') fetchNotifications();
-    if (activeTab === 'admins') fetchAdmins();
-    if (activeTab === 'announcements') { fetchStudents(); fetchInstructors(); }
-    if (activeTab === 'chataudit') fetchAuditThreads();
+    if (activeTab === 'instructors') void fetchInstructors();
+    if (activeTab === 'modules') void fetchModules();
+    if (activeTab === 'slots') void fetchSlots();
+    if (activeTab === 'contacts') void fetchContacts();
+    if (activeTab === 'notifications') void fetchNotifications();
+    if (activeTab === 'admins') void fetchAdmins();
+    if (activeTab === 'announcements') { void fetchStudents(); void fetchInstructors(); }
+    if (activeTab === 'chataudit') void fetchAuditThreads();
 
     return () => clearInterval(notifTimer);
   }, [activeTab]);
@@ -412,7 +412,7 @@ export function AdminDashboard({ onLogout }) {
       const res = await fetch(`${API_BASE}/admissions/${id}/send-fee-email`, { method: 'PATCH', headers });
       if (!res.ok) throw new Error();
       alert("Fee email queued!");
-      fetchAdmissions();
+      await fetchAdmissions();
     } catch { alert("Failed to send fee email"); }
   };
 
@@ -421,8 +421,8 @@ export function AdminDashboard({ onLogout }) {
       const res = await fetch(`${API_BASE}/admissions/${id}/approve`, { method: 'PATCH', headers });
       if (!res.ok) throw new Error();
       alert("Admission Approved! Student record created.");
-      fetchAdmissions();
-      fetchStats();
+      await fetchAdmissions();
+      await fetchStats();
     } catch { alert("Failed to approve"); }
   };
 
@@ -431,8 +431,8 @@ export function AdminDashboard({ onLogout }) {
       const res = await fetch(`${API_BASE}/admissions/${id}/cancel`, { method: 'PATCH', headers });
       if (!res.ok) throw new Error();
       alert("Admission Canceled.");
-      fetchAdmissions();
-      fetchStats();
+      await fetchAdmissions();
+      await fetchStats();
     } catch { alert("Failed to cancel"); }
   };
 
@@ -575,8 +575,8 @@ export function AdminDashboard({ onLogout }) {
       setSelectedFile(null);
       setEditingInstId(null);
       if (fileInputRef.current) fileInputRef.current.value = "";
-      fetchInstructors();
-      fetchStats();
+      await fetchInstructors();
+      await fetchStats();
     } catch (e) {
       console.error(e);
       setInstFormError(e.message || "Failed to save instructor. Please try again.");
@@ -631,8 +631,8 @@ export function AdminDashboard({ onLogout }) {
     try {
       const res = await fetch(`${API_BASE}/instructors/${id}`, { method: 'DELETE', headers });
       if (!res.ok) throw new Error();
-      fetchInstructors();
-      fetchStats();
+      await fetchInstructors();
+      await fetchStats();
     } catch { alert("Failed to delete instructor"); }
   };
 
@@ -668,8 +668,8 @@ export function AdminDashboard({ onLogout }) {
       setModFile(null);
       setEditingModId(null);
       if (modFileInputRef.current) modFileInputRef.current.value = "";
-      fetchModules();
-      fetchStats();
+      await fetchModules();
+      await fetchStats();
     } catch (e) {
       console.error(e);
       setModFormError("Failed to save module. Please try again.");
@@ -702,8 +702,8 @@ export function AdminDashboard({ onLogout }) {
     try {
       const res = await fetch(`${API_BASE}/modules/${id}`, { method: 'DELETE', headers });
       if (!res.ok) throw new Error();
-      fetchModules();
-      fetchStats();
+      await fetchModules();
+      await fetchStats();
     } catch { alert("Failed to delete module"); }
   };
 
@@ -734,8 +734,8 @@ export function AdminDashboard({ onLogout }) {
       setSlotTime('');
       setSlotStatus('Active');
       setEditingSlotId(null);
-      fetchSlots();
-      fetchStats();
+      await fetchSlots();
+      await fetchStats();
     } catch (e) {
       console.error(e);
       setSlotFormError("Failed to save slot. Please try again.");
@@ -765,8 +765,8 @@ export function AdminDashboard({ onLogout }) {
     try {
       const res = await fetch(`${API_BASE}/slots/${id}`, { method: 'DELETE', headers });
       if (!res.ok) throw new Error();
-      fetchSlots();
-      fetchStats();
+      await fetchSlots();
+      await fetchStats();
     } catch { alert("Failed to delete slot"); }
   };
 
@@ -780,7 +780,7 @@ export function AdminDashboard({ onLogout }) {
       if (!res.ok) throw new Error();
       alert("Slot & Instructor assigned! Email sent to student.");
       setSelectedStudent(null);
-      fetchStudents();
+      await fetchStudents();
     } catch { alert("Failed to assign"); }
   };
 
@@ -2692,7 +2692,7 @@ export function AdminDashboard({ onLogout }) {
               <div className="glass-panel" style={{ padding: '1.2rem', borderRadius: '12px', display: 'flex', flexDirection: 'column' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                   <h3 style={{ color: '#fff', fontSize: '1.05rem', margin: 0, fontWeight: 'bold' }}>Active Threads</h3>
-                  <button onClick={fetchAuditThreads} className="btn-secondary" style={{ padding: '4px 8px', fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <button onClick={() => { void fetchAuditThreads(); }} className="btn-secondary" style={{ padding: '4px 8px', fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
                     <RefreshCw size={12} /> Refresh
                   </button>
                 </div>

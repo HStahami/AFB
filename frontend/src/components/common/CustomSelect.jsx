@@ -20,7 +20,10 @@ export function CustomSelect({ options, placeholder }) {
 
   return (
     <div ref={dropdownRef} style={{ position: 'relative', width: '100%', textAlign: 'left' }}>
-      <div
+      <button
+        type="button"
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
         onClick={() => setIsOpen(!isOpen)}
         style={{
           ...inputStyle,
@@ -28,12 +31,14 @@ export function CustomSelect({ options, placeholder }) {
           justifyContent: 'space-between',
           alignItems: 'center',
           cursor: 'pointer',
-          color: selected ? 'var(--color-white)' : 'rgba(255,255,255,0.6)'
+          color: selected ? 'var(--color-white)' : 'rgba(255,255,255,0.6)',
+          width: '100%',
+          textAlign: 'left'
         }}
       >
         {selected ? selected.label : placeholder}
         <ChevronDown size={20} style={{ transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.3s' }} />
-      </div>
+      </button>
 
       <AnimatePresence>
         {isOpen && (
@@ -57,21 +62,29 @@ export function CustomSelect({ options, placeholder }) {
             }}
           >
             {options.map((option) => (
-              <div
+              <button
+                type="button"
                 key={option.value}
                 onClick={() => { setSelected(option); setIsOpen(false); }}
                 style={{
+                  width: '100%',
+                  textAlign: 'left',
+                  background: 'none',
+                  border: 'none',
+                  outline: 'none',
                   padding: '16px',
                   cursor: 'pointer',
                   color: 'var(--color-white)',
                   transition: 'background 0.2s',
-                  borderBottom: '1px solid rgba(255,255,255,0.05)'
+                  borderBottom: '1px solid rgba(255,255,255,0.05)',
+                  fontSize: 'inherit',
+                  fontFamily: 'inherit'
                 }}
                 onMouseOver={(e) => e.currentTarget.style.background = 'rgba(197, 229, 232, 0.1)'}
                 onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
               >
                 {option.label}
-              </div>
+              </button>
             ))}
           </motion.div>
         )}

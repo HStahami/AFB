@@ -34,8 +34,8 @@ export function StudentLayout({ children }) {
   const needsOnboarding = !!(user?.first_login || !user?.profile_completed);
 
   useEffect(() => {
-    loadUnreadNotifications();
-    const interval = setInterval(loadUnreadNotifications, 8000);
+    void loadUnreadNotifications();
+    const interval = setInterval(() => { void loadUnreadNotifications(); }, 8000);
     return () => clearInterval(interval);
   }, [location.pathname]);
 
@@ -298,12 +298,18 @@ export function StudentLayout({ children }) {
       {/* Mobile Drawer (Slide-over overlay on mobile) */}
       {mobileOpen && (
         <div
+          role="button"
+          tabIndex={0}
+          aria-label="Close mobile menu"
           className="portal-mobile-drawer-backdrop"
           onClick={() => setMobileOpen(false)}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ' || e.key === 'Escape') setMobileOpen(false); }}
         >
           <div
+            role="presentation"
             className="portal-mobile-drawer"
             onClick={(e) => e.stopPropagation()}
+            onKeyDown={(e) => e.stopPropagation()}
           >
             {/* Drawer Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '1rem', borderBottom: '1px solid rgba(255, 255, 255, 0.08)' }}>

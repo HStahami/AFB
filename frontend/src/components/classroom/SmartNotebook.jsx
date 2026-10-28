@@ -50,7 +50,7 @@ export function SmartNotebook({ slotId, slotName, initialNoteId = null, isInstru
         console.error('Error fetching initial note:', err);
       }
     };
-    fetchExisting();
+    void fetchExisting();
     return () => { isMounted = false; };
   }, [slotId, initialNoteId]);
 
@@ -92,7 +92,7 @@ export function SmartNotebook({ slotId, slotName, initialNoteId = null, isInstru
 
     if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
     saveTimeoutRef.current = setTimeout(() => {
-      saveNote(title, val);
+      void saveNote(title, val);
     }, 1200);
   };
 
@@ -103,12 +103,12 @@ export function SmartNotebook({ slotId, slotName, initialNoteId = null, isInstru
 
     if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
     saveTimeoutRef.current = setTimeout(() => {
-      saveNote(val, content);
+      void saveNote(val, content);
     }, 1200);
   };
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(`${title}\n\n${content}`);
+    void navigator.clipboard.writeText(`${title}\n\n${content}`);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };

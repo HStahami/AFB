@@ -50,7 +50,7 @@ export function OnboardingModal({ user, onComplete }) {
   const [profileError, setProfileError] = useState(null);
 
   useEffect(() => {
-    loadInitialData();
+    void loadInitialData();
   }, []);
 
   const loadInitialData = async () => {
@@ -362,11 +362,12 @@ export function OnboardingModal({ user, onComplete }) {
             )}
 
             <div>
-              <label style={{ display: 'block', fontSize: '0.85rem', color: '#cbd5e1', marginBottom: '0.4rem', fontWeight: 500 }}>
+              <label htmlFor="onb_current_password" style={{ display: 'block', fontSize: '0.85rem', color: '#cbd5e1', marginBottom: '0.4rem', fontWeight: 500 }}>
                 Temporary / Current Password *
               </label>
               <div style={{ position: 'relative' }}>
                 <input
+                  id="onb_current_password"
                   type={showCurrPass ? 'text' : 'password'}
                   required
                   placeholder="Enter the password provided in your email"
@@ -397,11 +398,12 @@ export function OnboardingModal({ user, onComplete }) {
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: '0.85rem', color: '#cbd5e1', marginBottom: '0.4rem', fontWeight: 500 }}>
+              <label htmlFor="onb_new_password" style={{ display: 'block', fontSize: '0.85rem', color: '#cbd5e1', marginBottom: '0.4rem', fontWeight: 500 }}>
                 New Secure Password * (Minimum 8 characters)
               </label>
               <div style={{ position: 'relative' }}>
                 <input
+                  id="onb_new_password"
                   type={showNewPass ? 'text' : 'password'}
                   required
                   minLength={8}
@@ -433,11 +435,12 @@ export function OnboardingModal({ user, onComplete }) {
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: '0.85rem', color: '#cbd5e1', marginBottom: '0.4rem', fontWeight: 500 }}>
+              <label htmlFor="onb_confirm_password" style={{ display: 'block', fontSize: '0.85rem', color: '#cbd5e1', marginBottom: '0.4rem', fontWeight: 500 }}>
                 Confirm New Password *
               </label>
               <div style={{ position: 'relative' }}>
                 <input
+                  id="onb_confirm_password"
                   type={showConfirmPass ? 'text' : 'password'}
                   required
                   minLength={8}
@@ -517,10 +520,11 @@ export function OnboardingModal({ user, onComplete }) {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
                 {/* 1. Name (from admission form, read-only) */}
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.8rem', color: '#94a3b8', marginBottom: '0.35rem', fontWeight: 500 }}>
+                  <label htmlFor="onb_name" style={{ display: 'block', fontSize: '0.8rem', color: '#94a3b8', marginBottom: '0.35rem', fontWeight: 500 }}>
                     Name
                   </label>
                   <input
+                    id="onb_name"
                     type="text"
                     value={profileData.name}
                     disabled
@@ -540,10 +544,11 @@ export function OnboardingModal({ user, onComplete }) {
 
                 {/* 2. Father/Guardian Name */}
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.8rem', color: '#cbd5e1', marginBottom: '0.35rem', fontWeight: 500 }}>
+                  <label htmlFor="onb_guardian_name" style={{ display: 'block', fontSize: '0.8rem', color: '#cbd5e1', marginBottom: '0.35rem', fontWeight: 500 }}>
                     Father / Guardian Name *
                   </label>
                   <input
+                    id="onb_guardian_name"
                     type="text"
                     required
                     placeholder="Enter Father or Guardian Name"
@@ -564,10 +569,11 @@ export function OnboardingModal({ user, onComplete }) {
 
                 {/* 3. Email (from admission form, read-only) */}
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.8rem', color: '#94a3b8', marginBottom: '0.35rem', fontWeight: 500 }}>
+                  <label htmlFor="onb_email" style={{ display: 'block', fontSize: '0.8rem', color: '#94a3b8', marginBottom: '0.35rem', fontWeight: 500 }}>
                     Email
                   </label>
                   <input
+                    id="onb_email"
                     type="email"
                     value={profileData.email}
                     disabled
@@ -587,10 +593,11 @@ export function OnboardingModal({ user, onComplete }) {
 
                 {/* 4. Phone Number (prefilled from admission) */}
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.8rem', color: '#cbd5e1', marginBottom: '0.35rem', fontWeight: 500 }}>
+                  <label htmlFor="onb_phone" style={{ display: 'block', fontSize: '0.8rem', color: '#cbd5e1', marginBottom: '0.35rem', fontWeight: 500 }}>
                     Phone Number *
                   </label>
                   <input
+                    id="onb_phone"
                     type="tel"
                     required
                     placeholder="e.g. +92 300 1234567"
@@ -611,10 +618,11 @@ export function OnboardingModal({ user, onComplete }) {
 
                 {/* 5. Father/Guardian Number */}
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.8rem', color: '#cbd5e1', marginBottom: '0.35rem', fontWeight: 500 }}>
+                  <label htmlFor="onb_guardian_phone" style={{ display: 'block', fontSize: '0.8rem', color: '#cbd5e1', marginBottom: '0.35rem', fontWeight: 500 }}>
                     Father / Guardian Number *
                   </label>
                   <input
+                    id="onb_guardian_phone"
                     type="tel"
                     required
                     placeholder="e.g. +92 300 7654321"
@@ -635,10 +643,11 @@ export function OnboardingModal({ user, onComplete }) {
 
                 {/* 6. Date of Birth */}
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.8rem', color: '#cbd5e1', marginBottom: '0.35rem', fontWeight: 500 }}>
+                  <label htmlFor="onb_dob" style={{ display: 'block', fontSize: '0.8rem', color: '#cbd5e1', marginBottom: '0.35rem', fontWeight: 500 }}>
                     Date of Birth *
                   </label>
                   <input
+                    id="onb_dob"
                     type="date"
                     required
                     value={profileData.date_of_birth}
@@ -658,10 +667,11 @@ export function OnboardingModal({ user, onComplete }) {
 
                 {/* 7. Country */}
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.8rem', color: '#cbd5e1', marginBottom: '0.35rem', fontWeight: 500 }}>
+                  <label htmlFor="onb_country" style={{ display: 'block', fontSize: '0.8rem', color: '#cbd5e1', marginBottom: '0.35rem', fontWeight: 500 }}>
                     Country *
                   </label>
                   <input
+                    id="onb_country"
                     type="text"
                     required
                     placeholder="e.g. Pakistan, Saudi Arabia, UAE, UK"
@@ -682,10 +692,11 @@ export function OnboardingModal({ user, onComplete }) {
 
                 {/* 8. City */}
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.8rem', color: '#cbd5e1', marginBottom: '0.35rem', fontWeight: 500 }}>
+                  <label htmlFor="onb_city" style={{ display: 'block', fontSize: '0.8rem', color: '#cbd5e1', marginBottom: '0.35rem', fontWeight: 500 }}>
                     City *
                   </label>
                   <input
+                    id="onb_city"
                     type="text"
                     required
                     placeholder="e.g. Lahore, Riyadh, Dubai, London"
@@ -706,10 +717,11 @@ export function OnboardingModal({ user, onComplete }) {
 
                 {/* 9. Address */}
                 <div style={{ gridColumn: '1 / -1' }}>
-                  <label style={{ display: 'block', fontSize: '0.8rem', color: '#cbd5e1', marginBottom: '0.35rem', fontWeight: 500 }}>
+                  <label htmlFor="onb_address" style={{ display: 'block', fontSize: '0.8rem', color: '#cbd5e1', marginBottom: '0.35rem', fontWeight: 500 }}>
                     Address *
                   </label>
                   <input
+                    id="onb_address"
                     type="text"
                     required
                     placeholder="Residential address / street area"
@@ -739,10 +751,11 @@ export function OnboardingModal({ user, onComplete }) {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem' }}>
                 {/* 10. Education */}
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.8rem', color: '#cbd5e1', marginBottom: '0.35rem', fontWeight: 500 }}>
+                  <label htmlFor="onb_education" style={{ display: 'block', fontSize: '0.8rem', color: '#cbd5e1', marginBottom: '0.35rem', fontWeight: 500 }}>
                     Education *
                   </label>
                   <select
+                    id="onb_education"
                     required
                     value={profileData.education}
                     onChange={(e) => setProfileData({ ...profileData, education: e.target.value })}
@@ -770,10 +783,11 @@ export function OnboardingModal({ user, onComplete }) {
 
                 {/* 11. How did you hear about us? */}
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.8rem', color: '#cbd5e1', marginBottom: '0.35rem', fontWeight: 500 }}>
+                  <label htmlFor="onb_referral_source" style={{ display: 'block', fontSize: '0.8rem', color: '#cbd5e1', marginBottom: '0.35rem', fontWeight: 500 }}>
                     How did you hear about us? *
                   </label>
                   <select
+                    id="onb_referral_source"
                     required
                     value={profileData.referral_source}
                     onChange={(e) => setProfileData({ ...profileData, referral_source: e.target.value })}
@@ -809,10 +823,11 @@ export function OnboardingModal({ user, onComplete }) {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
                 {/* Course */}
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.8rem', color: '#cbd5e1', marginBottom: '0.35rem', fontWeight: 500 }}>
+                  <label htmlFor="onb_course" style={{ display: 'block', fontSize: '0.8rem', color: '#cbd5e1', marginBottom: '0.35rem', fontWeight: 500 }}>
                     Course *
                   </label>
                   <select
+                    id="onb_course"
                     required
                     value={profileData.course}
                     onChange={(e) => handleCourseChange(e.target.value)}
@@ -836,10 +851,11 @@ export function OnboardingModal({ user, onComplete }) {
                 {/* Dynamic Modules Options based on Course */}
                 {profileData.course === 'Modern Standard Arabic' && (
                   <div>
-                    <label style={{ display: 'block', fontSize: '0.8rem', color: '#cbd5e1', marginBottom: '0.35rem', fontWeight: 500 }}>
+                    <label htmlFor="onb_selected_module" style={{ display: 'block', fontSize: '0.8rem', color: '#cbd5e1', marginBottom: '0.35rem', fontWeight: 500 }}>
                       Modules (Options) *
                     </label>
                     <select
+                      id="onb_selected_module"
                       required
                       value={profileData.selected_module || 'All 4 Modules Included'}
                       onChange={(e) => setProfileData({ ...profileData, selected_module: e.target.value })}
@@ -865,10 +881,11 @@ export function OnboardingModal({ user, onComplete }) {
 
                 {profileData.course === 'Arabic Training (MENA)' && (
                   <div>
-                    <label style={{ display: 'block', fontSize: '0.8rem', color: '#cbd5e1', marginBottom: '0.35rem', fontWeight: 500 }}>
+                    <label htmlFor="onb_training_track" style={{ display: 'block', fontSize: '0.8rem', color: '#cbd5e1', marginBottom: '0.35rem', fontWeight: 500 }}>
                       Module / Training Track *
                     </label>
                     <select
+                      id="onb_training_track"
                       value="Team Training"
                       disabled
                       style={{
@@ -891,10 +908,11 @@ export function OnboardingModal({ user, onComplete }) {
 
                 {/* Days */}
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.8rem', color: '#cbd5e1', marginBottom: '0.35rem', fontWeight: 500 }}>
+                  <label htmlFor="onb_preferred_days" style={{ display: 'block', fontSize: '0.8rem', color: '#cbd5e1', marginBottom: '0.35rem', fontWeight: 500 }}>
                     Days *
                   </label>
                   <select
+                    id="onb_preferred_days"
                     required
                     value={profileData.preferred_days}
                     onChange={(e) => handleDaysChange(e.target.value)}
@@ -919,11 +937,12 @@ export function OnboardingModal({ user, onComplete }) {
 
                 {/* Class Type: for Modern Standard Arabic & Arabic For Kids */}
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.8rem', color: '#cbd5e1', marginBottom: '0.35rem', fontWeight: 500 }}>
+                  <label htmlFor="onb_class_type" style={{ display: 'block', fontSize: '0.8rem', color: '#cbd5e1', marginBottom: '0.35rem', fontWeight: 500 }}>
                     Class Type *
                   </label>
                   {profileData.course === 'Arabic Training (MENA)' ? (
                     <select
+                      id="onb_class_type"
                       value="Team Training"
                       disabled
                       style={{
@@ -943,6 +962,7 @@ export function OnboardingModal({ user, onComplete }) {
                     </select>
                   ) : profileData.preferred_days === 'Weekdays' ? (
                     <select
+                      id="onb_class_type"
                       value="1 on 1"
                       disabled
                       style={{
@@ -962,6 +982,7 @@ export function OnboardingModal({ user, onComplete }) {
                     </select>
                   ) : (
                     <select
+                      id="onb_class_type"
                       value={profileData.preferred_class_type}
                       onChange={(e) => setProfileData({ ...profileData, preferred_class_type: e.target.value })}
                       style={{
@@ -983,10 +1004,11 @@ export function OnboardingModal({ user, onComplete }) {
 
                 {/* Preferred Time Slot (Student's suggestion) */}
                 <div style={{ gridColumn: '1 / -1' }}>
-                  <label style={{ display: 'block', fontSize: '0.8rem', color: '#cbd5e1', marginBottom: '0.35rem', fontWeight: 500 }}>
+                  <label htmlFor="onb_time_slot" style={{ display: 'block', fontSize: '0.8rem', color: '#cbd5e1', marginBottom: '0.35rem', fontWeight: 500 }}>
                     Preferred Time Slot (Your Suggestion) *
                   </label>
                   <input
+                    id="onb_time_slot"
                     type="text"
                     required
                     value={profileData.preferred_time_slot}
