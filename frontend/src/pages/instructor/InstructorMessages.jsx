@@ -45,16 +45,16 @@ export function InstructorMessages() {
   };
 
   useEffect(() => {
-    fetchThreads();
-    const interval = setInterval(fetchThreads, 6000);
+    void fetchThreads();
+    const interval = setInterval(() => { void fetchThreads(); }, 6000);
     return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
     if (activeThread) {
-      fetchHistory(activeThread._id || activeThread.id);
+      void fetchHistory(activeThread._id || activeThread.id);
       const interval = setInterval(() => {
-        fetchHistory(activeThread._id || activeThread.id);
+        void fetchHistory(activeThread._id || activeThread.id);
       }, 4000);
       return () => clearInterval(interval);
     }
@@ -80,7 +80,7 @@ export function InstructorMessages() {
         content: content,
       });
       setMessages((prev) => [...prev, sentMsg]);
-      fetchThreads();
+      void fetchThreads();
     } catch (err) {
       console.error("Failed to send message:", err);
       setError(err.message || "Could not send message to student.");

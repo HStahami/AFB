@@ -15,12 +15,12 @@ export function InstructorAttendance() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    loadClassesAndStudents();
+    void loadClassesAndStudents();
   }, []);
 
   useEffect(() => {
     if (selectedDate) {
-      loadHistory();
+      void loadHistory();
     }
   }, [selectedDate, selectedSlotId]);
 
@@ -241,10 +241,11 @@ export function InstructorAttendance() {
       >
         <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
           <div>
-            <label style={{ display: 'block', fontSize: '0.75rem', color: '#8892b0', marginBottom: '0.3rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            <label htmlFor="inst_att_slot" style={{ display: 'block', fontSize: '0.75rem', color: '#8892b0', marginBottom: '0.3rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
               Select Class / Slot
             </label>
             <select
+              id="inst_att_slot"
               value={selectedSlotId}
               onChange={(e) => setSelectedSlotId(e.target.value)}
               style={{
@@ -267,10 +268,11 @@ export function InstructorAttendance() {
           </div>
 
           <div>
-            <label style={{ display: 'block', fontSize: '0.75rem', color: '#8892b0', marginBottom: '0.3rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            <label htmlFor="inst_att_date" style={{ display: 'block', fontSize: '0.75rem', color: '#8892b0', marginBottom: '0.3rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
               Session Date
             </label>
             <input
+              id="inst_att_date"
               type="date"
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}

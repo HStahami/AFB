@@ -58,7 +58,7 @@ export function InstructorClassroom() {
         if (!isCancelled) setLoading(false);
       }
     };
-    fetchClasses();
+    void fetchClasses();
     return () => { isCancelled = true; };
   }, [requestedSlotId, autoStartRequested]);
 
@@ -94,11 +94,11 @@ export function InstructorClassroom() {
       }
     };
 
-    fetchLiveStatus();
-    fetchAttendees();
+    void fetchLiveStatus();
+    void fetchAttendees();
     const interval = setInterval(() => {
-      fetchLiveStatus();
-      fetchAttendees();
+      void fetchLiveStatus();
+      void fetchAttendees();
     }, 8000);
     return () => {
       isCancelled = true;
@@ -145,7 +145,7 @@ export function InstructorClassroom() {
 
   const openUnlimitedWindow = () => {
     if (!isLive) {
-      handleStartClass();
+      void handleStartClass();
     }
     setIsPopoutMode(true);
     const url = `https://meet.jit.si/${roomName}#userInfo.displayName="${encodeURIComponent(displayName)}"&config.startWithVideoMuted=true&config.prejoinPageEnabled=false`;

@@ -57,7 +57,7 @@ export function InstructorDashboard() {
       }
     };
 
-    fetchDashboardData();
+    void fetchDashboardData();
   }, []);
 
   const statCards = [

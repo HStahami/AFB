@@ -87,10 +87,11 @@ export function InstructorLogin() {
 
         <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1.2rem" }}>
           <div style={{ textAlign: "left" }}>
-            <label style={{ display: "block", fontSize: "0.85rem", marginBottom: "0.4rem", color: "#b0c4c6" }}>
+            <label htmlFor="inst_login_username" style={{ display: "block", fontSize: "0.85rem", marginBottom: "0.4rem", color: "#b0c4c6" }}>
               Username or Email
             </label>
             <input
+              id="inst_login_username"
               type="text"
               placeholder="e.g. instructor@alarabia.edu"
               value={username}
@@ -101,10 +102,11 @@ export function InstructorLogin() {
           </div>
 
           <div style={{ textAlign: "left" }}>
-            <label style={{ display: "block", fontSize: "0.85rem", marginBottom: "0.4rem", color: "#b0c4c6" }}>
+            <label htmlFor="inst_login_password" style={{ display: "block", fontSize: "0.85rem", marginBottom: "0.4rem", color: "#b0c4c6" }}>
               Password
             </label>
             <input
+              id="inst_login_password"
               type="password"
               placeholder="••••••••"
               value={password}

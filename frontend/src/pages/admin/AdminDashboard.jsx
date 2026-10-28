@@ -899,14 +899,26 @@ export function AdminDashboard({ onLogout }) {
                 <h4 style={{ color: '#aaa', fontSize: '0.85rem', marginBottom: '0.4rem' }}>Active Students</h4>
                 <p style={{ fontSize: '2.2rem', fontWeight: 'bold', color: 'var(--color-primary)' }}>{stats.total_students}</p>
               </div>
-              <div className="glass-panel" style={{ padding: '1.5rem', textAlign: 'center', borderLeft: '4px solid #2ecc71', cursor: 'pointer' }} onClick={() => setActiveTab('graduates')} title="Click to view all graduated students">
+              <button
+                type="button"
+                className="glass-panel"
+                style={{ padding: '1.5rem', textAlign: 'center', borderLeft: '4px solid #2ecc71', cursor: 'pointer', background: 'transparent', width: '100%', borderTop: 'none', borderRight: 'none', borderBottom: 'none' }}
+                onClick={() => setActiveTab('graduates')}
+                title="Click to view all graduated students"
+              >
                 <h4 style={{ color: '#aaa', fontSize: '0.85rem', marginBottom: '0.4rem' }}>Graduates</h4>
-                <p style={{ fontSize: '2.2rem', fontWeight: 'bold', color: '#2ecc71' }}>{stats.graduated_students || 0}</p>
-              </div>
-              <div className="glass-panel" style={{ padding: '1.5rem', textAlign: 'center', borderLeft: '4px solid #e74c3c', cursor: 'pointer' }} onClick={() => setActiveTab('dropouts')} title="Click to view all dropout students">
+                <p style={{ fontSize: '2.2rem', fontWeight: 'bold', color: '#2ecc71', margin: 0 }}>{stats.graduated_students || 0}</p>
+              </button>
+              <button
+                type="button"
+                className="glass-panel"
+                style={{ padding: '1.5rem', textAlign: 'center', borderLeft: '4px solid #e74c3c', cursor: 'pointer', background: 'transparent', width: '100%', borderTop: 'none', borderRight: 'none', borderBottom: 'none' }}
+                onClick={() => setActiveTab('dropouts')}
+                title="Click to view all dropout students"
+              >
                 <h4 style={{ color: '#aaa', fontSize: '0.85rem', marginBottom: '0.4rem' }}>Dropouts</h4>
-                <p style={{ fontSize: '2.2rem', fontWeight: 'bold', color: '#e74c3c' }}>{stats.dropout_students || 0}</p>
-              </div>
+                <p style={{ fontSize: '2.2rem', fontWeight: 'bold', color: '#e74c3c', margin: 0 }}>{stats.dropout_students || 0}</p>
+              </button>
               <div className="glass-panel" style={{ padding: '1.5rem', textAlign: 'center', borderLeft: '4px solid var(--color-accent)' }}>
                 <h4 style={{ color: '#aaa', fontSize: '0.85rem', marginBottom: '0.4rem' }}>Active Instructors</h4>
                 <p style={{ fontSize: '2.2rem', fontWeight: 'bold', color: 'var(--color-accent)' }}>{instructors.length}</p>
@@ -1372,8 +1384,8 @@ export function AdminDashboard({ onLogout }) {
 
                   <form onSubmit={handleAssignSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                     <div>
-                      <label style={{ display: 'block', color: 'var(--color-primary)', marginBottom: '0.4rem', fontSize: '0.85rem' }}>Assign Class Slot *</label>
-                      <select required value={assignSlot} onChange={e => setAssignSlot(e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(0,0,0,0.5)', color: 'white', fontSize: '0.9rem' }}>
+                      <label htmlFor="admin_assign_slot" style={{ display: 'block', color: 'var(--color-primary)', marginBottom: '0.4rem', fontSize: '0.85rem' }}>Assign Class Slot *</label>
+                      <select id="admin_assign_slot" required value={assignSlot} onChange={e => setAssignSlot(e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(0,0,0,0.5)', color: 'white', fontSize: '0.9rem' }}>
                         <option value="" disabled>Choose Slot...</option>
                         {slots.filter(s => s.status === 'Active' || (selectedStudent && selectedStudent.slot && (selectedStudent.slot === `${s.days} — ${s.time}` || selectedStudent.slot === `${s.days} ${s.time}`))).map(s => {
                           const val = `${s.days} — ${s.time}`;
@@ -1385,8 +1397,8 @@ export function AdminDashboard({ onLogout }) {
                       </select>
                     </div>
                     <div>
-                      <label style={{ display: 'block', color: 'var(--color-primary)', marginBottom: '0.4rem', fontSize: '0.85rem' }}>Assign Instructor *</label>
-                      <select required value={assignInst} onChange={e => setAssignInst(e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(0,0,0,0.5)', color: 'white', fontSize: '0.9rem' }}>
+                      <label htmlFor="admin_assign_instructor" style={{ display: 'block', color: 'var(--color-primary)', marginBottom: '0.4rem', fontSize: '0.85rem' }}>Assign Instructor *</label>
+                      <select id="admin_assign_instructor" required value={assignInst} onChange={e => setAssignInst(e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(0,0,0,0.5)', color: 'white', fontSize: '0.9rem' }}>
                         <option value="" disabled>Choose Instructor...</option>
                         {instructors.map(inst => (
                           <option key={inst._id} value={inst.name}>{inst.name} ({inst.specialty})</option>
@@ -1923,16 +1935,16 @@ export function AdminDashboard({ onLogout }) {
               <form onSubmit={handleAddOrUpdateInstructor} style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
                 <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
                   <div style={{ flex: 1, minWidth: '220px' }}>
-                    <label style={{ display: 'block', color: 'var(--color-primary)', marginBottom: '0.4rem', fontSize: '0.9rem' }}>Instructor Name *</label>
-                    <input type="text" placeholder="e.g. Instructor Ahmed" value={newInstName} onChange={e => setNewInstName(e.target.value)} required style={{ ...inputStyle, width: '100%' }} />
+                    <label htmlFor="admin_inst_name" style={{ display: 'block', color: 'var(--color-primary)', marginBottom: '0.4rem', fontSize: '0.9rem' }}>Instructor Name *</label>
+                    <input id="admin_inst_name" type="text" placeholder="e.g. Instructor Ahmed" value={newInstName} onChange={e => setNewInstName(e.target.value)} required style={{ ...inputStyle, width: '100%' }} />
                   </div>
                   <div style={{ flex: 1, minWidth: '220px' }}>
-                    <label style={{ display: 'block', color: 'var(--color-primary)', marginBottom: '0.4rem', fontSize: '0.9rem' }}>Instructor Email * (for portal login & credentials)</label>
-                    <input type="email" placeholder="e.g. instructor.ahmed@example.com" value={newInstEmail} onChange={e => setNewInstEmail(e.target.value)} required style={{ ...inputStyle, width: '100%' }} />
+                    <label htmlFor="admin_inst_email" style={{ display: 'block', color: 'var(--color-primary)', marginBottom: '0.4rem', fontSize: '0.9rem' }}>Instructor Email * (for portal login & credentials)</label>
+                    <input id="admin_inst_email" type="email" placeholder="e.g. instructor.ahmed@example.com" value={newInstEmail} onChange={e => setNewInstEmail(e.target.value)} required style={{ ...inputStyle, width: '100%' }} />
                   </div>
                   <div style={{ flex: 1, minWidth: '220px' }}>
-                    <label style={{ display: 'block', color: 'var(--color-primary)', marginBottom: '0.4rem', fontSize: '0.9rem' }}>Specialty / Role</label>
-                    <input type="text" placeholder="e.g. Grammar & Morphology" value={newInstSpec} onChange={e => setNewInstSpec(e.target.value)} style={{ ...inputStyle, width: '100%' }} />
+                    <label htmlFor="admin_inst_spec" style={{ display: 'block', color: 'var(--color-primary)', marginBottom: '0.4rem', fontSize: '0.9rem' }}>Specialty / Role</label>
+                    <input id="admin_inst_spec" type="text" placeholder="e.g. Grammar & Morphology" value={newInstSpec} onChange={e => setNewInstSpec(e.target.value)} style={{ ...inputStyle, width: '100%' }} />
                   </div>
                 </div>
 
@@ -1941,13 +1953,13 @@ export function AdminDashboard({ onLogout }) {
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', color: 'var(--color-primary)', marginBottom: '0.4rem', fontSize: '0.9rem' }}>About / Description</label>
-                  <textarea placeholder="Experienced Arabic language instructor specializing in grammar and morphology." value={newInstAbout} onChange={e => setNewInstAbout(e.target.value)} rows="3" style={{ ...inputStyle, width: '100%', resize: 'vertical' }} />
+                  <label htmlFor="admin_inst_about" style={{ display: 'block', color: 'var(--color-primary)', marginBottom: '0.4rem', fontSize: '0.9rem' }}>About / Description</label>
+                  <textarea id="admin_inst_about" placeholder="Experienced Arabic language instructor specializing in grammar and morphology." value={newInstAbout} onChange={e => setNewInstAbout(e.target.value)} rows="3" style={{ ...inputStyle, width: '100%', resize: 'vertical' }} />
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', color: 'var(--color-primary)', marginBottom: '0.4rem', fontSize: '0.9rem' }}>Profile Picture (File Upload)</label>
-                  <input ref={fileInputRef} type="file" accept="image/*" onChange={e => setSelectedFile(e.target.files[0])} style={{ color: '#e0e0e0', padding: '8px 0' }} />
+                  <label htmlFor="admin_inst_file" style={{ display: 'block', color: 'var(--color-primary)', marginBottom: '0.4rem', fontSize: '0.9rem' }}>Profile Picture (File Upload)</label>
+                  <input id="admin_inst_file" ref={fileInputRef} type="file" accept="image/*" onChange={e => setSelectedFile(e.target.files[0])} style={{ color: '#e0e0e0', padding: '8px 0' }} />
                 </div>
 
                 <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
@@ -2050,23 +2062,23 @@ export function AdminDashboard({ onLogout }) {
               <form onSubmit={handleAddOrUpdateModule} style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
                 <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
                   <div style={{ flex: 2, minWidth: '220px' }}>
-                    <label style={{ display: 'block', color: 'var(--color-primary)', marginBottom: '0.4rem', fontSize: '0.9rem' }}>Module / Level Name *</label>
-                    <input type="text" placeholder="e.g. A1 or Arabic for Quran" value={modName} onChange={e => setModName(e.target.value)} required style={{ ...inputStyle, width: '100%' }} />
+                    <label htmlFor="admin_mod_name" style={{ display: 'block', color: 'var(--color-primary)', marginBottom: '0.4rem', fontSize: '0.9rem' }}>Module / Level Name *</label>
+                    <input id="admin_mod_name" type="text" placeholder="e.g. A1 or Arabic for Quran" value={modName} onChange={e => setModName(e.target.value)} required style={{ ...inputStyle, width: '100%' }} />
                   </div>
                   <div style={{ flex: 1, minWidth: '120px' }}>
-                    <label style={{ display: 'block', color: 'var(--color-primary)', marginBottom: '0.4rem', fontSize: '0.9rem' }}>Display Order</label>
-                    <input type="number" min="1" placeholder="1" value={modOrder} onChange={e => setModOrder(parseInt(e.target.value) || 1)} style={{ ...inputStyle, width: '100%' }} />
+                    <label htmlFor="admin_mod_order" style={{ display: 'block', color: 'var(--color-primary)', marginBottom: '0.4rem', fontSize: '0.9rem' }}>Display Order</label>
+                    <input id="admin_mod_order" type="number" min="1" placeholder="1" value={modOrder} onChange={e => setModOrder(Number.parseInt(e.target.value, 10) || 1)} style={{ ...inputStyle, width: '100%' }} />
                   </div>
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', color: 'var(--color-primary)', marginBottom: '0.4rem', fontSize: '0.9rem' }}>Description / About *</label>
-                  <textarea placeholder="Beginner Arabic level designed for students starting their learning journey." value={modDesc} onChange={e => setModDesc(e.target.value)} required rows="3" style={{ ...inputStyle, width: '100%', resize: 'vertical' }} />
+                  <label htmlFor="admin_mod_desc" style={{ display: 'block', color: 'var(--color-primary)', marginBottom: '0.4rem', fontSize: '0.9rem' }}>Description / About *</label>
+                  <textarea id="admin_mod_desc" placeholder="Beginner Arabic level designed for students starting their learning journey." value={modDesc} onChange={e => setModDesc(e.target.value)} required rows="3" style={{ ...inputStyle, width: '100%', resize: 'vertical' }} />
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', color: 'var(--color-primary)', marginBottom: '0.4rem', fontSize: '0.9rem' }}>Optional Module Image/Icon (File Upload)</label>
-                  <input ref={modFileInputRef} type="file" accept="image/*" onChange={e => setModFile(e.target.files[0])} style={{ color: '#e0e0e0', padding: '8px 0' }} />
+                  <label htmlFor="admin_mod_file" style={{ display: 'block', color: 'var(--color-primary)', marginBottom: '0.4rem', fontSize: '0.9rem' }}>Optional Module Image/Icon (File Upload)</label>
+                  <input id="admin_mod_file" ref={modFileInputRef} type="file" accept="image/*" onChange={e => setModFile(e.target.files[0])} style={{ color: '#e0e0e0', padding: '8px 0' }} />
                 </div>
 
                 <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
@@ -2140,16 +2152,16 @@ export function AdminDashboard({ onLogout }) {
               <form onSubmit={handleAddOrUpdateSlot} style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
                 <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
                   <div style={{ flex: 1, minWidth: '200px' }}>
-                    <label style={{ display: 'block', color: 'var(--color-primary)', marginBottom: '0.4rem', fontSize: '0.9rem' }}>Day(s) *</label>
-                    <input type="text" placeholder="e.g. Monday & Wednesday" value={slotDays} onChange={e => setSlotDays(e.target.value)} required style={{ ...inputStyle, width: '100%' }} />
+                    <label htmlFor="admin_slot_days" style={{ display: 'block', color: 'var(--color-primary)', marginBottom: '0.4rem', fontSize: '0.9rem' }}>Day(s) *</label>
+                    <input id="admin_slot_days" type="text" placeholder="e.g. Monday & Wednesday" value={slotDays} onChange={e => setSlotDays(e.target.value)} required style={{ ...inputStyle, width: '100%' }} />
                   </div>
                   <div style={{ flex: 1, minWidth: '200px' }}>
-                    <label style={{ display: 'block', color: 'var(--color-primary)', marginBottom: '0.4rem', fontSize: '0.9rem' }}>Time *</label>
-                    <input type="text" placeholder="e.g. 6:00 PM" value={slotTime} onChange={e => setSlotTime(e.target.value)} required style={{ ...inputStyle, width: '100%' }} />
+                    <label htmlFor="admin_slot_time" style={{ display: 'block', color: 'var(--color-primary)', marginBottom: '0.4rem', fontSize: '0.9rem' }}>Time *</label>
+                    <input id="admin_slot_time" type="text" placeholder="e.g. 6:00 PM" value={slotTime} onChange={e => setSlotTime(e.target.value)} required style={{ ...inputStyle, width: '100%' }} />
                   </div>
                   <div style={{ flex: 1, minWidth: '150px' }}>
-                    <label style={{ display: 'block', color: 'var(--color-primary)', marginBottom: '0.4rem', fontSize: '0.9rem' }}>Status *</label>
-                    <select value={slotStatus} onChange={e => setSlotStatus(e.target.value)} style={{ ...inputStyle, width: '100%', background: 'rgba(0,0,0,0.4)', color: 'white' }}>
+                    <label htmlFor="admin_slot_status" style={{ display: 'block', color: 'var(--color-primary)', marginBottom: '0.4rem', fontSize: '0.9rem' }}>Status *</label>
+                    <select id="admin_slot_status" value={slotStatus} onChange={e => setSlotStatus(e.target.value)} style={{ ...inputStyle, width: '100%', background: 'rgba(0,0,0,0.4)', color: 'white' }}>
                       <option value="Active">Active</option>
                       <option value="Inactive">Inactive</option>
                     </select>
@@ -2566,8 +2578,9 @@ export function AdminDashboard({ onLogout }) {
                 
                 <form onSubmit={handleBroadcastSubmit}>
                   <div style={{ marginBottom: '1rem' }}>
-                    <label style={{ display: 'block', color: '#b0c4c6', fontSize: '0.85rem', marginBottom: '6px' }}>Target Audience</label>
+                    <label htmlFor="admin_bc_target_role" style={{ display: 'block', color: '#b0c4c6', fontSize: '0.85rem', marginBottom: '6px' }}>Target Audience</label>
                     <select
+                      id="admin_bc_target_role"
                       value={bcTargetRole}
                       onChange={(e) => setBcTargetRole(e.target.value)}
                       style={{ ...inputStyle, width: '100%', background: 'rgba(255,255,255,0.05)', color: '#fff' }}
@@ -2581,8 +2594,9 @@ export function AdminDashboard({ onLogout }) {
 
                   {bcTargetRole === 'specific' && (
                     <div style={{ marginBottom: '1rem' }}>
-                      <label style={{ display: 'block', color: '#b0c4c6', fontSize: '0.85rem', marginBottom: '6px' }}>Select Specific Recipient</label>
+                      <label htmlFor="admin_bc_target_user" style={{ display: 'block', color: '#b0c4c6', fontSize: '0.85rem', marginBottom: '6px' }}>Select Specific Recipient</label>
                       <select
+                        id="admin_bc_target_user"
                         value={bcTargetUser}
                         onChange={(e) => setBcTargetUser(e.target.value)}
                         style={{ ...inputStyle, width: '100%', background: 'rgba(255,255,255,0.05)', color: '#fff' }}
@@ -2607,8 +2621,9 @@ export function AdminDashboard({ onLogout }) {
                   )}
 
                   <div style={{ marginBottom: '1rem' }}>
-                    <label style={{ display: 'block', color: '#b0c4c6', fontSize: '0.85rem', marginBottom: '6px' }}>Announcement Title</label>
+                    <label htmlFor="admin_bc_title" style={{ display: 'block', color: '#b0c4c6', fontSize: '0.85rem', marginBottom: '6px' }}>Announcement Title</label>
                     <input
+                      id="admin_bc_title"
                       type="text"
                       placeholder="e.g. Important Platform Maintenance / Class Reschedule"
                       value={bcTitle}
@@ -2619,8 +2634,8 @@ export function AdminDashboard({ onLogout }) {
                   </div>
 
                   <div style={{ marginBottom: '1.2rem' }}>
-                    <label style={{ display: 'block', color: '#b0c4c6', fontSize: '0.85rem', marginBottom: '6px' }}>Message Content</label>
-                    <textarea
+                    <label htmlFor="admin_bc_message" style={{ display: 'block', color: '#b0c4c6', fontSize: '0.85rem', marginBottom: '6px' }}>Message Content</label>
+                    <textarea id="admin_bc_message"
                       rows={4}
                       placeholder="Type your detailed message here..."
                       value={bcMessage}
@@ -2708,16 +2723,21 @@ export function AdminDashboard({ onLogout }) {
                       const activeId = auditActiveThread ? (auditActiveThread.thread_id || auditActiveThread._id || auditActiveThread.id) : null;
                       const isSelected = activeId && activeId === thId;
                       return (
-                        <div
+                        <button
+                          type="button"
                           key={thId}
                           onClick={() => handleSelectAuditThread(th)}
                           style={{
+                            width: '100%',
+                            textAlign: 'left',
                             padding: '12px',
                             borderRadius: '8px',
                             background: isSelected ? 'rgba(0, 168, 150, 0.25)' : 'rgba(255, 255, 255, 0.03)',
                             border: isSelected ? '1px solid rgba(0, 168, 150, 0.5)' : '1px solid rgba(255, 255, 255, 0.06)',
                             cursor: 'pointer',
-                            transition: 'all 0.2s ease'
+                            transition: 'all 0.2s ease',
+                            fontFamily: 'inherit',
+                            fontSize: 'inherit'
                           }}
                         >
                           <div style={{ color: '#fff', fontWeight: 'bold', fontSize: '0.9rem', marginBottom: '4px' }}>
@@ -2726,7 +2746,7 @@ export function AdminDashboard({ onLogout }) {
                           <div style={{ color: '#aaa', fontSize: '0.78rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                             {th.last_message || 'No messages exchanged yet'}
                           </div>
-                        </div>
+                        </button>
                       );
                     })}
                   </div>
@@ -2857,10 +2877,11 @@ export function AdminDashboard({ onLogout }) {
 
             <form onSubmit={handleCreateAdmin}>
               <div style={{ marginBottom: '1rem' }}>
-                <label style={{ display: 'block', color: 'var(--color-white)', fontSize: '0.85rem', marginBottom: '4px', fontWeight: 500 }}>
+                <label htmlFor="admin_new_username" style={{ display: 'block', color: 'var(--color-white)', fontSize: '0.85rem', marginBottom: '4px', fontWeight: 500 }}>
                   Username *
                 </label>
                 <input
+                  id="admin_new_username"
                   type="text"
                   required
                   placeholder="e.g. jameel_admin"
@@ -2871,10 +2892,11 @@ export function AdminDashboard({ onLogout }) {
               </div>
 
               <div style={{ marginBottom: '1rem' }}>
-                <label style={{ display: 'block', color: 'var(--color-white)', fontSize: '0.85rem', marginBottom: '4px', fontWeight: 500 }}>
+                <label htmlFor="admin_new_email" style={{ display: 'block', color: 'var(--color-white)', fontSize: '0.85rem', marginBottom: '4px', fontWeight: 500 }}>
                   Email Address *
                 </label>
                 <input
+                  id="admin_new_email"
                   type="email"
                   required
                   placeholder="e.g. jameel@alarabia.edu"
@@ -2885,10 +2907,11 @@ export function AdminDashboard({ onLogout }) {
               </div>
 
               <div style={{ marginBottom: '1rem' }}>
-                <label style={{ display: 'block', color: 'var(--color-white)', fontSize: '0.85rem', marginBottom: '4px', fontWeight: 500 }}>
+                <label htmlFor="admin_new_fullname" style={{ display: 'block', color: 'var(--color-white)', fontSize: '0.85rem', marginBottom: '4px', fontWeight: 500 }}>
                   Full Name (Optional)
                 </label>
                 <input
+                  id="admin_new_fullname"
                   type="text"
                   placeholder="e.g. Jameel Ahmad"
                   value={newAdminFullName}
@@ -2899,10 +2922,11 @@ export function AdminDashboard({ onLogout }) {
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
                 <div>
-                  <label style={{ display: 'block', color: 'var(--color-white)', fontSize: '0.85rem', marginBottom: '4px', fontWeight: 500 }}>
+                  <label htmlFor="admin_new_password" style={{ display: 'block', color: 'var(--color-white)', fontSize: '0.85rem', marginBottom: '4px', fontWeight: 500 }}>
                     Password *
                   </label>
                   <input
+                    id="admin_new_password"
                     type="password"
                     required
                     placeholder="Min 6 characters"
@@ -2912,10 +2936,11 @@ export function AdminDashboard({ onLogout }) {
                   />
                 </div>
                 <div>
-                  <label style={{ display: 'block', color: 'var(--color-white)', fontSize: '0.85rem', marginBottom: '4px', fontWeight: 500 }}>
+                  <label htmlFor="admin_new_confirm_password" style={{ display: 'block', color: 'var(--color-white)', fontSize: '0.85rem', marginBottom: '4px', fontWeight: 500 }}>
                     Confirm Password *
                   </label>
                   <input
+                    id="admin_new_confirm_password"
                     type="password"
                     required
                     placeholder="Repeat password"
@@ -2960,10 +2985,11 @@ export function AdminDashboard({ onLogout }) {
 
             <form onSubmit={handleGraduateSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <div>
-                <label style={{ display: 'block', color: 'var(--color-primary)', marginBottom: '0.35rem', fontSize: '0.85rem' }}>
+                <label htmlFor="admin_grad_course" style={{ display: 'block', color: 'var(--color-primary)', marginBottom: '0.35rem', fontSize: '0.85rem' }}>
                   Completed Course Title *
                 </label>
                 <input
+                  id="admin_grad_course"
                   type="text"
                   required
                   value={graduateForm.graduation_course}
@@ -2975,10 +3001,11 @@ export function AdminDashboard({ onLogout }) {
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                 <div>
-                  <label style={{ display: 'block', color: 'var(--color-primary)', marginBottom: '0.35rem', fontSize: '0.85rem' }}>
+                  <label htmlFor="admin_grad_grade" style={{ display: 'block', color: 'var(--color-primary)', marginBottom: '0.35rem', fontSize: '0.85rem' }}>
                     Final Grade *
                   </label>
                   <select
+                    id="admin_grad_grade"
                     value={graduateForm.final_grade}
                     onChange={e => setGraduateForm({ ...graduateForm, final_grade: e.target.value })}
                     style={{ ...inputStyle, width: '100%', background: '#071d20' }}
@@ -2992,10 +3019,11 @@ export function AdminDashboard({ onLogout }) {
                   </select>
                 </div>
                 <div>
-                  <label style={{ display: 'block', color: 'var(--color-primary)', marginBottom: '0.35rem', fontSize: '0.85rem' }}>
+                  <label htmlFor="admin_grad_score" style={{ display: 'block', color: 'var(--color-primary)', marginBottom: '0.35rem', fontSize: '0.85rem' }}>
                     Final Score / Percentage
                   </label>
                   <input
+                    id="admin_grad_score"
                     type="text"
                     value={graduateForm.final_score}
                     onChange={e => setGraduateForm({ ...graduateForm, final_score: e.target.value })}
@@ -3006,10 +3034,11 @@ export function AdminDashboard({ onLogout }) {
               </div>
 
               <div>
-                <label style={{ display: 'block', color: 'var(--color-primary)', marginBottom: '0.35rem', fontSize: '0.85rem' }}>
+                <label htmlFor="admin_grad_date" style={{ display: 'block', color: 'var(--color-primary)', marginBottom: '0.35rem', fontSize: '0.85rem' }}>
                   Graduation Date *
                 </label>
                 <input
+                  id="admin_grad_date"
                   type="date"
                   required
                   value={graduateForm.graduation_date}
@@ -3019,10 +3048,10 @@ export function AdminDashboard({ onLogout }) {
               </div>
 
               <div>
-                <label style={{ display: 'block', color: 'var(--color-primary)', marginBottom: '0.35rem', fontSize: '0.85rem' }}>
+                <label htmlFor="admin_grad_remarks" style={{ display: 'block', color: 'var(--color-primary)', marginBottom: '0.35rem', fontSize: '0.85rem' }}>
                   Graduation Remarks / Honors
                 </label>
-                <textarea
+                <textarea id="admin_grad_remarks"
                   rows={3}
                   value={graduateForm.graduation_remarks}
                   onChange={e => setGraduateForm({ ...graduateForm, graduation_remarks: e.target.value })}
@@ -3066,10 +3095,11 @@ export function AdminDashboard({ onLogout }) {
 
             <form onSubmit={handleDropoutSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <div>
-                <label style={{ display: 'block', color: 'var(--color-primary)', marginBottom: '0.35rem', fontSize: '0.85rem' }}>
+                <label htmlFor="admin_drop_reason" style={{ display: 'block', color: 'var(--color-primary)', marginBottom: '0.35rem', fontSize: '0.85rem' }}>
                   Dropout Reason *
                 </label>
                 <select
+                  id="admin_drop_reason"
                   value={dropoutForm.dropout_reason}
                   onChange={e => setDropoutForm({ ...dropoutForm, dropout_reason: e.target.value })}
                   style={{ ...inputStyle, width: '100%', background: '#071d20' }}
@@ -3085,10 +3115,11 @@ export function AdminDashboard({ onLogout }) {
               </div>
 
               <div>
-                <label style={{ display: 'block', color: 'var(--color-primary)', marginBottom: '0.35rem', fontSize: '0.85rem' }}>
+                <label htmlFor="admin_drop_date" style={{ display: 'block', color: 'var(--color-primary)', marginBottom: '0.35rem', fontSize: '0.85rem' }}>
                   Dropout Effective Date *
                 </label>
                 <input
+                  id="admin_drop_date"
                   type="date"
                   required
                   value={dropoutForm.dropped_at}
@@ -3098,10 +3129,10 @@ export function AdminDashboard({ onLogout }) {
               </div>
 
               <div>
-                <label style={{ display: 'block', color: 'var(--color-primary)', marginBottom: '0.35rem', fontSize: '0.85rem' }}>
+                <label htmlFor="admin_drop_remarks" style={{ display: 'block', color: 'var(--color-primary)', marginBottom: '0.35rem', fontSize: '0.85rem' }}>
                   Remarks / Notes
                 </label>
-                <textarea
+                <textarea id="admin_drop_remarks"
                   rows={3}
                   value={dropoutForm.dropout_remarks}
                   onChange={e => setDropoutForm({ ...dropoutForm, dropout_remarks: e.target.value })}

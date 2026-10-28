@@ -20,7 +20,7 @@ export function InstructorClasses() {
         setLoading(false);
       }
     };
-    fetchClasses();
+    void fetchClasses();
   }, []);
 
   return (
