@@ -2,8 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import {
   ArrowLeft,
-  User,
-  Shield,
+  BookOpen,
+  Calendar,
   AlertCircle
 } from "lucide-react";
 import { studentsApi, reportsApi, submissionsApi, attendanceApi } from "../../api";
@@ -188,42 +188,51 @@ export function InstructorStudentDetail() {
         ))}
       </div>
 
-      {/* Tab 1: Overview */}
+      {/* Tab 1: Overview & Academic Enrollment */}
       {activeTab === "overview" && (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "1.5rem" }}>
           <div className="glass-panel" style={{ padding: "1.8rem" }}>
             <h3 style={{ fontSize: "1.1rem", fontWeight: "600", marginBottom: "1.2rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
-              <User size={18} color="var(--color-primary)" /> Contact & Demographics
+              <BookOpen size={18} color="var(--color-primary)" /> Academic & Enrollment Details
             </h3>
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.8rem", fontSize: "0.9rem", color: "#b0c4c6" }}>
-              <div><strong style={{ color: "#fff" }}>Email:</strong> {student.email}</div>
-              <div><strong style={{ color: "#fff" }}>Phone:</strong> {student.phone || "Not provided"}</div>
-              <div><strong style={{ color: "#fff" }}>Date of Birth:</strong> {student.date_of_birth || "Not provided"}</div>
-              <div><strong style={{ color: "#fff" }}>Country:</strong> {student.country || "Not specified"}</div>
-              <div><strong style={{ color: "#fff" }}>City:</strong> {student.city || "Not specified"}</div>
-              <div><strong style={{ color: "#fff" }}>Address:</strong> {student.address || "Not provided"}</div>
-              <div><strong style={{ color: "#fff" }}>Education:</strong> {student.education || "Not specified"}</div>
-              <div><strong style={{ color: "#fff" }}>Referred By:</strong> {student.referral_source || "Not specified"}</div>
-              <div><strong style={{ color: "#fff" }}>Bio:</strong> {student.bio || "No biography provided."}</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "1rem", fontSize: "0.92rem", color: "#b0c4c6" }}>
+              <div>
+                <span style={{ color: "#888", display: "block", fontSize: "0.8rem", marginBottom: "2px" }}>Student Name</span>
+                <strong style={{ color: "#fff", fontSize: "1.05rem" }}>{studentName}</strong>
+              </div>
+              <div>
+                <span style={{ color: "#888", display: "block", fontSize: "0.8rem", marginBottom: "2px" }}>Enrolled Course</span>
+                <span style={{ color: "var(--color-primary)", fontWeight: "600" }}>
+                  {student.course || student.preferred_course || "Modern Standard Arabic"}
+                </span>
+              </div>
+              <div>
+                <span style={{ color: "#888", display: "block", fontSize: "0.8rem", marginBottom: "2px" }}>Assigned Class Slot</span>
+                <span style={{ color: "#fff", fontWeight: "500" }}>{student.slot || "Unassigned"}</span>
+              </div>
+              <div>
+                <span style={{ color: "#888", display: "block", fontSize: "0.8rem", marginBottom: "2px" }}>Enrollment Status</span>
+                <span style={{ color: "#55efc4", fontWeight: "600" }}>{student.status || "Active"}</span>
+              </div>
             </div>
           </div>
 
           <div className="glass-panel" style={{ padding: "1.8rem" }}>
             <h3 style={{ fontSize: "1.1rem", fontWeight: "600", marginBottom: "1.2rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
-              <Shield size={18} color="var(--color-primary)" /> Guardian & Course Preferences
+              <Calendar size={18} color="var(--color-primary)" /> Academic Progress Summary
             </h3>
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.8rem", fontSize: "0.9rem", color: "#b0c4c6" }}>
-              <div><strong style={{ color: "#fff" }}>Father / Guardian Name:</strong> {student.guardian_name || "Not provided"}</div>
-              <div><strong style={{ color: "#fff" }}>Father / Guardian Phone:</strong> {student.guardian_phone || "Not provided"}</div>
-              <div style={{ borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: "0.6rem", marginTop: "0.2rem" }}>
-                <strong style={{ color: "#fff" }}>Enrolled / Selected Course:</strong> {student.course || student.preferred_course || "Modern Standard Arabic"}
+            <div style={{ display: "flex", flexDirection: "column", gap: "1rem", fontSize: "0.92rem", color: "#b0c4c6" }}>
+              <div>
+                <span style={{ color: "#888", display: "block", fontSize: "0.8rem", marginBottom: "2px" }}>Total Recorded Submissions</span>
+                <strong style={{ color: "#fff", fontSize: "1.1rem" }}>{submissions.length}</strong>
               </div>
-              {(student.selected_module || student.module) && (
-                <div><strong style={{ color: "#fff" }}>Module / Track:</strong> {student.selected_module || student.module}</div>
-              )}
-              <div><strong style={{ color: "#fff" }}>Preferred Days:</strong> {student.preferred_days || "Weekdays"}</div>
-              <div><strong style={{ color: "#fff" }}>Class Type:</strong> {student.preferred_class_type || "1 on 1"}</div>
-              <div><strong style={{ color: "#fff" }}>Preferred Time Slot:</strong> {student.preferred_time_slot || student.slot || "Not specified"}</div>
+              <div>
+                <span style={{ color: "#888", display: "block", fontSize: "0.8rem", marginBottom: "2px" }}>Attendance Records</span>
+                <strong style={{ color: "#fff", fontSize: "1.1rem" }}>{attendanceRecords.length} Classes</strong>
+              </div>
+              <div style={{ borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: "0.8rem", fontSize: "0.85rem", color: "#8892b0" }}>
+                Switch to the Submissions or Attendance History tabs above to grade assignments and record session feedback.
+              </div>
             </div>
           </div>
         </div>

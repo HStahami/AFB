@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Users, Search, ArrowRight, Mail, Phone, Calendar } from "lucide-react";
+import { Users, Search, ArrowRight, BookOpen, Calendar } from "lucide-react";
 import { instructorsApi } from "../../api";
 import { getAvatarUrl } from "../../api/client";
 import { inputStyle } from "../../components/common/styles";
@@ -30,10 +30,11 @@ export function InstructorStudents() {
   const distinctSlots = Array.from(new Set(students.map((s) => s.slot).filter(Boolean)));
 
   const filteredStudents = students.filter((s) => {
+    const term = search.toLowerCase();
     const matchesSearch =
-      s.name.toLowerCase().includes(search.toLowerCase()) ||
-      s.student_code.toLowerCase().includes(search.toLowerCase()) ||
-      s.email.toLowerCase().includes(search.toLowerCase());
+      (s.name && s.name.toLowerCase().includes(term)) ||
+      (s.student_code && s.student_code.toLowerCase().includes(term)) ||
+      (s.course && s.course.toLowerCase().includes(term));
     const matchesSlot = slotFilter === "all" || s.slot === slotFilter;
     return matchesSearch && matchesSlot;
   });
@@ -67,7 +68,7 @@ export function InstructorStudents() {
           <Search size={18} style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)", color: "#888" }} />
           <input
             type="text"
-            placeholder="Search by student name, code, or email..."
+            placeholder="Search by student name, code, or course..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             style={{ ...inputStyle, paddingLeft: "42px" }}
@@ -147,17 +148,14 @@ export function InstructorStudents() {
                 </div>
               </div>
 
-              <div style={{ fontSize: "0.85rem", color: "#b0c4c6", display: "flex", flexDirection: "column", gap: "0.4rem" }}>
+              <div style={{ fontSize: "0.88rem", color: "#b0c4c6", display: "flex", flexDirection: "column", gap: "0.6rem" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                  <Mail size={15} color="#888" /> {student.email}
+                  <BookOpen size={16} color="var(--color-primary)" />
+                  <span style={{ color: "#fff", fontWeight: "500" }}>{student.course || "Modern Standard Arabic"}</span>
                 </div>
-                {student.phone && (
-                  <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                    <Phone size={15} color="#888" /> {student.phone}
-                  </div>
-                )}
                 <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                  <Calendar size={15} color="#888" /> {student.slot}
+                  <Calendar size={16} color="var(--color-primary)" />
+                  <span>{student.slot || "Unassigned Slot"}</span>
                 </div>
               </div>
 

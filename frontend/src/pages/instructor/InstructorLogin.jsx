@@ -20,12 +20,12 @@ export function InstructorLogin() {
 
     try {
       const userData = await login(username, password);
-      if (userData.role === "instructor" || userData.role === "admin") {
-        navigate("/instructor");
-      } else {
+      if (userData.role !== "instructor") {
         logout();
-        setError("Access Denied: Student accounts are not authorized for the Instructor Portal.");
+        setError(`Access Denied: This account has '${userData.role}' privileges. Only instructors are authorized to access the Instructor Portal.`);
+        return;
       }
+      navigate("/instructor");
     } catch (err) {
       setError(err.message || "Invalid credentials. Please try again.");
     } finally {

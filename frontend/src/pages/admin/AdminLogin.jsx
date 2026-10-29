@@ -8,14 +8,19 @@ export function AdminLogin({ onLogin }) {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { login } = useAuth();
+  const { login, logout } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setIsSubmitting(true);
     try {
-      await login(username, password);
+      const userData = await login(username, password);
+      if (userData.role !== 'admin') {
+        logout();
+        setError(`Access Denied: This account has '${userData.role}' privileges. Only administrators are authorized to access the Admin Dashboard.`);
+        return;
+      }
       if (onLogin) onLogin();
     } catch (err) {
       setError(err.message || 'Login failed');
@@ -29,25 +34,37 @@ export function AdminLogin({ onLogin }) {
       <div className="glass-panel" style={{ padding: '3rem', maxWidth: '400px', width: '100%', textAlign: 'center' }}>
         <Lock size={48} color="var(--color-primary)" style={{ margin: '0 auto 1.5rem' }} />
         <h2 style={{ fontSize: '2rem', fontWeight: '700', marginBottom: '1.5rem' }} className="gradient-text">Admin Portal</h2>
-        {error && <p style={{ color: '#ff6b6b', marginBottom: '1rem' }}>{error}</p>}
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-          <input
-            type="text"
-            placeholder="Username or Email"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            required
-            style={inputStyle}
-          />
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            style={inputStyle}
-          />
-          <button type="submit" disabled={isSubmitting} className="btn-primary" style={{ padding: '16px', fontSize: '1.1rem', opacity: isSubmitting ? 0.7 : 1 }}>
+        {error && <p style={{ color: '#ff6b6b', marginBottom: '1rem', fontSize: '0.9rem' }}>{error}</p>}
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem', textAlign: 'left' }}>
+          <div>
+            <label htmlFor="admin_username" style={{ display: 'block', fontSize: '0.85rem', marginBottom: '0.4rem', color: '#b0c4c6' }}>
+              Username or Email
+            </label>
+            <input
+              id="admin_username"
+              type="text"
+              placeholder="Username or Email"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              required
+              style={inputStyle}
+            />
+          </div>
+          <div>
+            <label htmlFor="admin_password" style={{ display: 'block', fontSize: '0.85rem', marginBottom: '0.4rem', color: '#b0c4c6' }}>
+              Password
+            </label>
+            <input
+              id="admin_password"
+              type="password"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              style={inputStyle}
+            />
+          </div>
+          <button type="submit" disabled={isSubmitting} className="btn-primary" style={{ padding: '14px', fontSize: '1rem', marginTop: '0.5rem', opacity: isSubmitting ? 0.7 : 1 }}>
             {isSubmitting ? 'Logging in...' : 'Login'}
           </button>
         </form>

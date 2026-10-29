@@ -89,6 +89,11 @@ export function AdminDashboard({ onLogout }) {
   // Assign & Profile View modal state
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [viewingStudent, setViewingStudent] = useState(null);
+  const [admissionFilter, setAdmissionFilter] = useState('all'); // 'all', 'pending', 'approved', 'canceled'
+  const [editingStudent, setEditingStudent] = useState(null);
+  const [isSavingStudent, setIsSavingStudent] = useState(false);
+  const [editStudentError, setEditStudentError] = useState('');
+  const [editStudentSuccess, setEditStudentSuccess] = useState('');
   const [assignSlot, setAssignSlot] = useState('');
   const [assignInst, setAssignInst] = useState('');
 
@@ -419,6 +424,69 @@ export function AdminDashboard({ onLogout }) {
       await fetchAdmins();
     } catch {
       alert('Error deleting administrator account.');
+    }
+  };
+
+
+  const handleStartEditStudent = (std) => {
+    setEditingStudent({
+      _id: std._id || std.id,
+      student_code: std.student_code || '',
+      first_name: std.first_name || '',
+      last_name: std.last_name || '',
+      email: std.email || '',
+      phone: std.phone || '',
+      guardian_name: std.guardian_name || std.father_name || '',
+      guardian_phone: std.guardian_phone || std.father_phone || '',
+      date_of_birth: std.date_of_birth ? std.date_of_birth.substring(0, 10) : '',
+      country: std.country || '',
+      city: std.city || '',
+      address: std.address || '',
+      education: std.education || '',
+      referral_source: std.referral_source || '',
+      course: std.course || std.preferred_course || 'Modern Standard Arabic',
+      selected_module: std.selected_module || std.module || 'All 4 Modules Included',
+      preferred_days: std.preferred_days || 'Weekdays',
+      preferred_class_type: std.preferred_class_type || '1 on 1',
+      slot: std.slot || '',
+      preferred_time_slot: std.preferred_time_slot || '',
+      bio: std.bio || '',
+      status: std.status || 'Active',
+    });
+    setEditStudentError('');
+    setEditStudentSuccess('');
+  };
+
+  const handleSaveStudentEdit = async (e) => {
+    e.preventDefault();
+    if (!editingStudent) return;
+    setIsSavingStudent(true);
+    setEditStudentError('');
+    setEditStudentSuccess('');
+    try {
+      const studentId = editingStudent._id;
+      const res = await fetch(`${API_BASE}/students/${studentId}`, {
+        method: 'PATCH',
+        headers,
+        body: JSON.stringify(editingStudent)
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.detail || 'Failed to update student profile.');
+      }
+      setEditStudentSuccess('Student profile updated successfully!');
+      setStudents(prev => prev.map(s => (s._id === studentId || s.id === studentId) ? { ...s, ...data } : s));
+      if (viewingStudent && (viewingStudent._id === studentId || viewingStudent.id === studentId)) {
+        setViewingStudent(prev => ({ ...prev, ...data, update_requested: false, update_request_note: null }));
+      }
+      setTimeout(() => {
+        setEditingStudent(null);
+        setEditStudentSuccess('');
+      }, 1200);
+    } catch (err) {
+      setEditStudentError(err.message || 'Error updating student.');
+    } finally {
+      setIsSavingStudent(false);
     }
   };
 
@@ -938,29 +1006,64 @@ export function AdminDashboard({ onLogout }) {
           <div>
             <h2 style={{ color: 'var(--color-white)', marginBottom: '1.5rem', fontSize: '1.6rem' }}>Institute Overview</h2>
             <div className="stats-cards-grid">
-              <div className="glass-panel" style={{ padding: '1.5rem', textAlign: 'center' }}>
-                <h4 style={{ color: '#aaa', fontSize: '0.85rem', marginBottom: '0.4rem' }}>Total Forms</h4>
-                <p style={{ fontSize: '2.2rem', fontWeight: 'bold', color: 'var(--color-white)' }}>{stats.total}</p>
-              </div>
-              <div className="glass-panel" style={{ padding: '1.5rem', textAlign: 'center', borderLeft: '4px solid #f39c12' }}>
-                <h4 style={{ color: '#aaa', fontSize: '0.85rem', marginBottom: '0.4rem' }}>Pending</h4>
-                <p style={{ fontSize: '2.2rem', fontWeight: 'bold', color: '#f39c12' }}>{stats.pending}</p>
-              </div>
-              <div className="glass-panel" style={{ padding: '1.5rem', textAlign: 'center', borderLeft: '4px solid #2ecc71' }}>
-                <h4 style={{ color: '#aaa', fontSize: '0.85rem', marginBottom: '0.4rem' }}>Approved</h4>
-                <p style={{ fontSize: '2.2rem', fontWeight: 'bold', color: '#2ecc71' }}>{stats.approved}</p>
-              </div>
-              <div className="glass-panel" style={{ padding: '1.5rem', textAlign: 'center', borderLeft: '4px solid #e74c3c' }}>
-                <h4 style={{ color: '#aaa', fontSize: '0.85rem', marginBottom: '0.4rem' }}>Canceled</h4>
-                <p style={{ fontSize: '2.2rem', fontWeight: 'bold', color: '#e74c3c' }}>{stats.canceled}</p>
-              </div>
-              <div className="glass-panel" style={{ padding: '1.5rem', textAlign: 'center', borderLeft: '4px solid var(--color-primary)' }}>
-                <h4 style={{ color: '#aaa', fontSize: '0.85rem', marginBottom: '0.4rem' }}>Active Students</h4>
-                <p style={{ fontSize: '2.2rem', fontWeight: 'bold', color: 'var(--color-primary)' }}>{stats.total_students}</p>
-              </div>
               <button
                 type="button"
-                className="glass-panel"
+                className="glass-panel stat-card-btn"
+                style={{ padding: '1.5rem', textAlign: 'center', cursor: 'pointer', background: 'transparent', width: '100%', border: 'none' }}
+                onClick={() => { setActiveTab('admissions'); setAdmissionFilter('all'); }}
+                title="Click to view all admission forms"
+              >
+                <h4 style={{ color: '#aaa', fontSize: '0.85rem', marginBottom: '0.4rem' }}>Total Forms</h4>
+                <p style={{ fontSize: '2.2rem', fontWeight: 'bold', color: 'var(--color-white)', margin: 0 }}>{stats.total}</p>
+              </button>
+
+              <button
+                type="button"
+                className="glass-panel stat-card-btn"
+                style={{ padding: '1.5rem', textAlign: 'center', borderLeft: '4px solid #f39c12', cursor: 'pointer', background: 'transparent', width: '100%', borderTop: 'none', borderRight: 'none', borderBottom: 'none' }}
+                onClick={() => { setActiveTab('admissions'); setAdmissionFilter('pending'); }}
+                title="Click to view pending admissions"
+              >
+                <h4 style={{ color: '#aaa', fontSize: '0.85rem', marginBottom: '0.4rem' }}>Pending</h4>
+                <p style={{ fontSize: '2.2rem', fontWeight: 'bold', color: '#f39c12', margin: 0 }}>{stats.pending}</p>
+              </button>
+
+              <button
+                type="button"
+                className="glass-panel stat-card-btn"
+                style={{ padding: '1.5rem', textAlign: 'center', borderLeft: '4px solid #2ecc71', cursor: 'pointer', background: 'transparent', width: '100%', borderTop: 'none', borderRight: 'none', borderBottom: 'none' }}
+                onClick={() => { setActiveTab('admissions'); setAdmissionFilter('approved'); }}
+                title="Click to view approved admissions"
+              >
+                <h4 style={{ color: '#aaa', fontSize: '0.85rem', marginBottom: '0.4rem' }}>Approved</h4>
+                <p style={{ fontSize: '2.2rem', fontWeight: 'bold', color: '#2ecc71', margin: 0 }}>{stats.approved}</p>
+              </button>
+
+              <button
+                type="button"
+                className="glass-panel stat-card-btn"
+                style={{ padding: '1.5rem', textAlign: 'center', borderLeft: '4px solid #e74c3c', cursor: 'pointer', background: 'transparent', width: '100%', borderTop: 'none', borderRight: 'none', borderBottom: 'none' }}
+                onClick={() => { setActiveTab('admissions'); setAdmissionFilter('canceled'); }}
+                title="Click to view canceled admissions"
+              >
+                <h4 style={{ color: '#aaa', fontSize: '0.85rem', marginBottom: '0.4rem' }}>Canceled</h4>
+                <p style={{ fontSize: '2.2rem', fontWeight: 'bold', color: '#e74c3c', margin: 0 }}>{stats.canceled}</p>
+              </button>
+
+              <button
+                type="button"
+                className="glass-panel stat-card-btn"
+                style={{ padding: '1.5rem', textAlign: 'center', borderLeft: '4px solid var(--color-primary)', cursor: 'pointer', background: 'transparent', width: '100%', borderTop: 'none', borderRight: 'none', borderBottom: 'none' }}
+                onClick={() => { setActiveTab('students'); setStudentFilter('active'); }}
+                title="Click to view active enrolled students"
+              >
+                <h4 style={{ color: '#aaa', fontSize: '0.85rem', marginBottom: '0.4rem' }}>Active Students</h4>
+                <p style={{ fontSize: '2.2rem', fontWeight: 'bold', color: 'var(--color-primary)', margin: 0 }}>{stats.total_students}</p>
+              </button>
+
+              <button
+                type="button"
+                className="glass-panel stat-card-btn"
                 style={{ padding: '1.5rem', textAlign: 'center', borderLeft: '4px solid #2ecc71', cursor: 'pointer', background: 'transparent', width: '100%', borderTop: 'none', borderRight: 'none', borderBottom: 'none' }}
                 onClick={() => setActiveTab('graduates')}
                 title="Click to view all graduated students"
@@ -968,9 +1071,10 @@ export function AdminDashboard({ onLogout }) {
                 <h4 style={{ color: '#aaa', fontSize: '0.85rem', marginBottom: '0.4rem' }}>Graduates</h4>
                 <p style={{ fontSize: '2.2rem', fontWeight: 'bold', color: '#2ecc71', margin: 0 }}>{stats.graduated_students || 0}</p>
               </button>
+
               <button
                 type="button"
-                className="glass-panel"
+                className="glass-panel stat-card-btn"
                 style={{ padding: '1.5rem', textAlign: 'center', borderLeft: '4px solid #e74c3c', cursor: 'pointer', background: 'transparent', width: '100%', borderTop: 'none', borderRight: 'none', borderBottom: 'none' }}
                 onClick={() => setActiveTab('dropouts')}
                 title="Click to view all dropout students"
@@ -978,18 +1082,39 @@ export function AdminDashboard({ onLogout }) {
                 <h4 style={{ color: '#aaa', fontSize: '0.85rem', marginBottom: '0.4rem' }}>Dropouts</h4>
                 <p style={{ fontSize: '2.2rem', fontWeight: 'bold', color: '#e74c3c', margin: 0 }}>{stats.dropout_students || 0}</p>
               </button>
-              <div className="glass-panel" style={{ padding: '1.5rem', textAlign: 'center', borderLeft: '4px solid var(--color-accent)' }}>
+
+              <button
+                type="button"
+                className="glass-panel stat-card-btn"
+                style={{ padding: '1.5rem', textAlign: 'center', borderLeft: '4px solid var(--color-accent)', cursor: 'pointer', background: 'transparent', width: '100%', borderTop: 'none', borderRight: 'none', borderBottom: 'none' }}
+                onClick={() => setActiveTab('instructors')}
+                title="Click to view active instructors"
+              >
                 <h4 style={{ color: '#aaa', fontSize: '0.85rem', marginBottom: '0.4rem' }}>Active Instructors</h4>
-                <p style={{ fontSize: '2.2rem', fontWeight: 'bold', color: 'var(--color-accent)' }}>{instructors.length}</p>
-              </div>
-              <div className="glass-panel" style={{ padding: '1.5rem', textAlign: 'center', borderLeft: '4px solid #3498db' }}>
+                <p style={{ fontSize: '2.2rem', fontWeight: 'bold', color: 'var(--color-accent)', margin: 0 }}>{instructors.length}</p>
+              </button>
+
+              <button
+                type="button"
+                className="glass-panel stat-card-btn"
+                style={{ padding: '1.5rem', textAlign: 'center', borderLeft: '4px solid #3498db', cursor: 'pointer', background: 'transparent', width: '100%', borderTop: 'none', borderRight: 'none', borderBottom: 'none' }}
+                onClick={() => setActiveTab('slots')}
+                title="Click to view class slots"
+              >
                 <h4 style={{ color: '#aaa', fontSize: '0.85rem', marginBottom: '0.4rem' }}>Class Slots</h4>
-                <p style={{ fontSize: '2.2rem', fontWeight: 'bold', color: '#3498db' }}>{stats.total_slots || slots.length || 0}</p>
-              </div>
-              <div className="glass-panel" style={{ padding: '1.5rem', textAlign: 'center', borderLeft: '4px solid #9b59b6' }}>
+                <p style={{ fontSize: '2.2rem', fontWeight: 'bold', color: '#3498db', margin: 0 }}>{stats.total_slots || slots.length || 0}</p>
+              </button>
+
+              <button
+                type="button"
+                className="glass-panel stat-card-btn"
+                style={{ padding: '1.5rem', textAlign: 'center', borderLeft: '4px solid #9b59b6', cursor: 'pointer', background: 'transparent', width: '100%', borderTop: 'none', borderRight: 'none', borderBottom: 'none' }}
+                onClick={() => setActiveTab('modules')}
+                title="Click to view modules"
+              >
                 <h4 style={{ color: '#aaa', fontSize: '0.85rem', marginBottom: '0.4rem' }}>Modules</h4>
-                <p style={{ fontSize: '2.2rem', fontWeight: 'bold', color: '#9b59b6' }}>{stats.total_modules || 0}</p>
-              </div>
+                <p style={{ fontSize: '2.2rem', fontWeight: 'bold', color: '#9b59b6', margin: 0 }}>{stats.total_modules || 0}</p>
+              </button>
             </div>
 
             {/* Active Instructors & Assigned Classes Breakdown */}
@@ -1076,6 +1201,35 @@ export function AdminDashboard({ onLogout }) {
               </div>
             </div>
 
+            {/* Admission Filter Pill Buttons */}
+            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.25rem', flexWrap: 'wrap' }}>
+              {[
+                { id: 'all', label: `All Applications (${admissions.length})` },
+                { id: 'pending', label: `Pending Review (${admissions.filter(a => a.status === 'Pending' || a.status === 'Fee Email Sent').length})` },
+                { id: 'approved', label: `Approved (${admissions.filter(a => a.status === 'Approved').length})` },
+                { id: 'canceled', label: `Canceled (${admissions.filter(a => a.status === 'Canceled').length})` },
+              ].map(f => (
+                <button
+                  key={f.id}
+                  type="button"
+                  onClick={() => setAdmissionFilter(f.id)}
+                  style={{
+                    padding: '6px 14px',
+                    borderRadius: '20px',
+                    fontSize: '0.85rem',
+                    fontWeight: admissionFilter === f.id ? '700' : '500',
+                    cursor: 'pointer',
+                    background: admissionFilter === f.id ? 'var(--color-primary)' : 'rgba(197, 229, 232, 0.08)',
+                    color: admissionFilter === f.id ? 'var(--color-bg-dark)' : 'var(--color-primary)',
+                    border: admissionFilter === f.id ? '1px solid var(--color-primary)' : '1px solid rgba(197, 229, 232, 0.2)',
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
+
             <div className="table-responsive-container">
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
@@ -1089,7 +1243,12 @@ export function AdminDashboard({ onLogout }) {
                   </tr>
                 </thead>
                 <tbody>
-                  {admissions.map(adm => {
+                  {admissions.filter(adm => {
+                    if (admissionFilter === 'pending') return adm.status === 'Pending' || adm.status === 'Fee Email Sent';
+                    if (admissionFilter === 'approved') return adm.status === 'Approved';
+                    if (admissionFilter === 'canceled') return adm.status === 'Canceled';
+                    return true;
+                  }).map(adm => {
                     const isApproved = adm.status === 'Approved';
                     const isCanceled = adm.status === 'Canceled';
                     const feeSent = adm.fee_instructions_sent || adm.status === 'Fee Email Sent';
@@ -1473,6 +1632,207 @@ export function AdminDashboard({ onLogout }) {
               </div>
             )}
 
+
+            {/* Edit Student Info Modal */}
+            {editingStudent && (
+              <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(3, 14, 15, 0.9)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 300, padding: '1.5rem' }}>
+                <div style={{ padding: '2rem', maxWidth: '650px', width: '100%', maxHeight: '90vh', overflowY: 'auto', borderRadius: '16px', backgroundColor: '#092528', border: '1px solid rgba(197, 229, 232, 0.3)', boxShadow: '0 25px 60px rgba(0, 0, 0, 0.95)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '0.75rem' }}>
+                    <div>
+                      <h3 style={{ color: 'var(--color-white)', fontSize: '1.3rem', fontWeight: 700, margin: 0 }}>
+                        ✏️ Edit Student Information
+                      </h3>
+                      <span style={{ fontSize: '0.85rem', color: 'var(--color-primary)' }}>
+                        ID: {editingStudent.student_code || 'PENDING'}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setEditingStudent(null)}
+                      className="glass-panel"
+                      style={{ padding: '6px 12px', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: '1rem' }}
+                    >
+                      ✕
+                    </button>
+                  </div>
+
+                  {editStudentError && (
+                    <div style={{ padding: '0.8rem', borderRadius: '8px', background: 'rgba(231, 76, 60, 0.2)', color: '#ff6b6b', border: '1px solid rgba(231, 76, 60, 0.3)', marginBottom: '1rem', fontSize: '0.88rem' }}>
+                      {editStudentError}
+                    </div>
+                  )}
+                  {editStudentSuccess && (
+                    <div style={{ padding: '0.8rem', borderRadius: '8px', background: 'rgba(46, 204, 113, 0.2)', color: '#2ecc71', border: '1px solid rgba(46, 204, 113, 0.3)', marginBottom: '1rem', fontSize: '0.88rem' }}>
+                      {editStudentSuccess}
+                    </div>
+                  )}
+
+                  <form onSubmit={handleSaveStudentEdit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                      <div>
+                        <label htmlFor="adm_edit_first_name" style={{ display: 'block', fontSize: '0.8rem', color: '#94a3b8', marginBottom: '0.3rem' }}>First Name</label>
+                        <input
+                          id="adm_edit_first_name"
+                          type="text"
+                          value={editingStudent.first_name}
+                          onChange={(e) => setEditingStudent({ ...editingStudent, first_name: e.target.value })}
+                          required
+                          style={inputStyle}
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="adm_edit_last_name" style={{ display: 'block', fontSize: '0.8rem', color: '#94a3b8', marginBottom: '0.3rem' }}>Last Name</label>
+                        <input
+                          id="adm_edit_last_name"
+                          type="text"
+                          value={editingStudent.last_name}
+                          onChange={(e) => setEditingStudent({ ...editingStudent, last_name: e.target.value })}
+                          style={inputStyle}
+                        />
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                      <div>
+                        <label htmlFor="adm_edit_email" style={{ display: 'block', fontSize: '0.8rem', color: '#94a3b8', marginBottom: '0.3rem' }}>Email</label>
+                        <input
+                          id="adm_edit_email"
+                          type="email"
+                          value={editingStudent.email}
+                          onChange={(e) => setEditingStudent({ ...editingStudent, email: e.target.value })}
+                          required
+                          style={inputStyle}
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="adm_edit_phone" style={{ display: 'block', fontSize: '0.8rem', color: '#94a3b8', marginBottom: '0.3rem' }}>Phone</label>
+                        <input
+                          id="adm_edit_phone"
+                          type="text"
+                          value={editingStudent.phone}
+                          onChange={(e) => setEditingStudent({ ...editingStudent, phone: e.target.value })}
+                          style={inputStyle}
+                        />
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                      <div>
+                        <label htmlFor="adm_edit_guardian_name" style={{ display: 'block', fontSize: '0.8rem', color: '#94a3b8', marginBottom: '0.3rem' }}>Father / Guardian Name</label>
+                        <input
+                          id="adm_edit_guardian_name"
+                          type="text"
+                          value={editingStudent.guardian_name}
+                          onChange={(e) => setEditingStudent({ ...editingStudent, guardian_name: e.target.value })}
+                          style={inputStyle}
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="adm_edit_guardian_phone" style={{ display: 'block', fontSize: '0.8rem', color: '#94a3b8', marginBottom: '0.3rem' }}>Father / Guardian Phone</label>
+                        <input
+                          id="adm_edit_guardian_phone"
+                          type="text"
+                          value={editingStudent.guardian_phone}
+                          onChange={(e) => setEditingStudent({ ...editingStudent, guardian_phone: e.target.value })}
+                          style={inputStyle}
+                        />
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
+                      <div>
+                        <label htmlFor="adm_edit_dob" style={{ display: 'block', fontSize: '0.8rem', color: '#94a3b8', marginBottom: '0.3rem' }}>Date of Birth</label>
+                        <input
+                          id="adm_edit_dob"
+                          type="date"
+                          value={editingStudent.date_of_birth}
+                          onChange={(e) => setEditingStudent({ ...editingStudent, date_of_birth: e.target.value })}
+                          style={inputStyle}
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="adm_edit_country" style={{ display: 'block', fontSize: '0.8rem', color: '#94a3b8', marginBottom: '0.3rem' }}>Country</label>
+                        <input
+                          id="adm_edit_country"
+                          type="text"
+                          value={editingStudent.country}
+                          onChange={(e) => setEditingStudent({ ...editingStudent, country: e.target.value })}
+                          style={inputStyle}
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="adm_edit_city" style={{ display: 'block', fontSize: '0.8rem', color: '#94a3b8', marginBottom: '0.3rem' }}>City</label>
+                        <input
+                          id="adm_edit_city"
+                          type="text"
+                          value={editingStudent.city}
+                          onChange={(e) => setEditingStudent({ ...editingStudent, city: e.target.value })}
+                          style={inputStyle}
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label htmlFor="adm_edit_address" style={{ display: 'block', fontSize: '0.8rem', color: '#94a3b8', marginBottom: '0.3rem' }}>Address</label>
+                      <input
+                        id="adm_edit_address"
+                        type="text"
+                        value={editingStudent.address}
+                        onChange={(e) => setEditingStudent({ ...editingStudent, address: e.target.value })}
+                        style={inputStyle}
+                      />
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                      <div>
+                        <label htmlFor="adm_edit_course" style={{ display: 'block', fontSize: '0.8rem', color: '#94a3b8', marginBottom: '0.3rem' }}>Course</label>
+                        <select
+                          id="adm_edit_course"
+                          value={editingStudent.course}
+                          onChange={(e) => setEditingStudent({ ...editingStudent, course: e.target.value })}
+                          style={inputStyle}
+                        >
+                          <option value="Modern Standard Arabic">Modern Standard Arabic</option>
+                          <option value="Arabic For Kids">Arabic For Kids</option>
+                          <option value="Arabic Training (MENA)">Arabic Training (MENA)</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label htmlFor="adm_edit_slot" style={{ display: 'block', fontSize: '0.8rem', color: '#94a3b8', marginBottom: '0.3rem' }}>Slot</label>
+                        <input
+                          id="adm_edit_slot"
+                          type="text"
+                          value={editingStudent.slot}
+                          onChange={(e) => setEditingStudent({ ...editingStudent, slot: e.target.value })}
+                          placeholder="e.g. Mon-Fri 08:00 PM"
+                          style={inputStyle}
+                        />
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.8rem', marginTop: '0.5rem' }}>
+                      <button
+                        type="button"
+                        onClick={() => setEditingStudent(null)}
+                        className="glass-panel"
+                        style={{ padding: '10px 20px', border: '1px solid rgba(255,255,255,0.2)', color: '#ccc', cursor: 'pointer' }}
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={isSavingStudent}
+                        className="btn-primary"
+                        style={{ padding: '10px 24px', cursor: isSavingStudent ? 'not-allowed' : 'pointer', opacity: isSavingStudent ? 0.7 : 1 }}
+                      >
+                        {isSavingStudent ? 'Saving Changes...' : 'Save Student Info'}
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            )}
+
             {/* View Full Student Profile Modal */}
             {viewingStudent && (
               <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(3, 14, 15, 0.88)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 200, padding: '1.5rem' }}>
@@ -1486,13 +1846,24 @@ export function AdminDashboard({ onLogout }) {
                         Student ID: {viewingStudent.student_code || 'PENDING'} • Status: <span style={{ color: viewingStudent.status === 'Cancelled' ? '#e74c3c' : '#2ecc71', fontWeight: 'bold' }}>{viewingStudent.status || 'Active'}</span>
                       </div>
                     </div>
-                    <button
-                      onClick={() => setViewingStudent(null)}
-                      className="glass-panel"
-                      style={{ padding: '6px 12px', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: '0.9rem' }}
-                    >
-                      Close
-                    </button>
+                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                      <button
+                        type="button"
+                        onClick={() => handleStartEditStudent(viewingStudent)}
+                        className="btn-primary"
+                        style={{ padding: '6px 14px', fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem', border: 'none' }}
+                      >
+                        ✏️ Edit Student Info
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setViewingStudent(null)}
+                        className="glass-panel"
+                        style={{ padding: '6px 12px', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: '0.9rem' }}
+                      >
+                        Close
+                      </button>
+                    </div>
                   </div>
 
                   {viewingStudent.update_requested && (

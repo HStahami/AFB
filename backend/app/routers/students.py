@@ -175,6 +175,13 @@ async def update_my_profile(
     if not student:
         raise HTTPException(status_code=404, detail="Student profile not found.")
 
+    # Enforce profile locking: Once completed, students cannot edit directly
+    if current_user.get("role") == "student" and (student.get("profile_completed") or student.get("is_profile_locked")):
+        raise HTTPException(
+            status_code=403,
+            detail="Your profile details are locked. Please use 'Request Profile Update' to ask an administrator to update your information."
+        )
+
     raw_dict = data.model_dump()
 
     # 1. Anti-Emoji & Threat Character Scan across all submitted text
@@ -223,6 +230,7 @@ async def update_my_profile(
 
     update_dict["updated_at"] = datetime.now(timezone.utc)
     update_dict["profile_completed"] = True
+    update_dict["is_profile_locked"] = True
 
     await db.students.update_one(
         {"_id": student["_id"]},
@@ -301,7 +309,26 @@ async def get_student_profile(
     if not student:
         raise HTTPException(status_code=404, detail="Student not found.")
 
-    return _clean_doc(student)
+    clean_student = _clean_doc(student)
+
+    # Privacy constraint: Instructors only see academic fields (Name, Student Code, Course, Slot, Status)
+    if current_user.get("role") == "instructor":
+        return {
+            "id": clean_student.get("id"),
+            "_id": clean_student.get("_id"),
+            "student_code": clean_student.get("student_code"),
+            "first_name": clean_student.get("first_name"),
+            "last_name": clean_student.get("last_name"),
+            "name": clean_student.get("name") or f"{clean_student.get('first_name', '')} {clean_student.get('last_name', '')}".strip(),
+            "course": clean_student.get("course") or clean_student.get("preferred_course") or "Modern Standard Arabic",
+            "selected_module": clean_student.get("selected_module") or clean_student.get("module") or "Standard",
+            "slot": clean_student.get("slot", "Unassigned"),
+            "slot_id": clean_student.get("slot_id"),
+            "status": clean_student.get("status", "Active"),
+            "profile_image": clean_student.get("profile_image"),
+        }
+
+    return clean_student
 
 
 @router.patch("/{student_id}/assign", summary="Assign slot and instructor to a student (Admin Only)")
@@ -1160,3 +1187,85 @@ async def dismiss_update_request(
     )
 
     return {"message": "Update request dismissed."}
+
+@router.patch("/{student_id}", summary="Update student profile details (Admin Only)")
+@router.put("/{student_id}", summary="Update student profile details (Admin Only)")
+async def admin_update_student(
+    student_id: str,
+    payload: dict,
+    admin_user: dict = Depends(require_admin)
+):
+    """
+    Allows Administrator to update any information for an enrolled student:
+    Name, email, phone, guardian details, address, DOB, course, slot, etc.
+    Automatically clears any pending update requests and notifies the student.
+    """
+    db = get_db()
+    try:
+        student_oid = ObjectId(student_id)
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid student ID format.")
+
+    student = await db.students.find_one({"_id": student_oid})
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found.")
+
+    from app.services.email_service import sanitize_text
+
+    allowed_fields = [
+        "first_name", "last_name", "name", "email", "phone",
+        "guardian_name", "guardian_phone", "father_name", "father_phone",
+        "date_of_birth", "country", "city", "address",
+        "education", "referral_source", "course", "preferred_course",
+        "module", "selected_module", "preferred_days",
+        "preferred_class_type", "slot", "preferred_time_slot", "bio", "status"
+    ]
+
+    update_fields = {}
+    for field in allowed_fields:
+        if field in payload and payload[field] is not None:
+            val = payload[field]
+            if isinstance(val, str):
+                update_fields[field] = sanitize_text(val.strip())
+            else:
+                update_fields[field] = val
+
+    if "first_name" in update_fields or "last_name" in update_fields:
+        fn = update_fields.get("first_name", student.get("first_name", ""))
+        ln = update_fields.get("last_name", student.get("last_name", ""))
+        update_fields["name"] = f"{fn} {ln}".strip()
+
+    # Clear update_requested flag since Admin is fulfilling / reviewing the record
+    update_fields["update_requested"] = False
+    update_fields["update_request_note"] = None
+    update_fields["updated_at"] = datetime.now(timezone.utc)
+
+    await db.students.update_one(
+        {"_id": student_oid},
+        {"$set": update_fields}
+    )
+
+    # Synchronize users collection if email was modified
+    if "email" in update_fields and student.get("user_id"):
+        await db.users.update_one(
+            {"_id": student["user_id"]},
+            {"$set": {"email": update_fields["email"], "updated_at": datetime.now(timezone.utc)}}
+        )
+
+    # Dispatch notification to student
+    if student.get("user_id"):
+        try:
+            await create_notification(
+                db=db,
+                recipient_user_id=student["user_id"],
+                title="Profile Information Updated",
+                message="Administration has reviewed and updated your profile details.",
+                notification_type="student_profile_updated",
+                related_entity_type="student",
+                related_entity_id=str(student_oid)
+            )
+        except Exception as notif_err:
+            print(f"[NOTIFICATION ERROR] Failed to notify student: {notif_err}")
+
+    updated_doc = await db.students.find_one({"_id": student_oid})
+    return _clean_doc(updated_doc)

@@ -138,7 +138,7 @@ function AppLayout() {
               <Route
                 path="/instructor"
                 element={
-                  <ProtectedRoute allowedRoles={['instructor', 'admin']}>
+                  <ProtectedRoute allowedRoles={['instructor']}>
                     <InstructorLayout />
                   </ProtectedRoute>
                 }

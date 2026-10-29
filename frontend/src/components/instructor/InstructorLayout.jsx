@@ -40,6 +40,22 @@ export function InstructorLayout({ children }) {
   const [pwdSuccess, setPwdSuccess] = useState("");
   const [pwdLoading, setPwdLoading] = useState(false);
 
+  if (user && user.role !== "instructor") {
+    return (
+      <div style={{ minHeight: "80vh", display: "flex", alignItems: "center", justifyContent: "center", padding: "2rem" }}>
+        <div className="glass-panel" style={{ padding: "3rem", maxWidth: "450px", textAlign: "center" }}>
+          <h2 style={{ color: "#ff6b6b", marginBottom: "1rem" }}>Access Denied</h2>
+          <p style={{ color: "#b0c4c6", marginBottom: "1.5rem" }}>
+            This portal is exclusively reserved for Instructors. Your account ({user.role}) is not authorized.
+          </p>
+          <button onClick={logout} className="btn-primary" style={{ border: "none", cursor: "pointer" }}>
+            Log Out
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   useEffect(() => {
     if (user?.first_login) {
       setShowFirstLoginModal(true);

@@ -375,7 +375,7 @@ export function StudentProfile() {
                 type="button"
                 onClick={() => setShowUpdateRequestModal(true)}
                 className="btn-primary"
-                style={{ padding: '0.45rem 1rem', fontSize: '0.85rem', cursor: 'pointer', background: 'linear-gradient(135deg, #f59e0b, #d97706)', border: 'none' }}
+                style={{ padding: '0.45rem 1rem', fontSize: '0.85rem', cursor: isCompleted ? 'not-allowed' : 'pointer', opacity: isCompleted ? 0.6 : 1, background: 'linear-gradient(135deg, #f59e0b, #d97706)', border: 'none' }}
               >
                 Request Profile Update
               </button>
@@ -993,7 +993,8 @@ export function StudentProfile() {
                   <button
                     key={sug}
                     type="button"
-                    onClick={() => setFormData((prev) => ({ ...prev, preferred_time_slot: sug }))}
+                    disabled={isCompleted}
+                    onClick={() => !isCompleted && setFormData((prev) => ({ ...prev, preferred_time_slot: sug }))}
                     style={{
                       fontSize: '0.72rem',
                       padding: '3px 9px',
@@ -1001,7 +1002,7 @@ export function StudentProfile() {
                       background: formData.preferred_time_slot === sug ? 'rgba(197, 229, 232, 0.25)' : 'rgba(255, 255, 255, 0.05)',
                       color: formData.preferred_time_slot === sug ? 'var(--color-primary)' : '#cbd5e1',
                       border: formData.preferred_time_slot === sug ? '1px solid var(--color-primary)' : '1px solid rgba(255, 255, 255, 0.1)',
-                      cursor: 'pointer',
+                      cursor: isCompleted ? 'not-allowed' : 'pointer', opacity: isCompleted ? 0.6 : 1,
                       transition: 'all 0.15s ease',
                     }}
                   >
@@ -1061,7 +1062,7 @@ export function StudentProfile() {
                   padding: '0.75rem 2rem',
                   borderRadius: '8px',
                   border: 'none',
-                  cursor: 'pointer',
+                  cursor: isCompleted ? 'not-allowed' : 'pointer', opacity: isCompleted ? 0.6 : 1,
                   fontWeight: 700,
                   background: 'linear-gradient(135deg, #f59e0b, #d97706)',
                   color: '#fff',
