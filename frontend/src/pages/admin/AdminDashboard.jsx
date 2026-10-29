@@ -972,7 +972,14 @@ export function AdminDashboard({ onLogout }) {
             <span>{sidebarOpen ? 'Close Menu' : 'Menu'}</span>
           </button>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+          <div
+            style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', cursor: 'pointer' }}
+            onClick={() => {
+              setActiveTab('overview');
+              setSidebarOpen(false);
+            }}
+            title="Go to Overview"
+          >
             <h3 style={{ color: 'var(--color-white)', fontWeight: 700, margin: 0, fontSize: '1.25rem' }} className="gradient-text">
               LMS Panel
             </h3>
@@ -986,27 +993,26 @@ export function AdminDashboard({ onLogout }) {
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <button
             type="button"
-            onClick={() => setActiveTab('notifications')}
+            onClick={() => {
+              setActiveTab('overview');
+              setSidebarOpen(false);
+            }}
             style={{
-              background: activeTab === 'notifications' ? 'var(--color-primary)' : 'rgba(197, 229, 232, 0.08)',
-              color: activeTab === 'notifications' ? 'var(--color-bg-dark)' : 'var(--color-primary)',
+              background: activeTab === 'overview' ? 'var(--color-primary)' : 'rgba(197, 229, 232, 0.08)',
+              color: activeTab === 'overview' ? 'var(--color-bg-dark)' : 'var(--color-primary)',
               border: '1px solid rgba(197, 229, 232, 0.25)',
-              padding: '6px 14px',
+              padding: '6px 16px',
               borderRadius: '8px',
               fontSize: '0.82rem',
               fontWeight: 600,
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              gap: '0.4rem'
+              transition: 'all 0.15s ease'
             }}
+            title="Go to Overview Dashboard"
           >
-            <span>Alerts</span>
-            {unreadNotifsCount > 0 && (
-              <span style={{ background: '#e74c3c', color: '#fff', padding: '1px 6px', borderRadius: '10px', fontSize: '0.72rem', fontWeight: 'bold' }}>
-                {unreadNotifsCount}
-              </span>
-            )}
+            Overview
           </button>
 
           <button
