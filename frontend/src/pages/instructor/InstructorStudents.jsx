@@ -150,11 +150,11 @@ export function InstructorStudents() {
 
               <div style={{ fontSize: "0.88rem", color: "#b0c4c6", display: "flex", flexDirection: "column", gap: "0.6rem" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                  <BookOpen size={16} color="var(--color-primary)" />
+                  
                   <span style={{ color: "#fff", fontWeight: "500" }}>{student.course || "Modern Standard Arabic"}</span>
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                  <Calendar size={16} color="var(--color-primary)" />
+                  
                   <span>{student.slot || "Unassigned Slot"}</span>
                 </div>
               </div>
@@ -195,7 +195,7 @@ export function InstructorStudents() {
                   gap: "0.4rem"
                 }}
               >
-                View Academic History <ArrowRight size={14} />
+                View Academic History 
               </Link>
             </div>
           ))}

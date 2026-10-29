@@ -193,7 +193,7 @@ export function InstructorStudentDetail() {
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "1.5rem" }}>
           <div className="glass-panel" style={{ padding: "1.8rem" }}>
             <h3 style={{ fontSize: "1.1rem", fontWeight: "600", marginBottom: "1.2rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
-              <BookOpen size={18} color="var(--color-primary)" /> Academic & Enrollment Details
+               Academic & Enrollment Details
             </h3>
             <div style={{ display: "flex", flexDirection: "column", gap: "1rem", fontSize: "0.92rem", color: "#b0c4c6" }}>
               <div>
@@ -219,7 +219,7 @@ export function InstructorStudentDetail() {
 
           <div className="glass-panel" style={{ padding: "1.8rem" }}>
             <h3 style={{ fontSize: "1.1rem", fontWeight: "600", marginBottom: "1.2rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
-              <Calendar size={18} color="var(--color-primary)" /> Academic Progress Summary
+               Academic Progress Summary
             </h3>
             <div style={{ display: "flex", flexDirection: "column", gap: "1rem", fontSize: "0.92rem", color: "#b0c4c6" }}>
               <div>

@@ -343,7 +343,7 @@ export function SmartNotebook({ slotId, slotName, initialNoteId = null, isInstru
         }}
       >
         <span style={{ fontSize: '0.75rem', color: '#64748b' }}>
-          💡 Notes remain permanently in your student library for revision.
+          Notes remain permanently in your student library for revision.
         </span>
         <button
           onClick={() => saveNote(title, content)}

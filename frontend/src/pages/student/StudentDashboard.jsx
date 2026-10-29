@@ -153,7 +153,7 @@ export function StudentDashboard() {
                     borderRadius: '4px',
                     border: '1px solid rgba(255, 255, 255, 0.1)'
                   }}>
-                    <span>⏳ Class Not Started Yet</span>
+                    <span>Class Not Started Yet</span>
                   </div>
                   <Link
                     to="/student/classroom"

@@ -270,7 +270,7 @@ export function StudentNotes() {
                       padding: 0
                     }}
                   >
-                    Read & Edit ➔
+                    Read & Edit
                   </button>
 
                   <div style={{ display: 'flex', gap: '6px' }}>

@@ -553,7 +553,7 @@ export function InstructorClassroom() {
                   }}
                 >
                   {actionLoading ? <Loader2 size={16} className="spin-animation" /> : <Radio size={16} />}
-                  🔴 Start Live Class & Notify Students
+                  Start Live Class & Notify Students
                 </button>
 
                 <button

@@ -996,7 +996,7 @@ export function AdminDashboard({ onLogout }) {
         <button className={activeTab === 'admins' ? 'btn-primary' : 'glass-panel'} style={{ width: '100%', textAlign: 'left', padding: '10px 15px', border: 'none' }} onClick={() => setActiveTab('admins')}>Admins</button>
 
         <button className="glass-panel" style={{ width: '100%', textAlign: 'left', padding: '10px 15px', border: 'none', marginTop: 'auto', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#ff6b6b' }} onClick={onLogout}>
-          <LogOut size={16} /> Logout
+          Logout
         </button>
       </div>
 
@@ -1640,7 +1640,7 @@ export function AdminDashboard({ onLogout }) {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '0.75rem' }}>
                     <div>
                       <h3 style={{ color: 'var(--color-white)', fontSize: '1.3rem', fontWeight: 700, margin: 0 }}>
-                        ✏️ Edit Student Information
+                        Edit Student Information
                       </h3>
                       <span style={{ fontSize: '0.85rem', color: 'var(--color-primary)' }}>
                         ID: {editingStudent.student_code || 'PENDING'}
@@ -1652,7 +1652,7 @@ export function AdminDashboard({ onLogout }) {
                       className="glass-panel"
                       style={{ padding: '6px 12px', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: '1rem' }}
                     >
-                      ✕
+                      X
                     </button>
                   </div>
 
@@ -1853,7 +1853,7 @@ export function AdminDashboard({ onLogout }) {
                         className="btn-primary"
                         style={{ padding: '6px 14px', fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem', border: 'none' }}
                       >
-                        ✏️ Edit Student Info
+                        Edit Student Info
                       </button>
                       <button
                         type="button"
@@ -2379,7 +2379,7 @@ export function AdminDashboard({ onLogout }) {
                 </div>
 
                 <div style={{ fontSize: '0.85rem', color: '#94a3b8', background: 'rgba(0, 168, 150, 0.08)', padding: '10px 14px', borderRadius: '8px', border: '1px solid rgba(0, 168, 150, 0.2)' }}>
-                  📧 <strong>Automatic Credentials Dispatch:</strong> Saving this instructor creates a secure portal account and automatically emails their temporary login credentials and password.
+                  <strong>Automatic Credentials Dispatch:</strong> Saving this instructor creates a secure portal account and automatically emails their temporary login credentials and password.
                 </div>
 
                 <div>
@@ -2394,7 +2394,7 @@ export function AdminDashboard({ onLogout }) {
 
                 <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
                   <button type="submit" className="btn-primary" style={{ padding: '12px 28px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <Plus size={18} /> {editingInstId ? 'Update Instructor' : 'Add Instructor'}
+                    {editingInstId ? 'Update Instructor' : 'Add Instructor'}
                   </button>
                   {editingInstId && (
                     <button type="button" onClick={handleCancelEditInstructor} className="glass-panel" style={{ padding: '12px 20px', border: 'none', color: '#e0e0e0' }}>
@@ -2443,7 +2443,7 @@ export function AdminDashboard({ onLogout }) {
                           {inst.students && inst.students.length > 0 ? (
                             inst.students.map((s, idx) => (
                               <span key={idx} style={{ color: '#b0c4c6' }}>
-                                • {s.slot}: {s.name}
+                                • {s.slot ? `${s.slot}: ` : ''}{s.name}{!s.slot ? ' (Unassigned)' : ''}
                               </span>
                             ))
                           ) : (
@@ -2453,20 +2453,20 @@ export function AdminDashboard({ onLogout }) {
                       </td>
                       <td style={tableCellStyle}>{inst.total_students || 0}</td>
                       <td style={tableCellStyle}>
-                        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                          <button onClick={() => handleEditInstructorClick(inst)} className="glass-panel" style={{ padding: '6px 12px', fontSize: '0.85rem', color: 'var(--color-primary)', border: '1px solid var(--color-primary)' }}>Edit</button>
+                        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
+                          <button onClick={() => handleEditInstructorClick(inst)} className="glass-panel" style={{ padding: '6px 14px', fontSize: '0.82rem', color: 'var(--color-primary)', border: '1px solid var(--color-primary)', borderRadius: '6px', cursor: 'pointer' }}>Edit</button>
                           {inst.email && (
                             <button
                               onClick={() => handleResendInstructorCredentials(inst._id || inst.id, inst.name, inst.email)}
                               disabled={resendingInstId === (inst._id || inst.id)}
                               className="glass-panel"
                               title="Resend login credentials to instructor email"
-                              style={{ padding: '6px 10px', fontSize: '0.85rem', color: '#38bdf8', border: '1px solid #38bdf8', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}
+                              style={{ padding: '6px 12px', fontSize: '0.82rem', color: '#38bdf8', border: '1px solid rgba(56, 189, 248, 0.4)', borderRadius: '6px', cursor: 'pointer' }}
                             >
-                              <Mail size={13} /> {resendingInstId === (inst._id || inst.id) ? 'Sending...' : 'Resend Credentials'}
+                              {resendingInstId === (inst._id || inst.id) ? 'Sending...' : 'Resend Credentials'}
                             </button>
                           )}
-                          <button onClick={() => handleDeleteInstructor(inst._id || inst.id)} className="glass-panel" style={{ padding: '6px 12px', fontSize: '0.85rem', color: '#e74c3c', border: '1px solid #e74c3c' }}><Trash2 size={14} /></button>
+                          <button onClick={() => handleDeleteInstructor(inst._id || inst.id)} className="glass-panel" style={{ padding: '6px 12px', fontSize: '0.82rem', color: '#e74c3c', border: '1px solid rgba(231, 76, 60, 0.4)', borderRadius: '6px', cursor: 'pointer' }}>Delete</button>
                         </div>
                       </td>
                     </tr>
@@ -2513,7 +2513,7 @@ export function AdminDashboard({ onLogout }) {
 
                 <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
                   <button type="submit" className="btn-primary" style={{ padding: '12px 28px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <Plus size={18} /> {editingModId ? 'Update Module' : 'Add Module'}
+                     {editingModId ? 'Update Module' : 'Add Module'}
                   </button>
                   {editingModId && (
                     <button type="button" onClick={handleCancelEditModule} className="glass-panel" style={{ padding: '12px 20px', border: 'none', color: '#e0e0e0' }}>
@@ -2600,7 +2600,7 @@ export function AdminDashboard({ onLogout }) {
 
                 <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
                   <button type="submit" className="btn-primary" style={{ padding: '12px 28px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <Plus size={18} /> {editingSlotId ? 'Update Slot' : 'Add Slot'}
+                     {editingSlotId ? 'Update Slot' : 'Add Slot'}
                   </button>
                   {editingSlotId && (
                     <button type="button" onClick={handleCancelEditSlot} className="glass-panel" style={{ padding: '12px 20px', border: 'none', color: '#e0e0e0' }}>
@@ -2827,7 +2827,7 @@ export function AdminDashboard({ onLogout }) {
                 </button>
               ) : (
                 <div style={{ color: '#8892b0', fontSize: '0.85rem', background: 'rgba(255,255,255,0.04)', padding: '6px 12px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.08)' }}>
-                  👑 Administrative management restricted to System Admin
+                   Administrative management restricted to System Admin
                 </div>
               )}
             </div>
@@ -2919,7 +2919,7 @@ export function AdminDashboard({ onLogout }) {
                                 alignItems: 'center',
                                 gap: '4px'
                               }}>
-                                👑 System Admin
+                                System Admin
                               </span>
                             ) : (
                               <span style={{
@@ -3116,14 +3116,14 @@ export function AdminDashboard({ onLogout }) {
                         <optgroup label="Students" style={{ background: '#12252a' }}>
                           {students.map(s => (
                             <option key={s._id || s.id} value={s._id || s.id} style={{ background: '#12252a' }}>
-                              🎓 {s.full_name || s.student_name || s.username} ({s.roll_number || 'Student'})
+                              {s.full_name || s.student_name || s.username} ({s.roll_number || 'Student'})
                             </option>
                           ))}
                         </optgroup>
                         <optgroup label="Instructors" style={{ background: '#12252a' }}>
                           {instructors.map(inst => (
                             <option key={inst._id || inst.id} value={inst._id || inst.id} style={{ background: '#12252a' }}>
-                              👨‍🏫 {inst.full_name || inst.name || inst.username} ({inst.specialization || 'Instructor'})
+                              {inst.full_name || inst.name || inst.username} ({inst.specialization || 'Instructor'})
                             </option>
                           ))}
                         </optgroup>
@@ -3177,7 +3177,7 @@ export function AdminDashboard({ onLogout }) {
                 <div style={{ background: 'rgba(27, 67, 77, 0.4)', border: '1px solid rgba(0, 168, 150, 0.4)', borderRadius: '10px', padding: '1.2rem' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                     <span style={{ fontSize: '0.75rem', fontWeight: 'bold', padding: '2px 8px', borderRadius: '4px', background: 'rgba(0, 168, 150, 0.25)', color: 'var(--color-primary)', border: '1px solid rgba(0, 168, 150, 0.4)' }}>
-                      📢 ADMIN ANNOUNCEMENT
+                      ADMIN ANNOUNCEMENT
                     </span>
                     <span style={{ fontSize: '0.75rem', color: '#888' }}>Just now</span>
                   </div>
@@ -3209,7 +3209,7 @@ export function AdminDashboard({ onLogout }) {
             <div style={{ background: 'rgba(0, 168, 150, 0.12)', border: '1px solid rgba(0, 168, 150, 0.35)', padding: '12px 18px', borderRadius: '8px', marginBottom: '1.5rem', color: '#00a896', fontSize: '0.88rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
               <Shield size={18} style={{ flexShrink: 0 }} />
               <span>
-                <strong>🔒 Audit Oversight Active:</strong> Administrators can inspect conversation history between students and their assigned instructors for policy compliance. Sending messages into private user threads is restricted.
+                <strong> Audit Oversight Active:</strong> Administrators can inspect conversation history between students and their assigned instructors for policy compliance. Sending messages into private user threads is restricted.
               </span>
             </div>
 
@@ -3252,7 +3252,7 @@ export function AdminDashboard({ onLogout }) {
                           }}
                         >
                           <div style={{ color: '#fff', fontWeight: 'bold', fontSize: '0.9rem', marginBottom: '4px' }}>
-                            🎓 {th.student_name || 'Student'} ↔ 👨‍🏫 {th.instructor_name || 'Instructor'}
+                             {th.student_name || 'Student'} ↔  {th.instructor_name || 'Instructor'}
                           </div>
                           <div style={{ color: '#aaa', fontSize: '0.78rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                             {th.last_message || 'No messages exchanged yet'}
@@ -3321,7 +3321,7 @@ export function AdminDashboard({ onLogout }) {
                       <input
                         type="text"
                         disabled
-                        placeholder="🔒 Message input disabled for admin monitoring session..."
+                        placeholder="Message input disabled for admin monitoring session..."
                         style={{ ...inputStyle, width: '100%', opacity: 0.5, cursor: 'not-allowed' }}
                       />
                       <button disabled className="btn-secondary" style={{ opacity: 0.5, cursor: 'not-allowed', padding: '10px 16px' }}>
