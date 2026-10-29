@@ -1064,12 +1064,13 @@ export function AdminDashboard({ onLogout }) {
               background: '#072224',
               borderRight: '1px solid rgba(197, 229, 232, 0.25)',
               boxShadow: '10px 0 40px rgba(0, 0, 0, 0.9)',
-              padding: '1.5rem 1rem',
+              padding: '1.5rem 0.85rem',
               display: 'flex',
               flexDirection: 'column',
               gap: '0.6rem',
               zIndex: 500,
-              overflowY: 'auto'
+              overflowY: 'auto',
+              overscrollBehavior: 'contain'
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', paddingBottom: '0.75rem', borderBottom: '1px solid rgba(197, 229, 232, 0.15)' }}>
