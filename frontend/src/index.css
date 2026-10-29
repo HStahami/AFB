@@ -132,11 +132,13 @@ body {
 /* ========================================= */
 .admin-layout {
   display: flex;
+  flex-direction: column;
   min-height: 90vh;
   background: rgba(0, 0, 0, 0.15);
   border-radius: 16px;
   overflow: hidden;
   position: relative;
+  width: 100%;
 }
 
 .admin-sidebar {
@@ -509,3 +511,17 @@ body {
 }
 
 
+
+/* Admin Sidebar Drawer Animation */
+.admin-sidebar-drawer {
+  animation: slideDrawer 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes slideDrawer {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}

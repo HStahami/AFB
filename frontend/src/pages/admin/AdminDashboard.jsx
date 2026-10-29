@@ -89,7 +89,8 @@ export function AdminDashboard({ onLogout }) {
   // Assign & Profile View modal state
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [viewingStudent, setViewingStudent] = useState(null);
-  const [admissionFilter, setAdmissionFilter] = useState('all'); // 'all', 'pending', 'approved', 'canceled'
+  const [admissionFilter, setAdmissionFilter] = useState('all');
+  const [sidebarOpen, setSidebarOpen] = useState(false); // 'all', 'pending', 'approved', 'canceled'
   const [editingStudent, setEditingStudent] = useState(null);
   const [isSavingStudent, setIsSavingStudent] = useState(false);
   const [editStudentError, setEditStudentError] = useState('');
@@ -915,93 +916,220 @@ export function AdminDashboard({ onLogout }) {
   const tableHeaderStyle = { padding: '12px', borderBottom: '1px solid rgba(255,255,255,0.1)', color: 'var(--color-primary)', textAlign: 'left' };
   const tableCellStyle = { padding: '12px', borderBottom: '1px solid rgba(255,255,255,0.05)', color: '#e0e0e0' };
 
+  const allAdminTabs = [
+    { id: 'overview', label: 'Overview' },
+    { id: 'announcements', label: 'Announcements' },
+    { id: 'chataudit', label: 'Chat Audit' },
+    { id: 'notifications', label: unreadNotifsCount > 0 ? `Alerts (${unreadNotifsCount})` : 'Alerts' },
+    { id: 'admissions', label: 'Admissions' },
+    { id: 'students', label: 'Students' },
+    { id: 'graduates', label: 'Graduates' },
+    { id: 'dropouts', label: 'Dropouts' },
+    { id: 'instructors', label: 'Instructors' },
+    { id: 'modules', label: 'Modules' },
+    { id: 'slots', label: 'Slots' },
+    { id: 'contacts', label: 'Messages' },
+    { id: 'admins', label: 'Admins' },
+  ];
+
   return (
-    <div className="admin-layout">
-      {/* Mobile Top Header */}
-      <div className="admin-mobile-header">
-        <h3 style={{ color: 'var(--color-white)', fontWeight: 'bold', margin: 0, fontSize: '1.2rem' }} className="gradient-text">LMS Panel</h3>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <button 
-            className="glass-panel" 
-            style={{ padding: '6px 10px', border: 'none', display: 'flex', alignItems: 'center', gap: '0.3rem', color: unreadNotifsCount > 0 ? 'var(--color-primary)' : '#aaa', fontSize: '0.85rem' }} 
-            onClick={() => setActiveTab('notifications')}
-            title="Notifications"
+    <div className="admin-layout" style={{ display: 'flex', flexDirection: 'column', width: '100%', minHeight: '90vh' }}>
+      {/* Top Header Bar with Hamburger / Toggle Menu */}
+      <div className="admin-top-bar" style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '0.85rem 1.5rem',
+        background: 'rgba(7, 34, 36, 0.95)',
+        backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
+        borderBottom: '1px solid rgba(197, 229, 232, 0.2)',
+        gap: '1rem',
+        position: 'sticky',
+        top: 0,
+        zIndex: 100
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <button
+            type="button"
+            onClick={() => setSidebarOpen(prev => !prev)}
+            className="btn-primary"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.6rem',
+              padding: '8px 16px',
+              fontSize: '0.88rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              borderRadius: '8px',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.3)'
+            }}
+            title={sidebarOpen ? "Close Navigation Menu" : "Open Navigation Menu"}
+            aria-label={sidebarOpen ? "Close Navigation Menu" : "Open Navigation Menu"}
           >
-            <Bell size={15} />
+            <span style={{ fontSize: '1.2rem', lineHeight: 1 }}>{sidebarOpen ? '✕' : '☰'}</span>
+            <span>{sidebarOpen ? 'Close Menu' : 'Menu'}</span>
+          </button>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+            <h3 style={{ color: 'var(--color-white)', fontWeight: 700, margin: 0, fontSize: '1.25rem' }} className="gradient-text">
+              LMS Panel
+            </h3>
+            <span style={{ color: '#64748b', fontSize: '0.9rem' }}>•</span>
+            <span style={{ color: 'var(--color-primary)', fontSize: '0.95rem', fontWeight: 600, textTransform: 'capitalize' }}>
+              {activeTab === 'chataudit' ? 'Chat Audit' : activeTab}
+            </span>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <button
+            type="button"
+            onClick={() => setActiveTab('notifications')}
+            style={{
+              background: activeTab === 'notifications' ? 'var(--color-primary)' : 'rgba(197, 229, 232, 0.08)',
+              color: activeTab === 'notifications' ? 'var(--color-bg-dark)' : 'var(--color-primary)',
+              border: '1px solid rgba(197, 229, 232, 0.25)',
+              padding: '6px 14px',
+              borderRadius: '8px',
+              fontSize: '0.82rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.4rem'
+            }}
+          >
+            <span>Alerts</span>
             {unreadNotifsCount > 0 && (
-              <span style={{ background: '#e74c3c', color: '#fff', borderRadius: '10px', padding: '1px 5px', fontSize: '0.65rem', fontWeight: 'bold' }}>
+              <span style={{ background: '#e74c3c', color: '#fff', padding: '1px 6px', borderRadius: '10px', fontSize: '0.72rem', fontWeight: 'bold' }}>
                 {unreadNotifsCount}
               </span>
             )}
           </button>
-          <button className="glass-panel" style={{ padding: '6px 12px', border: 'none', display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#ff6b6b', fontSize: '0.85rem' }} onClick={onLogout}>
-            <LogOut size={14} /> Logout
+
+          <button
+            type="button"
+            onClick={onLogout}
+            style={{
+              background: 'rgba(231, 76, 60, 0.12)',
+              color: '#ff6b6b',
+              border: '1px solid rgba(231, 76, 60, 0.3)',
+              padding: '6px 14px',
+              borderRadius: '8px',
+              fontSize: '0.82rem',
+              fontWeight: 600,
+              cursor: 'pointer'
+            }}
+          >
+            Logout
           </button>
         </div>
       </div>
 
-      {/* Mobile Horizontal Tab Navigation */}
-      <div className="admin-mobile-tab-bar no-scrollbar">
-        {[
-          { id: 'overview', label: 'Overview' },
-          { id: 'announcements', label: 'Announcements' },
-          { id: 'chataudit', label: 'Chat Audit' },
-          { id: 'notifications', label: unreadNotifsCount > 0 ? `Alerts (${unreadNotifsCount})` : 'Alerts' },
-          { id: 'admissions', label: 'Admissions' },
-          { id: 'students', label: 'Students' },
-          { id: 'graduates', label: 'Graduates' },
-          { id: 'dropouts', label: 'Dropouts' },
-          { id: 'instructors', label: 'Instructors' },
-          { id: 'modules', label: 'Modules' },
-          { id: 'slots', label: 'Slots' },
-          { id: 'contacts', label: 'Messages' },
-          { id: 'admins', label: 'Admins' },
-        ].map(tab => (
-          <button
-            key={tab.id}
-            className={`admin-tab-pill ${activeTab === tab.id ? 'active' : ''}`}
-            onClick={() => setActiveTab(tab.id)}
+      {/* Off-canvas Toggleable Sidebar Drawer */}
+      {sidebarOpen && (
+        <>
+          <div
+            onClick={() => setSidebarOpen(false)}
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: 'rgba(0, 0, 0, 0.65)',
+              backdropFilter: 'blur(4px)',
+              WebkitBackdropFilter: 'blur(4px)',
+              zIndex: 499
+            }}
+          />
+
+          <div
+            className="admin-sidebar-drawer"
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              bottom: 0,
+              width: '280px',
+              maxWidth: '85vw',
+              background: '#072224',
+              borderRight: '1px solid rgba(197, 229, 232, 0.25)',
+              boxShadow: '10px 0 40px rgba(0, 0, 0, 0.9)',
+              padding: '1.5rem 1rem',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '0.6rem',
+              zIndex: 500,
+              overflowY: 'auto'
+            }}
           >
-            {tab.label}
-          </button>
-        ))}
-      </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', paddingBottom: '0.75rem', borderBottom: '1px solid rgba(197, 229, 232, 0.15)' }}>
+              <h4 style={{ color: 'var(--color-white)', fontWeight: 'bold', margin: 0, fontSize: '1.15rem' }} className="gradient-text">
+                Navigation Menu
+              </h4>
+              <button
+                type="button"
+                onClick={() => setSidebarOpen(false)}
+                className="glass-panel"
+                style={{ padding: '4px 10px', fontSize: '0.85rem', border: 'none', color: '#aaa', cursor: 'pointer' }}
+              >
+                ✕
+              </button>
+            </div>
 
-      {/* Desktop Sidebar */}
-      <div className="admin-sidebar">
-        <h3 style={{ color: 'var(--color-white)', fontWeight: 'bold', marginBottom: '1.5rem', textAlign: 'center' }} className="gradient-text">LMS Panel</h3>
-        <button className={activeTab === 'overview' ? 'btn-primary' : 'glass-panel'} style={{ width: '100%', textAlign: 'left', padding: '10px 15px', border: 'none' }} onClick={() => setActiveTab('overview')}>Overview</button>
-        <button className={activeTab === 'announcements' ? 'btn-primary' : 'glass-panel'} style={{ width: '100%', textAlign: 'left', padding: '10px 15px', border: 'none' }} onClick={() => setActiveTab('announcements')}>Announcements</button>
-        <button className={activeTab === 'chataudit' ? 'btn-primary' : 'glass-panel'} style={{ width: '100%', textAlign: 'left', padding: '10px 15px', border: 'none' }} onClick={() => setActiveTab('chataudit')}>Chat Audit</button>
-        <button 
-          className={activeTab === 'notifications' ? 'btn-primary' : 'glass-panel'} 
-          style={{ width: '100%', textAlign: 'left', padding: '10px 15px', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }} 
-          onClick={() => setActiveTab('notifications')}
-        >
-          <span>Notifications</span>
-          {unreadNotifsCount > 0 && (
-            <span style={{ background: '#e74c3c', color: '#fff', padding: '2px 7px', borderRadius: '12px', fontSize: '0.72rem', fontWeight: 'bold' }}>
-              {unreadNotifsCount}
-            </span>
-          )}
-        </button>
-        <button className={activeTab === 'admissions' ? 'btn-primary' : 'glass-panel'} style={{ width: '100%', textAlign: 'left', padding: '10px 15px', border: 'none' }} onClick={() => setActiveTab('admissions')}>Admissions</button>
-        <button className={activeTab === 'students' ? 'btn-primary' : 'glass-panel'} style={{ width: '100%', textAlign: 'left', padding: '10px 15px', border: 'none' }} onClick={() => setActiveTab('students')}>Students</button>
-        <button className={activeTab === 'graduates' ? 'btn-primary' : 'glass-panel'} style={{ width: '100%', textAlign: 'left', padding: '10px 15px', border: 'none' }} onClick={() => setActiveTab('graduates')}>Graduates</button>
-        <button className={activeTab === 'dropouts' ? 'btn-primary' : 'glass-panel'} style={{ width: '100%', textAlign: 'left', padding: '10px 15px', border: 'none' }} onClick={() => setActiveTab('dropouts')}>Dropouts</button>
-        <button className={activeTab === 'instructors' ? 'btn-primary' : 'glass-panel'} style={{ width: '100%', textAlign: 'left', padding: '10px 15px', border: 'none' }} onClick={() => setActiveTab('instructors')}>Instructors</button>
-        <button className={activeTab === 'modules' ? 'btn-primary' : 'glass-panel'} style={{ width: '100%', textAlign: 'left', padding: '10px 15px', border: 'none' }} onClick={() => setActiveTab('modules')}>Modules</button>
-        <button className={activeTab === 'slots' ? 'btn-primary' : 'glass-panel'} style={{ width: '100%', textAlign: 'left', padding: '10px 15px', border: 'none' }} onClick={() => setActiveTab('slots')}>Slots</button>
-        <button className={activeTab === 'contacts' ? 'btn-primary' : 'glass-panel'} style={{ width: '100%', textAlign: 'left', padding: '10px 15px', border: 'none' }} onClick={() => setActiveTab('contacts')}>Messages</button>
-        <button className={activeTab === 'admins' ? 'btn-primary' : 'glass-panel'} style={{ width: '100%', textAlign: 'left', padding: '10px 15px', border: 'none' }} onClick={() => setActiveTab('admins')}>Admins</button>
+            {allAdminTabs.map(tab => (
+              <button
+                key={tab.id}
+                style={{
+                  width: '100%',
+                  textAlign: 'left',
+                  padding: '11px 16px',
+                  border: activeTab === tab.id ? '1px solid var(--color-primary)' : '1px solid rgba(197, 229, 232, 0.12)',
+                  fontSize: '0.9rem',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontWeight: activeTab === tab.id ? 700 : 500,
+                  background: activeTab === tab.id ? 'var(--color-primary)' : 'rgba(197, 229, 232, 0.05)',
+                  color: activeTab === tab.id ? 'var(--color-bg-dark)' : 'var(--color-primary)',
+                  transition: 'all 0.15s ease'
+                }}
+                onClick={() => {
+                  setActiveTab(tab.id);
+                  setSidebarOpen(false);
+                }}
+              >
+                {tab.label}
+              </button>
+            ))}
 
-        <button className="glass-panel" style={{ width: '100%', textAlign: 'left', padding: '10px 15px', border: 'none', marginTop: 'auto', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#ff6b6b' }} onClick={onLogout}>
-          Logout
-        </button>
-      </div>
+            <button
+              type="button"
+              className="glass-panel"
+              style={{
+                width: '100%',
+                textAlign: 'left',
+                padding: '11px 16px',
+                border: 'none',
+                marginTop: 'auto',
+                color: '#ff6b6b',
+                fontSize: '0.9rem',
+                borderRadius: '8px',
+                background: 'rgba(231, 76, 60, 0.1)',
+                cursor: 'pointer'
+              }}
+              onClick={onLogout}
+            >
+              Logout
+            </button>
+          </div>
+        </>
+      )}
 
-      {/* Main Admin Area */}
-      <div className="admin-content-area">
+      {/* Main Admin Content Area - Full width with zero sidebar blockage */}
+      <div className="admin-content-area" style={{ flex: 1, padding: '2rem', width: '100%' }}>
         {activeTab === 'overview' && (
           <div>
             <h2 style={{ color: 'var(--color-white)', marginBottom: '1.5rem', fontSize: '1.6rem' }}>Institute Overview</h2>
@@ -2414,7 +2542,7 @@ export function AdminDashboard({ onLogout }) {
                     <th style={tableHeaderStyle}>About / Specialty</th>
                     <th style={tableHeaderStyle}>Active Slots / Students</th>
                     <th style={tableHeaderStyle}>Total Students</th>
-                    <th style={tableHeaderStyle}>Actions</th>
+                    <th style={{ ...tableHeaderStyle, width: '270px', minWidth: '270px' }}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -2452,21 +2580,66 @@ export function AdminDashboard({ onLogout }) {
                         </div>
                       </td>
                       <td style={tableCellStyle}>{inst.total_students || 0}</td>
-                      <td style={tableCellStyle}>
-                        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
-                          <button onClick={() => handleEditInstructorClick(inst)} className="glass-panel" style={{ padding: '6px 14px', fontSize: '0.82rem', color: 'var(--color-primary)', border: '1px solid var(--color-primary)', borderRadius: '6px', cursor: 'pointer' }}>Edit</button>
+                      <td style={{ ...tableCellStyle, width: '270px', minWidth: '270px' }}>
+                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'nowrap' }}>
+                          <button
+                            type="button"
+                            onClick={() => handleEditInstructorClick(inst)}
+                            className="glass-panel"
+                            style={{
+                              padding: '6px 14px',
+                              fontSize: '0.82rem',
+                              color: 'var(--color-primary)',
+                              border: '1px solid rgba(197, 229, 232, 0.35)',
+                              borderRadius: '6px',
+                              cursor: 'pointer',
+                              fontWeight: 600,
+                              background: 'rgba(197, 229, 232, 0.08)',
+                              whiteSpace: 'nowrap'
+                            }}
+                          >
+                            Edit
+                          </button>
                           {inst.email && (
                             <button
+                              type="button"
                               onClick={() => handleResendInstructorCredentials(inst._id || inst.id, inst.name, inst.email)}
                               disabled={resendingInstId === (inst._id || inst.id)}
                               className="glass-panel"
                               title="Resend login credentials to instructor email"
-                              style={{ padding: '6px 12px', fontSize: '0.82rem', color: '#38bdf8', border: '1px solid rgba(56, 189, 248, 0.4)', borderRadius: '6px', cursor: 'pointer' }}
+                              style={{
+                                padding: '6px 14px',
+                                fontSize: '0.82rem',
+                                color: '#38bdf8',
+                                border: '1px solid rgba(56, 189, 248, 0.4)',
+                                borderRadius: '6px',
+                                cursor: resendingInstId === (inst._id || inst.id) ? 'not-allowed' : 'pointer',
+                                fontWeight: 600,
+                                background: 'rgba(56, 189, 248, 0.08)',
+                                whiteSpace: 'nowrap'
+                              }}
                             >
                               {resendingInstId === (inst._id || inst.id) ? 'Sending...' : 'Resend Credentials'}
                             </button>
                           )}
-                          <button onClick={() => handleDeleteInstructor(inst._id || inst.id)} className="glass-panel" style={{ padding: '6px 12px', fontSize: '0.82rem', color: '#e74c3c', border: '1px solid rgba(231, 76, 60, 0.4)', borderRadius: '6px', cursor: 'pointer' }}>Delete</button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteInstructor(inst._id || inst.id)}
+                            className="glass-panel"
+                            style={{
+                              padding: '6px 14px',
+                              fontSize: '0.82rem',
+                              color: '#e74c3c',
+                              border: '1px solid rgba(231, 76, 60, 0.4)',
+                              borderRadius: '6px',
+                              cursor: 'pointer',
+                              fontWeight: 600,
+                              background: 'rgba(231, 76, 60, 0.08)',
+                              whiteSpace: 'nowrap'
+                            }}
+                          >
+                            Delete
+                          </button>
                         </div>
                       </td>
                     </tr>
