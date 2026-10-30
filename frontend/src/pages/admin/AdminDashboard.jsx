@@ -972,22 +972,34 @@ export function AdminDashboard({ onLogout }) {
             <span>{sidebarOpen ? 'Close Menu' : 'Menu'}</span>
           </button>
 
-          <div
-            style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', cursor: 'pointer' }}
+          <button
+            type="button"
             onClick={() => {
               setActiveTab('overview');
               setSidebarOpen(false);
             }}
             title="Go to Overview"
+            aria-label="Go to Overview"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.6rem',
+              cursor: 'pointer',
+              background: 'transparent',
+              border: 'none',
+              padding: 0,
+              font: 'inherit',
+              textAlign: 'left'
+            }}
           >
-            <h3 style={{ color: 'var(--color-white)', fontWeight: 700, margin: 0, fontSize: '1.25rem' }} className="gradient-text">
+            <span style={{ color: 'var(--color-white)', fontWeight: 700, margin: 0, fontSize: '1.25rem' }} className="gradient-text">
               LMS Panel
-            </h3>
+            </span>
             <span style={{ color: '#64748b', fontSize: '0.9rem' }}>•</span>
             <span style={{ color: 'var(--color-primary)', fontSize: '0.95rem', fontWeight: 600, textTransform: 'capitalize' }}>
               {activeTab === 'chataudit' ? 'Chat Audit' : activeTab}
             </span>
-          </div>
+          </button>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
@@ -1037,18 +1049,27 @@ export function AdminDashboard({ onLogout }) {
       {/* Off-canvas Toggleable Sidebar Drawer */}
       {sidebarOpen && (
         <>
-          <div
+          <button
+            type="button"
+            aria-label="Close navigation menu"
             onClick={() => setSidebarOpen(false)}
+            onKeyDown={(e) => { if (e.key === 'Escape') setSidebarOpen(false); }}
             style={{
               position: 'fixed',
               top: 0,
               left: 0,
               right: 0,
               bottom: 0,
+              width: '100%',
+              height: '100%',
               background: 'rgba(0, 0, 0, 0.65)',
               backdropFilter: 'blur(4px)',
               WebkitBackdropFilter: 'blur(4px)',
-              zIndex: 499
+              zIndex: 499,
+              border: 'none',
+              padding: 0,
+              margin: 0,
+              cursor: 'pointer'
             }}
           />
 
