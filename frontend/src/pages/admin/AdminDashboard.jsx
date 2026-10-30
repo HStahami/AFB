@@ -1027,6 +1027,56 @@ export function AdminDashboard({ onLogout }) {
             Overview
           </button>
 
+          {/* Notification Bell */}
+          <button
+            type="button"
+            onClick={() => {
+              setActiveTab('notifications');
+              setSidebarOpen(false);
+            }}
+            style={{
+              position: 'relative',
+              background: activeTab === 'notifications' ? 'rgba(0, 168, 150, 0.2)' : 'rgba(197, 229, 232, 0.08)',
+              color: activeTab === 'notifications' ? 'var(--color-primary)' : '#b0c4c6',
+              border: activeTab === 'notifications' ? '1px solid var(--color-primary)' : '1px solid rgba(197, 229, 232, 0.25)',
+              padding: '6px 10px',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transition: 'all 0.15s ease'
+            }}
+            title={unreadNotifsCount > 0 ? `Notifications (${unreadNotifsCount} unread)` : 'Notifications'}
+            aria-label={unreadNotifsCount > 0 ? `Notifications (${unreadNotifsCount} unread)` : 'Notifications'}
+          >
+            <Bell size={18} />
+            {unreadNotifsCount > 0 && (
+              <span
+                style={{
+                  position: 'absolute',
+                  top: '-4px',
+                  right: '-4px',
+                  backgroundColor: '#ef4444',
+                  color: '#fff',
+                  fontSize: '0.65rem',
+                  fontWeight: 700,
+                  minWidth: '17px',
+                  height: '17px',
+                  borderRadius: '9999px',
+                  padding: '0 4px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: '0 0 6px rgba(239, 68, 68, 0.6)',
+                  lineHeight: 1
+                }}
+              >
+                {unreadNotifsCount}
+              </span>
+            )}
+          </button>
+
           <button
             type="button"
             onClick={onLogout}
