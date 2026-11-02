@@ -305,7 +305,10 @@ body {
   .admin-layout {
     flex-direction: column;
     border-radius: 12px;
-    margin: 0 -0.5rem;
+    margin: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: hidden !important;
   }
   .admin-sidebar {
     display: none;
@@ -322,22 +325,205 @@ body {
 }
 
 /* ========================================= */
-/* Responsive Table Container                */
+/* Responsive Table Container (Zero Horizontal Sliding) */
 /* ========================================= */
 .table-responsive-container {
   width: 100%;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
   border-radius: 12px;
   background: rgba(0, 0, 0, 0.2);
   border: 1px solid rgba(197, 229, 232, 0.08);
   margin-top: 1rem;
+  box-sizing: border-box;
 }
 
 .table-responsive-container table {
-  min-width: 650px;
   width: 100%;
   border-collapse: collapse;
+}
+
+@media (min-width: 769px) {
+  .table-responsive-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .table-responsive-container table {
+    min-width: 650px;
+  }
+}
+
+/* On Mobile Devices (<= 768px): Strict Zero Horizontal Scroll */
+@media (max-width: 768px) {
+  html, body, #root, .app-container {
+    overflow-x: hidden !important;
+    max-width: 100vw !important;
+    width: 100% !important;
+  }
+
+  .admin-content-area {
+    padding: 1rem 0.65rem !important;
+    width: 100% !important;
+    max-width: 100vw !important;
+    box-sizing: border-box !important;
+    overflow-x: hidden !important;
+  }
+
+  .admin-top-bar {
+    padding: 0.65rem 0.85rem !important;
+    gap: 0.5rem !important;
+    flex-wrap: wrap !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Tables Convert Directly to Vertical Cards (Zero Left-Right Scroll!) */
+  .table-responsive-container,
+  .table-responsive-cards {
+    background: transparent !important;
+    border: none !important;
+    overflow-x: visible !important;
+    margin-top: 0.75rem !important;
+    padding: 0 !important;
+    width: 100% !important;
+  }
+
+  .table-responsive-container table,
+  .table-responsive-cards table,
+  .glass-panel table {
+    min-width: 100% !important;
+    width: 100% !important;
+    display: block !important;
+    border-collapse: separate !important;
+  }
+
+  .table-responsive-container thead,
+  .table-responsive-cards thead,
+  .glass-panel table thead {
+    display: none !important; /* Hide column headers on mobile */
+  }
+
+  .table-responsive-container tbody,
+  .table-responsive-cards tbody,
+  .glass-panel table tbody {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.85rem !important;
+    width: 100% !important;
+  }
+
+  .table-responsive-container tr,
+  .table-responsive-cards tr,
+  .glass-panel table tr {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.45rem !important;
+    background: rgba(7, 34, 36, 0.92) !important;
+    border: 1px solid rgba(197, 229, 232, 0.22) !important;
+    border-radius: 12px !important;
+    padding: 1rem 0.85rem !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35) !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .table-responsive-container td,
+  .table-responsive-cards td,
+  .glass-panel table td {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 4px 0 !important;
+    border: none !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    flex-wrap: wrap !important;
+    gap: 0.4rem !important;
+    text-align: left !important;
+    font-size: 0.88rem !important;
+  }
+
+  .table-responsive-container td > div,
+  .table-responsive-cards td > div,
+  .glass-panel table td > div {
+    width: 100% !important;
+    max-width: 100% !important;
+    flex-wrap: wrap !important;
+  }
+
+  .table-responsive-container td button,
+  .table-responsive-cards td button,
+  .glass-panel table td button {
+    flex: 1 1 auto !important;
+    min-width: 80px !important;
+    text-align: center !important;
+    justify-content: center !important;
+    padding: 8px 12px !important;
+  }
+
+  /* Modal full screen containment on mobile */
+  .glass-panel[style*="maxWidth: '520px'"],
+  .glass-panel[style*="maxWidth: '480px'"],
+  .glass-panel[style*="max-width: 520px"],
+  .glass-panel[style*="max-width: 480px"],
+  div[style*="position: fixed"] > .glass-panel,
+  div[style*="position: fixed"] > div[style*="maxHeight: '90vh'"],
+  div[style*="position: fixed"] > div[style*="max-height: 90vh"] {
+    max-width: 95vw !important;
+    width: 95vw !important;
+    padding: 1.25rem 1rem !important;
+    max-height: 90vh !important;
+    overflow-y: auto !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Portal & Admin Containers Strict Mobile Containment */
+  .portal-root,
+  .portal-main-content,
+  .admin-layout,
+  .glass-panel {
+    max-width: 100vw !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Inputs, Selects, and Textareas Zero-Overflow */
+  input, select, textarea {
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Responsive Grids (Collapse wide desktop column splits to vertical mobile cards) */
+  div[style*="320px 1fr"],
+  div[style*="340px 1fr"],
+  div[style*="minmax(280px, 340px) 1fr"],
+  div[style*="gridTemplateColumns: '1fr 2fr'"],
+  div[style*="grid-template-columns: 1fr 2fr"],
+  div[style*="gridTemplateColumns: '1fr 1fr'"],
+  div[style*="grid-template-columns: 1fr 1fr"],
+  div[style*="gridTemplateColumns: '1fr 1fr 1fr'"],
+  div[style*="grid-template-columns: 1fr 1fr 1fr"],
+  div[style*="repeat(auto-fit, minmax(3"],
+  div[style*="repeat(auto-fit, minmax(2"],
+  div[style*="repeat(auto-fill, minmax(3"],
+  div[style*="repeat(auto-fill, minmax(2"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Prevent CSS grid span from forcing multi-track expansion on mobile */
+  div[style*="gridColumn: 'span 2'"],
+  div[style*="grid-column: span 2"],
+  div[style*="gridColumn: 'span 3'"],
+  div[style*="grid-column: span 3"] {
+    grid-column: 1 / -1 !important;
+  }
+
+  /* Chat & Messages Thread List Height Containment on Mobile */
+  div[style*="320px 1fr"] > div:first-child,
+  div[style*="340px 1fr"] > div:first-child,
+  div[style*="minmax(280px, 340px) 1fr"] > div:first-child {
+    max-height: 250px !important;
+    overflow-y: auto !important;
+  }
 }
 
 /* ========================================= */

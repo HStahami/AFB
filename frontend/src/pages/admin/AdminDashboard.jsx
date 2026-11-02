@@ -1153,9 +1153,9 @@ export function AdminDashboard({ onLogout }) {
             <span style={{ color: 'var(--color-white)', fontWeight: 700, margin: 0, fontSize: '1.25rem' }} className="gradient-text">
               LMS Panel
             </span>
-            <span style={{ color: '#64748b', fontSize: '0.9rem' }}>•</span>
-            <span style={{ color: 'var(--color-primary)', fontSize: '0.95rem', fontWeight: 600, textTransform: 'capitalize' }}>
-              {activeTab === 'chataudit' ? 'Chat Audit' : activeTab}
+            <span style={{ color: '#64748b', fontSize: '0.9rem' }} className="hide-on-mobile">•</span>
+            <span style={{ color: 'var(--color-primary)', fontSize: '0.95rem', fontWeight: 600, textTransform: 'capitalize' }} className="hide-on-mobile">
+              {activeTab === 'chataudit' ? 'Chat Audit' : (activeTab === 'classes' ? 'Class Tracking' : activeTab)}
             </span>
           </button>
         </div>
