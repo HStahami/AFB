@@ -7,7 +7,7 @@ from pathlib import Path
 from app.database import connect_to_mongo, close_mongo_connection
 from app.routers import (
     admissions, students, instructors, modules, slots, contact, auth, dashboard,
-    enrollments, tasks, submissions, assessments, attendance, notifications, resources, reports, storage, admins, messages, notes
+    enrollments, tasks, submissions, assessments, attendance, notifications, resources, reports, storage, admins, messages, notes, reschedules, class_sessions
 )
 
 
@@ -120,7 +120,7 @@ async def normalize_api_path(request, call_next):
         "/auth", "/dashboard", "/admissions", "/students", "/instructors",
         "/modules", "/slots", "/contact", "/enrollments", "/tasks",
         "/submissions", "/assessments", "/attendance", "/notifications",
-        "/resources", "/reports", "/storage", "/admins", "/messages", "/notes"
+        "/resources", "/reports", "/storage", "/admins", "/messages", "/notes", "/reschedules", "/class-sessions"
     ]
     if not path.startswith("/api") and any(path.startswith(p) for p in prefixes):
         request.scope["path"] = f"/api{path}"
@@ -163,6 +163,8 @@ app.include_router(storage.router)
 app.include_router(admins.router)
 app.include_router(messages.router)
 app.include_router(notes.router)
+app.include_router(reschedules.router)
+app.include_router(class_sessions.router)
 
 from fastapi.responses import FileResponse
 

@@ -650,4 +650,64 @@ export const notesApi = {
   }
 };
 
+// Reschedules API
+export const reschedulesApi = {
+  create: async (data) => {
+    const res = await apiClient("/reschedules/", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ detail: "Failed to submit reschedule request" }));
+      throw new Error(err.detail || "Failed to submit reschedule request");
+    }
+    return res.json();
+  },
+  getAll: async (status = "all") => {
+    const res = await apiClient(`/reschedules/?status=${status}`);
+    if (!res.ok) throw new Error("Failed to load reschedule requests");
+    return res.json();
+  },
+  approve: async (id) => {
+    const res = await apiClient(`/reschedules/${id}/approve`, {
+      method: "PATCH",
+    });
+    if (!res.ok) throw new Error("Failed to approve reschedule request");
+    return res.json();
+  },
+  decline: async (id) => {
+    const res = await apiClient(`/reschedules/${id}/decline`, {
+      method: "PATCH",
+    });
+    if (!res.ok) throw new Error("Failed to decline reschedule request");
+    return res.json();
+  },
+};
+
+// Class Sessions API
+export const classSessionsApi = {
+  getStats: async () => {
+    const res = await apiClient("/class-sessions/stats");
+    if (!res.ok) throw new Error("Failed to load class statistics");
+    return res.json();
+  },
+  getInstructorTimeline: async (instructorId, slotId = "all") => {
+    const res = await apiClient(`/class-sessions/instructor/${instructorId}?slot_id=${slotId}`);
+    if (!res.ok) throw new Error("Failed to load instructor class timeline");
+    return res.json();
+  },
+  scheduleMakeup: async (data) => {
+    const res = await apiClient("/class-sessions/schedule-makeup", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ detail: "Failed to schedule make-up class" }));
+      throw new Error(err.detail || "Failed to schedule make-up class");
+    }
+    return res.json();
+  },
+};
+
+
 

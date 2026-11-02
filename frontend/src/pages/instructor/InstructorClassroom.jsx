@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { instructorsApi, slotsApi, attendanceApi } from '../../api';
+import { instructorsApi, slotsApi, attendanceApi, reschedulesApi } from '../../api';
 import { JitsiClassroom } from '../../components/classroom/JitsiClassroom';
 import { SmartNotebook } from '../../components/classroom/SmartNotebook';
 import { Video, Calendar, Users, ArrowLeft, Maximize2, Minimize2, Layers, Radio, Square, Loader2, ExternalLink, Sparkles, CheckCircle2 } from 'lucide-react';
@@ -20,6 +20,63 @@ export function InstructorClassroom() {
   const [fullVideoMode, setFullVideoMode] = useState(false);
   const [isPopoutMode, setIsPopoutMode] = useState(false);
   const [attendeesCount, setAttendeesCount] = useState(0);
+
+  // Reschedule Request Modal State
+  const [showRescheduleModal, setShowRescheduleModal] = useState(false);
+  const [rescheduleSlotId, setRescheduleSlotId] = useState('');
+  const [rescheduleOrigDate, setRescheduleOrigDate] = useState('');
+  const [rescheduleNewDate, setRescheduleNewDate] = useState('');
+  const [rescheduleReason, setRescheduleReason] = useState('');
+  const [rescheduleLoading, setRescheduleLoading] = useState(false);
+  const [rescheduleSuccess, setRescheduleSuccess] = useState('');
+  const [rescheduleError, setRescheduleError] = useState('');
+
+  const handleOpenRescheduleModal = () => {
+    setRescheduleSlotId(selectedSlot?.slot_id || (classes[0]?.slot_id || ''));
+    const today = new Date().toISOString().split('T')[0];
+    setRescheduleOrigDate(today);
+    const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
+    setRescheduleNewDate(tomorrow);
+    setRescheduleReason('');
+    setRescheduleSuccess('');
+    setRescheduleError('');
+    setShowRescheduleModal(true);
+  };
+
+  const handleSubmitReschedule = async (e) => {
+    e.preventDefault();
+    if (!rescheduleSlotId) {
+      setRescheduleError('Please select a class slot.');
+      return;
+    }
+    if (!rescheduleNewDate) {
+      setRescheduleError('Please select the proposed shifted date.');
+      return;
+    }
+    if (!rescheduleReason.trim()) {
+      setRescheduleError('Please provide a reason for the reschedule request.');
+      return;
+    }
+    try {
+      setRescheduleLoading(true);
+      setRescheduleError('');
+      await reschedulesApi.create({
+        slot_id: rescheduleSlotId,
+        original_date: rescheduleOrigDate,
+        rescheduled_date: rescheduleNewDate,
+        reason: rescheduleReason.trim()
+      });
+      setRescheduleSuccess('Reschedule request submitted successfully! Admin will review and notify your students.');
+      setTimeout(() => {
+        setShowRescheduleModal(false);
+        setRescheduleSuccess('');
+      }, 2000);
+    } catch (err) {
+      setRescheduleError(err.message || 'Could not submit reschedule request.');
+    } finally {
+      setRescheduleLoading(false);
+    }
+  };
 
   useEffect(() => {
     let isCancelled = false;
@@ -315,28 +372,54 @@ export function InstructorClassroom() {
               </button>
             </div>
           ) : (
-            <button
-              onClick={() => handleStartClass()}
-              disabled={actionLoading}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '7px 16px',
-                borderRadius: '6px',
-                border: 'none',
-                backgroundColor: '#10b981',
-                color: '#fff',
-                fontWeight: 700,
-                fontSize: '0.85rem',
-                cursor: 'pointer',
-                boxShadow: '0 0 12px rgba(16, 185, 129, 0.4)'
-              }}
-              title="Start live class and send in-app notification to all enrolled students"
-            >
-              {actionLoading ? <Loader2 size={14} className="spin-animation" /> : <Radio size={14} />}
-              Start Live Class & Notify Students
-            </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                onClick={() => handleStartClass()}
+                disabled={actionLoading}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '7px 16px',
+                  borderRadius: '6px',
+                  border: 'none',
+                  backgroundColor: '#10b981',
+                  color: '#fff',
+                  fontWeight: 700,
+                  fontSize: '0.85rem',
+                  cursor: 'pointer',
+                  boxShadow: '0 0 12px rgba(16, 185, 129, 0.4)'
+                }}
+                title="Start live class and send in-app notification to all enrolled students"
+              >
+                {actionLoading ? <Loader2 size={14} className="spin-animation" /> : <Radio size={14} />}
+                Start Live Class & Notify Students
+              </button>
+
+              <button
+                type="button"
+                onClick={handleOpenRescheduleModal}
+                className="glass-panel"
+                style={{
+                  padding: '7px 15px',
+                  fontSize: '0.82rem',
+                  color: 'var(--color-primary)',
+                  border: '1px solid rgba(197, 229, 232, 0.35)',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  fontWeight: 600,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  background: 'rgba(197, 229, 232, 0.08)',
+                  whiteSpace: 'nowrap'
+                }}
+                title="Request to reschedule this class session"
+              >
+                Reschedule
+              </button>
+            </div>
           )}
 
           <button
@@ -598,6 +681,204 @@ export function InstructorClassroom() {
           </div>
         )}
       </div>
+
+      {/* Reschedule Class Request Modal */}
+      {showRescheduleModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.75)',
+          backdropFilter: 'blur(8px)',
+          WebkitBackdropFilter: 'blur(8px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+          padding: '1rem'
+        }}>
+          <div className="glass-panel" style={{
+            width: '100%',
+            maxWidth: '520px',
+            backgroundColor: '#072224',
+            border: '1px solid rgba(197, 229, 232, 0.25)',
+            borderRadius: '16px',
+            padding: '2rem',
+            boxShadow: '0 20px 50px rgba(0,0,0,0.8)',
+            position: 'relative'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', borderBottom: '1px solid rgba(197, 229, 232, 0.15)', paddingBottom: '0.75rem' }}>
+              <div>
+                <h3 style={{ color: 'var(--color-white)', margin: 0, fontSize: '1.25rem', fontWeight: 700 }} className="gradient-text">
+                  Request Class Reschedule
+                </h3>
+                <p style={{ color: '#94a3b8', fontSize: '0.82rem', margin: '4px 0 0 0' }}>
+                  Admin will review this request and automatically notify your enrolled students.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowRescheduleModal(false)}
+                className="glass-panel"
+                style={{ border: 'none', color: '#94a3b8', padding: '6px 10px', fontSize: '1rem', cursor: 'pointer', borderRadius: '6px' }}
+              >
+                ✕
+              </button>
+            </div>
+
+            {rescheduleSuccess && (
+              <div style={{ padding: '10px 14px', borderRadius: '8px', background: 'rgba(16, 185, 129, 0.15)', border: '1px solid #10b981', color: '#10b981', fontSize: '0.85rem', marginBottom: '1rem' }}>
+                {rescheduleSuccess}
+              </div>
+            )}
+
+            {rescheduleError && (
+              <div style={{ padding: '10px 14px', borderRadius: '8px', background: 'rgba(231, 76, 60, 0.15)', border: '1px solid #e74c3c', color: '#ff6b6b', fontSize: '0.85rem', marginBottom: '1rem' }}>
+                {rescheduleError}
+              </div>
+            )}
+
+            <form onSubmit={handleSubmitReschedule} style={{ display: 'flex', flexDirection: 'column', gap: '1.1rem' }}>
+              {/* Slot Selector Dropdown */}
+              <div>
+                <label style={{ display: 'block', color: 'var(--color-primary)', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.4rem' }}>
+                  Select Class Slot
+                </label>
+                <select
+                  value={rescheduleSlotId}
+                  onChange={(e) => setRescheduleSlotId(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '10px 14px',
+                    borderRadius: '8px',
+                    background: 'rgba(0, 0, 0, 0.35)',
+                    border: '1px solid rgba(197, 229, 232, 0.25)',
+                    color: '#fff',
+                    fontSize: '0.9rem',
+                    outline: 'none'
+                  }}
+                  required
+                >
+                  {classes.map((c) => (
+                    <option key={c.slot_id} value={c.slot_id} style={{ background: '#072224', color: '#fff' }}>
+                      {c.days} — {c.time} ({c.students_count || 0} students)
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Two Dates on Top Side by Side */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div>
+                  <label style={{ display: 'block', color: '#94a3b8', fontSize: '0.82rem', fontWeight: 600, marginBottom: '0.4rem' }}>
+                    Original Class Date
+                  </label>
+                  <input
+                    type="date"
+                    value={rescheduleOrigDate}
+                    onChange={(e) => setRescheduleOrigDate(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '9px 12px',
+                      borderRadius: '8px',
+                      background: 'rgba(0, 0, 0, 0.35)',
+                      border: '1px solid rgba(197, 229, 232, 0.25)',
+                      color: '#fff',
+                      fontSize: '0.88rem',
+                      outline: 'none'
+                    }}
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', color: 'var(--color-primary)', fontSize: '0.82rem', fontWeight: 600, marginBottom: '0.4rem' }}>
+                    Shift To (New Date)
+                  </label>
+                  <input
+                    type="date"
+                    value={rescheduleNewDate}
+                    onChange={(e) => setRescheduleNewDate(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '9px 12px',
+                      borderRadius: '8px',
+                      background: 'rgba(0, 0, 0, 0.35)',
+                      border: '1px solid var(--color-primary)',
+                      color: '#fff',
+                      fontSize: '0.88rem',
+                      outline: 'none'
+                    }}
+                    required
+                  />
+                </div>
+              </div>
+
+              {/* Reason Text Area */}
+              <div>
+                <label style={{ display: 'block', color: 'var(--color-primary)', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.4rem' }}>
+                  Reason for Rescheduling
+                </label>
+                <textarea
+                  rows={3}
+                  value={rescheduleReason}
+                  onChange={(e) => setRescheduleReason(e.target.value)}
+                  placeholder="Explain why this class needs to be shifted (e.g. medical emergency, schedule clash, internet outage)..."
+                  style={{
+                    width: '100%',
+                    padding: '10px 14px',
+                    borderRadius: '8px',
+                    background: 'rgba(0, 0, 0, 0.35)',
+                    border: '1px solid rgba(197, 229, 232, 0.25)',
+                    color: '#fff',
+                    fontSize: '0.88rem',
+                    outline: 'none',
+                    resize: 'vertical'
+                  }}
+                  required
+                />
+              </div>
+
+              {/* Modal Buttons */}
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '0.5rem' }}>
+                <button
+                  type="button"
+                  onClick={() => setShowRescheduleModal(false)}
+                  className="glass-panel"
+                  style={{
+                    padding: '9px 18px',
+                    borderRadius: '8px',
+                    border: '1px solid rgba(255,255,255,0.15)',
+                    color: '#cbd5e1',
+                    fontSize: '0.88rem',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="submit"
+                  disabled={rescheduleLoading}
+                  className="btn-primary"
+                  style={{
+                    padding: '9px 24px',
+                    borderRadius: '8px',
+                    fontSize: '0.88rem',
+                    fontWeight: 700,
+                    cursor: rescheduleLoading ? 'not-allowed' : 'pointer',
+                    boxShadow: '0 0 12px rgba(197, 229, 232, 0.3)'
+                  }}
+                >
+                  {rescheduleLoading ? 'Submitting...' : 'Send Request to Admin'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

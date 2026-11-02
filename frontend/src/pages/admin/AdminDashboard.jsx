@@ -3,7 +3,7 @@ import { Plus, Trash2, LogOut, Bell, CheckCircle2, Megaphone, Shield, MessageSqu
 import { useAuth } from '../../context/AuthContext';
 import { API_BASE, getAvatarUrl } from '../../api/client';
 import { inputStyle } from '../../components/common/styles';
-import { notificationsApi, messagesApi, studentsApi } from '../../api';
+import { notificationsApi, messagesApi, studentsApi, reschedulesApi, classSessionsApi } from '../../api';
 
 export function AdminDashboard({ onLogout }) {
   const { user: authUser } = useAuth();
@@ -83,6 +83,159 @@ export function AdminDashboard({ onLogout }) {
   const [auditThreads, setAuditThreads] = useState([]);
   const [auditActiveThread, setAuditActiveThread] = useState(null);
   const [auditMessages, setAuditMessages] = useState([]);
+
+  // Class Tracking & Reschedules State
+  const [classStats, setClassStats] = useState([]);
+  const [loadingClassStats, setLoadingClassStats] = useState(false);
+  const [classViewMode, setClassViewMode] = useState('instructors'); // 'instructors' | 'detail' | 'reschedules'
+  const [selectedInstructorForDetail, setSelectedInstructorForDetail] = useState(null);
+  const [selectedCourseTab, setSelectedCourseTab] = useState('all');
+  const [instructorTimeline, setInstructorTimeline] = useState({ sessions: [], reschedules: [] });
+  const [loadingTimeline, setLoadingTimeline] = useState(false);
+  const [timelineError, setTimelineError] = useState('');
+
+  // Reschedules State
+  const [reschedulesList, setReschedulesList] = useState([]);
+  const [loadingReschedules, setLoadingReschedules] = useState(false);
+  const [rescheduleFilter, setRescheduleFilter] = useState('all');
+  const [rescheduleActionId, setRescheduleActionId] = useState(null);
+
+  // Make-up Scheduling Modal State
+  const [showMakeupModal, setShowMakeupModal] = useState(false);
+  const [makeupSession, setMakeupSession] = useState(null);
+  const [makeupSlotId, setMakeupSlotId] = useState('');
+  const [makeupDate, setMakeupDate] = useState('');
+  const [makeupTime, setMakeupTime] = useState('');
+  const [makeupRemarks, setMakeupRemarks] = useState('');
+  const [makeupLoading, setMakeupLoading] = useState(false);
+  const [makeupSuccess, setMakeupSuccess] = useState('');
+  const [makeupError, setMakeupError] = useState('');
+
+  const fetchClassStats = async () => {
+    try {
+      setLoadingClassStats(true);
+      const data = await classSessionsApi.getStats();
+      setClassStats(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error('Error loading class stats:', err);
+    } finally {
+      setLoadingClassStats(false);
+    }
+  };
+
+  const fetchReschedules = async (filterVal = null) => {
+    try {
+      setLoadingReschedules(true);
+      const targetFilter = filterVal !== null ? filterVal : rescheduleFilter;
+      const data = await reschedulesApi.getAll(targetFilter);
+      setReschedulesList(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error('Error loading reschedules:', err);
+    } finally {
+      setLoadingReschedules(false);
+    }
+  };
+
+  const handleSelectInstructorForDetail = async (inst) => {
+    setSelectedInstructorForDetail(inst);
+    setSelectedCourseTab('all');
+    setClassViewMode('detail');
+    setLoadingTimeline(true);
+    setTimelineError('');
+    try {
+      const data = await classSessionsApi.getInstructorTimeline(inst.instructor_id, 'all');
+      setInstructorTimeline(data || { sessions: [], reschedules: [] });
+    } catch (err) {
+      setTimelineError(err.message || 'Failed to load timeline.');
+    } finally {
+      setLoadingTimeline(false);
+    }
+  };
+
+  const handleSelectCourseTab = async (slotId) => {
+    setSelectedCourseTab(slotId);
+    if (!selectedInstructorForDetail) return;
+    setLoadingTimeline(true);
+    setTimelineError('');
+    try {
+      const data = await classSessionsApi.getInstructorTimeline(selectedInstructorForDetail.instructor_id, slotId);
+      setInstructorTimeline(data || { sessions: [], reschedules: [] });
+    } catch (err) {
+      setTimelineError(err.message || 'Failed to load timeline for selected course.');
+    } finally {
+      setLoadingTimeline(false);
+    }
+  };
+
+  const handleApproveReschedule = async (id) => {
+    try {
+      setRescheduleActionId(id);
+      await reschedulesApi.approve(id);
+      await fetchReschedules();
+      await fetchNotifications();
+    } catch (err) {
+      alert(err.message || 'Failed to approve reschedule request.');
+    } finally {
+      setRescheduleActionId(null);
+    }
+  };
+
+  const handleDeclineReschedule = async (id) => {
+    if (!window.confirm("Are you sure you want to decline this reschedule request?")) return;
+    try {
+      setRescheduleActionId(id);
+      await reschedulesApi.decline(id);
+      await fetchReschedules();
+      await fetchNotifications();
+    } catch (err) {
+      alert(err.message || 'Failed to decline reschedule request.');
+    } finally {
+      setRescheduleActionId(null);
+    }
+  };
+
+  const handleOpenMakeupModal = (session) => {
+    setMakeupSession(session);
+    setMakeupSlotId(session.slot_id || (selectedInstructorForDetail?.assigned_slots[0]?.slot_id || ''));
+    const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
+    setMakeupDate(tomorrow);
+    setMakeupTime('05:00 PM');
+    setMakeupRemarks(`Make-up class for missed session on ${session.date || session.scheduled_date || ''}`);
+    setMakeupSuccess('');
+    setMakeupError('');
+    setShowMakeupModal(true);
+  };
+
+  const handleSubmitMakeup = async (e) => {
+    e.preventDefault();
+    if (!makeupDate || !makeupTime) {
+      setMakeupError('Please specify date and time for the make-up class.');
+      return;
+    }
+    try {
+      setMakeupLoading(true);
+      setMakeupError('');
+      await classSessionsApi.scheduleMakeup({
+        session_id: makeupSession?.id,
+        slot_id: makeupSlotId,
+        makeup_date: makeupDate,
+        makeup_time: makeupTime,
+        remarks: makeupRemarks
+      });
+      setMakeupSuccess('Make-up class successfully scheduled and enrolled students notified!');
+      setTimeout(() => {
+        setShowMakeupModal(false);
+        setMakeupSuccess('');
+        if (selectedInstructorForDetail) {
+          handleSelectCourseTab(selectedCourseTab);
+        }
+      }, 1800);
+    } catch (err) {
+      setMakeupError(err.message || 'Failed to schedule make-up class.');
+    } finally {
+      setMakeupLoading(false);
+    }
+  };
   const [loadingAuditThreads, setLoadingAuditThreads] = useState(false);
   const [loadingAuditHistory, setLoadingAuditHistory] = useState(false);
 
@@ -531,6 +684,10 @@ export function AdminDashboard({ onLogout }) {
     if (activeTab === 'admins') void fetchAdmins();
     if (activeTab === 'announcements') { void fetchStudents(); void fetchInstructors(); }
     if (activeTab === 'chataudit') void fetchAuditThreads();
+    if (activeTab === 'classes') {
+      void fetchClassStats();
+      void fetchReschedules();
+    }
 
     return () => clearInterval(notifTimer);
   }, [activeTab]);
@@ -920,6 +1077,7 @@ export function AdminDashboard({ onLogout }) {
     { id: 'overview', label: 'Overview' },
     { id: 'announcements', label: 'Announcements' },
     { id: 'chataudit', label: 'Chat Audit' },
+    { id: 'classes', label: 'Class Tracking' },
     { id: 'notifications', label: unreadNotifsCount > 0 ? `Alerts (${unreadNotifsCount})` : 'Alerts' },
     { id: 'admissions', label: 'Admissions' },
     { id: 'students', label: 'Students' },
@@ -2728,6 +2886,748 @@ export function AdminDashboard({ onLogout }) {
           </div>
         )}
 
+
+        {activeTab === 'classes' && (
+          <div>
+            {/* Top Sub-Nav Navigation */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+              <div>
+                <h2 style={{ color: 'var(--color-white)', margin: 0, fontSize: '1.6rem' }}>
+                  {classViewMode === 'reschedules' ? 'Class Reschedule Management' : (classViewMode === 'detail' ? `Class History — ${selectedInstructorForDetail?.name || 'Instructor'}` : 'Instructor Class Tracking & Scorecards')}
+                </h2>
+                <p style={{ color: '#aaa', margin: '4px 0 0 0', fontSize: '0.9rem' }}>
+                  {classViewMode === 'reschedules'
+                    ? 'Review, approve, and track emergency class reschedule requests with instant student notifications.'
+                    : (classViewMode === 'detail'
+                      ? 'Chronological class-by-class timeline, exact timestamps, punctuality, and make-up classes.'
+                      : 'Real-time session monitoring, punctuality, completed lectures, and remaining curriculum per instructor.')}
+                </p>
+              </div>
+
+              <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
+                <button
+                  type="button"
+                  onClick={() => { setClassViewMode('instructors'); setSelectedInstructorForDetail(null); void fetchClassStats(); }}
+                  style={{
+                    background: (classViewMode === 'instructors' || classViewMode === 'detail') ? 'var(--color-primary)' : 'rgba(197, 229, 232, 0.08)',
+                    color: (classViewMode === 'instructors' || classViewMode === 'detail') ? 'var(--color-bg-dark)' : 'var(--color-primary)',
+                    border: '1px solid rgba(197, 229, 232, 0.25)',
+                    padding: '8px 18px',
+                    borderRadius: '8px',
+                    fontSize: '0.86rem',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease'
+                  }}
+                >
+                  Instructors Scoreboard
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => { setClassViewMode('reschedules'); setSelectedInstructorForDetail(null); void fetchReschedules(); }}
+                  style={{
+                    background: classViewMode === 'reschedules' ? 'var(--color-primary)' : 'rgba(197, 229, 232, 0.08)',
+                    color: classViewMode === 'reschedules' ? 'var(--color-bg-dark)' : 'var(--color-primary)',
+                    border: '1px solid rgba(197, 229, 232, 0.25)',
+                    padding: '8px 18px',
+                    borderRadius: '8px',
+                    fontSize: '0.86rem',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    transition: 'all 0.15s ease'
+                  }}
+                >
+                  <span>Reschedule Requests</span>
+                  {reschedulesList.filter(r => r.status === 'Pending').length > 0 && (
+                    <span style={{ background: '#e74c3c', color: '#fff', padding: '1px 7px', borderRadius: '10px', fontSize: '0.72rem', fontWeight: 'bold' }}>
+                      {reschedulesList.filter(r => r.status === 'Pending').length}
+                    </span>
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {/* STEP 1: MAIN SCREEN (Instructor Cards Grid) */}
+            {classViewMode === 'instructors' && (
+              <div>
+                {loadingClassStats ? (
+                  <div className="glass-panel" style={{ padding: '3rem', textAlign: 'center', color: '#aaa' }}>
+                    Loading instructor class scorecards...
+                  </div>
+                ) : classStats.length === 0 ? (
+                  <div className="glass-panel" style={{ padding: '3rem', textAlign: 'center', color: '#888' }}>
+                    No instructors found to track.
+                  </div>
+                ) : (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1.25rem' }}>
+                    {classStats.map((inst) => (
+                      <div
+                        key={inst.instructor_id}
+                        className="glass-panel"
+                        onClick={() => handleSelectInstructorForDetail(inst)}
+                        style={{
+                          padding: '1.5rem',
+                          borderRadius: '14px',
+                          cursor: 'pointer',
+                          border: '1px solid rgba(197, 229, 232, 0.15)',
+                          transition: 'all 0.2s ease',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          justifyContent: 'space-between',
+                          position: 'relative',
+                          overflow: 'hidden'
+                        }}
+                        onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--color-primary)'; e.currentTarget.style.transform = 'translateY(-3px)'; }}
+                        onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(197, 229, 232, 0.15)'; e.currentTarget.style.transform = 'translateY(0)'; }}
+                        title="Click to view detailed class-by-class history"
+                      >
+                        {/* Instructor Header */}
+                        <div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                              <img
+                                src={getAvatarUrl(inst.avatar, inst.name)}
+                                alt={inst.name}
+                                style={{ width: '44px', height: '44px', borderRadius: '50%', objectFit: 'cover', border: '2px solid rgba(197, 229, 232, 0.3)' }}
+                              />
+                              <div>
+                                <h4 style={{ color: 'var(--color-white)', margin: 0, fontSize: '1.1rem', fontWeight: 700 }}>
+                                  {inst.name}
+                                </h4>
+                                <span style={{ color: '#94a3b8', fontSize: '0.8rem' }}>{inst.email}</span>
+                              </div>
+                            </div>
+
+                            <span style={{
+                              fontSize: '0.72rem',
+                              fontWeight: 700,
+                              padding: '3px 8px',
+                              borderRadius: '12px',
+                              background: inst.is_live ? 'rgba(16, 185, 129, 0.2)' : 'rgba(255, 255, 255, 0.08)',
+                              color: inst.is_live ? '#10b981' : '#94a3b8',
+                              border: inst.is_live ? '1px solid #10b981' : '1px solid rgba(255, 255, 255, 0.15)'
+                            }}>
+                              {inst.is_live ? 'Live Now' : 'Offline'}
+                            </span>
+                          </div>
+
+                          {/* Course/Slot Display */}
+                          <div style={{ margin: '0.85rem 0', padding: '0.6rem 0.8rem', background: 'rgba(0, 0, 0, 0.25)', borderRadius: '8px', border: '1px solid rgba(197, 229, 232, 0.1)' }}>
+                            <span style={{ color: '#94a3b8', fontSize: '0.75rem', display: 'block', marginBottom: '3px', textTransform: 'uppercase', fontWeight: 600 }}>
+                              {inst.is_multi_course ? `${inst.assigned_slots.length} Assigned Courses` : 'Course & Schedule'}
+                            </span>
+
+                            {inst.is_multi_course ? (
+                              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '4px' }}>
+                                {inst.assigned_slots.map(s => (
+                                  <span key={s.slot_id} style={{ fontSize: '0.75rem', padding: '2px 7px', borderRadius: '4px', background: 'rgba(197, 229, 232, 0.12)', color: 'var(--color-primary)', fontWeight: 500 }}>
+                                    {s.course_name} ({s.days})
+                                  </span>
+                                ))}
+                              </div>
+                            ) : (
+                              <div style={{ color: 'var(--color-primary)', fontSize: '0.86rem', fontWeight: 600 }}>
+                                {inst.assigned_slots[0]?.course_name || 'Arabic Program'} — {inst.assigned_slots[0]?.days || 'Schedule'} ({inst.assigned_slots[0]?.time || ''})
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* 4-Box Scorecard Grid */}
+                        <div>
+                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px', textAlign: 'center', marginTop: '0.5rem' }}>
+                            <div style={{ background: 'rgba(255, 255, 255, 0.03)', padding: '8px 4px', borderRadius: '6px', border: '1px solid rgba(255, 255, 255, 0.05)' }}>
+                              <span style={{ display: 'block', fontSize: '0.7rem', color: '#94a3b8' }}>Conducted</span>
+                              <strong style={{ fontSize: '1.15rem', color: '#fff' }}>{inst.overall_stats.conducted}</strong>
+                            </div>
+                            <div style={{ background: 'rgba(197, 229, 232, 0.05)', padding: '8px 4px', borderRadius: '6px', border: '1px solid rgba(197, 229, 232, 0.15)' }}>
+                              <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--color-primary)' }}>Baki</span>
+                              <strong style={{ fontSize: '1.15rem', color: 'var(--color-primary)' }}>{inst.overall_stats.remaining}</strong>
+                            </div>
+                            <div style={{ background: 'rgba(243, 156, 18, 0.08)', padding: '8px 4px', borderRadius: '6px', border: '1px solid rgba(243, 156, 18, 0.2)' }}>
+                              <span style={{ display: 'block', fontSize: '0.7rem', color: '#f39c12' }}>Late</span>
+                              <strong style={{ fontSize: '1.15rem', color: '#f39c12' }}>{inst.overall_stats.late}</strong>
+                            </div>
+                            <div style={{ background: 'rgba(231, 76, 60, 0.08)', padding: '8px 4px', borderRadius: '6px', border: '1px solid rgba(231, 76, 60, 0.2)' }}>
+                              <span style={{ display: 'block', fontSize: '0.7rem', color: '#ff6b6b' }}>Missed</span>
+                              <strong style={{ fontSize: '1.15rem', color: '#ff6b6b' }}>{inst.overall_stats.missed}</strong>
+                            </div>
+                          </div>
+
+                          <div style={{ marginTop: '0.85rem', display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
+                            <span style={{ color: 'var(--color-primary)', fontSize: '0.82rem', fontWeight: 600 }}>
+                              View Complete Details →
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* STEP 2: INSTRUCTOR DETAIL TIMELINE SCREEN */}
+            {classViewMode === 'detail' && selectedInstructorForDetail && (
+              <div>
+                {/* Back Button */}
+                <button
+                  type="button"
+                  onClick={() => { setClassViewMode('instructors'); setSelectedInstructorForDetail(null); }}
+                  className="btn-primary"
+                  style={{
+                    padding: '7px 16px',
+                    fontSize: '0.85rem',
+                    fontWeight: 600,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    marginBottom: '1.5rem',
+                    cursor: 'pointer'
+                  }}
+                >
+                  ← Back to All Instructors
+                </button>
+
+                {/* Instructor Top Profile Banner */}
+                <div className="glass-panel" style={{ padding: '1.5rem', marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    <img
+                      src={getAvatarUrl(selectedInstructorForDetail.avatar, selectedInstructorForDetail.name)}
+                      alt={selectedInstructorForDetail.name}
+                      style={{ width: '56px', height: '56px', borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--color-primary)' }}
+                    />
+                    <div>
+                      <h3 style={{ color: 'var(--color-white)', margin: 0, fontSize: '1.3rem', fontWeight: 700 }}>
+                        {selectedInstructorForDetail.name}
+                      </h3>
+                      <p style={{ color: '#94a3b8', margin: '3px 0 0 0', fontSize: '0.85rem' }}>
+                        {selectedInstructorForDetail.email}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Active Course / Single Course Display */}
+                  {!selectedInstructorForDetail.is_multi_course && (
+                    <div style={{ textAlign: 'right' }}>
+                      <span style={{ color: '#94a3b8', fontSize: '0.78rem', textTransform: 'uppercase' }}>Assigned Course</span>
+                      <h4 style={{ color: 'var(--color-primary)', margin: '2px 0 0 0', fontSize: '1.05rem' }}>
+                        {selectedInstructorForDetail.assigned_slots[0]?.course_name || 'Arabic Program'}
+                      </h4>
+                      <span style={{ color: '#cbd5e1', fontSize: '0.82rem' }}>
+                        {selectedInstructorForDetail.assigned_slots[0]?.days} ({selectedInstructorForDetail.assigned_slots[0]?.time})
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* DYNAMIC COURSE TABS (Shown ONLY if instructor has 2+ courses) */}
+                {selectedInstructorForDetail.is_multi_course && (
+                  <div style={{ marginBottom: '1.5rem', background: 'rgba(0,0,0,0.2)', padding: '0.5rem', borderRadius: '10px', display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+                    <span style={{ color: '#94a3b8', fontSize: '0.82rem', fontWeight: 600, padding: '0 8px' }}>Course View:</span>
+                    <button
+                      type="button"
+                      onClick={() => handleSelectCourseTab('all')}
+                      style={{
+                        padding: '6px 14px',
+                        borderRadius: '6px',
+                        fontSize: '0.82rem',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        border: selectedCourseTab === 'all' ? '1px solid var(--color-primary)' : '1px solid rgba(255,255,255,0.1)',
+                        background: selectedCourseTab === 'all' ? 'var(--color-primary)' : 'transparent',
+                        color: selectedCourseTab === 'all' ? 'var(--color-bg-dark)' : 'var(--color-primary)'
+                      }}
+                    >
+                      All Courses (Combined)
+                    </button>
+
+                    {selectedInstructorForDetail.assigned_slots.map(s => (
+                      <button
+                        key={s.slot_id}
+                        type="button"
+                        onClick={() => handleSelectCourseTab(s.slot_id)}
+                        style={{
+                          padding: '6px 14px',
+                          borderRadius: '6px',
+                          fontSize: '0.82rem',
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          border: selectedCourseTab === s.slot_id ? '1px solid var(--color-primary)' : '1px solid rgba(255,255,255,0.1)',
+                          background: selectedCourseTab === s.slot_id ? 'var(--color-primary)' : 'transparent',
+                          color: selectedCourseTab === s.slot_id ? 'var(--color-bg-dark)' : 'var(--color-primary)'
+                        }}
+                      >
+                        {s.course_name} — {s.days} {s.time}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {/* Detailed Scorecard for Current View */}
+                {(() => {
+                  const currentStats = (selectedCourseTab !== 'all' && selectedInstructorForDetail.course_stats[selectedCourseTab])
+                    ? selectedInstructorForDetail.course_stats[selectedCourseTab]
+                    : selectedInstructorForDetail.overall_stats;
+
+                  return (
+                    <div className="stats-cards-grid" style={{ marginBottom: '1.75rem' }}>
+                      <div className="glass-panel" style={{ padding: '1.25rem', textAlign: 'center' }}>
+                        <h4 style={{ color: '#94a3b8', fontSize: '0.82rem', margin: '0 0 4px 0' }}>Total Planned</h4>
+                        <p style={{ fontSize: '1.8rem', fontWeight: 700, color: '#fff', margin: 0 }}>{currentStats.total_planned || 24}</p>
+                      </div>
+                      <div className="glass-panel" style={{ padding: '1.25rem', textAlign: 'center' }}>
+                        <h4 style={{ color: '#10b981', fontSize: '0.82rem', margin: '0 0 4px 0' }}>Conducted</h4>
+                        <p style={{ fontSize: '1.8rem', fontWeight: 700, color: '#10b981', margin: 0 }}>{currentStats.conducted || 0}</p>
+                      </div>
+                      <div className="glass-panel" style={{ padding: '1.25rem', textAlign: 'center' }}>
+                        <h4 style={{ color: 'var(--color-primary)', fontSize: '0.82rem', margin: '0 0 4px 0' }}>Baki (Remaining)</h4>
+                        <p style={{ fontSize: '1.8rem', fontWeight: 700, color: 'var(--color-primary)', margin: 0 }}>{currentStats.remaining || 0}</p>
+                      </div>
+                      <div className="glass-panel" style={{ padding: '1.25rem', textAlign: 'center' }}>
+                        <h4 style={{ color: '#f39c12', fontSize: '0.82rem', margin: '0 0 4px 0' }}>Late Starts</h4>
+                        <p style={{ fontSize: '1.8rem', fontWeight: 700, color: '#f39c12', margin: 0 }}>{currentStats.late || 0}</p>
+                      </div>
+                      <div className="glass-panel" style={{ padding: '1.25rem', textAlign: 'center' }}>
+                        <h4 style={{ color: '#ff6b6b', fontSize: '0.82rem', margin: '0 0 4px 0' }}>Missed Classes</h4>
+                        <p style={{ fontSize: '1.8rem', fontWeight: 700, color: '#ff6b6b', margin: 0 }}>{currentStats.missed || 0}</p>
+                      </div>
+                      <div className="glass-panel" style={{ padding: '1.25rem', textAlign: 'center' }}>
+                        <h4 style={{ color: '#38bdf8', fontSize: '0.82rem', margin: '0 0 4px 0' }}>Rescheduled</h4>
+                        <p style={{ fontSize: '1.8rem', fontWeight: 700, color: '#38bdf8', margin: 0 }}>{currentStats.rescheduled || 0}</p>
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {/* Timeline Table */}
+                <div className="table-responsive-container">
+                  <h3 style={{ color: 'var(--color-white)', fontSize: '1.2rem', marginBottom: '1rem', fontWeight: 700 }}>
+                    Class-by-Class Timeline & Punctuality Log
+                  </h3>
+
+                  {loadingTimeline ? (
+                    <div className="glass-panel" style={{ padding: '3rem', textAlign: 'center', color: '#aaa' }}>
+                      Loading class timeline...
+                    </div>
+                  ) : timelineError ? (
+                    <div style={{ color: '#ff6b6b', padding: '1rem' }}>{timelineError}</div>
+                  ) : instructorTimeline.sessions.length === 0 ? (
+                    <div className="glass-panel" style={{ padding: '2.5rem', textAlign: 'center', color: '#888' }}>
+                      No class sessions recorded yet for this selection.
+                    </div>
+                  ) : (
+                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                      <thead>
+                        <tr>
+                          <th style={tableHeaderStyle}>Class #</th>
+                          <th style={tableHeaderStyle}>Date & Day</th>
+                          <th style={tableHeaderStyle}>Course & Slot</th>
+                          <th style={tableHeaderStyle}>Scheduled Time</th>
+                          <th style={tableHeaderStyle}>Actual Start / End</th>
+                          <th style={tableHeaderStyle}>Duration</th>
+                          <th style={tableHeaderStyle}>Status</th>
+                          <th style={tableHeaderStyle}>Attendance</th>
+                          <th style={tableHeaderStyle}>Remarks & Action</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {instructorTimeline.sessions.map((sess, idx) => {
+                          const isMissed = sess.status === 'Missed';
+                          const isLate = sess.is_late || sess.status === 'Late';
+                          const isResched = sess.status === 'Rescheduled' || sess.class_type === 'Rescheduled';
+
+                          return (
+                            <tr key={sess.id || idx} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.05)', background: isMissed ? 'rgba(231, 76, 60, 0.04)' : 'transparent' }}>
+                              <td style={tableCellStyle}>
+                                <strong style={{ color: 'var(--color-primary)' }}>
+                                  #{sess.session_number || idx + 1}
+                                </strong>
+                              </td>
+                              <td style={tableCellStyle}>
+                                <div style={{ fontWeight: 600, color: '#fff' }}>
+                                  {sess.date || sess.scheduled_date}
+                                </div>
+                              </td>
+                              <td style={tableCellStyle}>
+                                <div style={{ fontSize: '0.85rem', color: '#b0c4c6' }}>
+                                  {sess.course_name || 'Arabic Program'}
+                                </div>
+                                <span style={{ fontSize: '0.75rem', color: '#64748b' }}>
+                                  {sess.slot_title}
+                                </span>
+                              </td>
+                              <td style={tableCellStyle}>{sess.scheduled_time || '08:00 PM'}</td>
+                              <td style={tableCellStyle}>
+                                {sess.actual_start_at ? (
+                                  <div>
+                                    <span style={{ color: isLate ? '#f39c12' : '#10b981', fontWeight: 600 }}>
+                                      {new Date(sess.actual_start_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                    </span>
+                                    {sess.actual_end_at && (
+                                      <span style={{ color: '#94a3b8', fontSize: '0.8rem' }}>
+                                        {' '}– {new Date(sess.actual_end_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                      </span>
+                                    )}
+                                  </div>
+                                ) : (
+                                  <span style={{ color: '#666' }}>—</span>
+                                )}
+                              </td>
+                              <td style={tableCellStyle}>
+                                {sess.duration_minutes ? (
+                                  <span>{sess.duration_minutes} mins</span>
+                                ) : (
+                                  <span style={{ color: '#666' }}>—</span>
+                                )}
+                              </td>
+                              <td style={tableCellStyle}>
+                                <span style={{
+                                  padding: '3px 8px',
+                                  borderRadius: '6px',
+                                  fontSize: '0.78rem',
+                                  fontWeight: 700,
+                                  background: isMissed ? 'rgba(231, 76, 60, 0.15)' : (isLate ? 'rgba(243, 156, 18, 0.15)' : (isResched ? 'rgba(56, 189, 248, 0.15)' : 'rgba(16, 185, 129, 0.15)')),
+                                  color: isMissed ? '#ff6b6b' : (isLate ? '#f39c12' : (isResched ? '#38bdf8' : '#10b981')),
+                                  border: isMissed ? '1px solid rgba(231, 76, 60, 0.3)' : (isLate ? '1px solid rgba(243, 156, 18, 0.3)' : (isResched ? '1px solid rgba(56, 189, 248, 0.3)' : '1px solid rgba(16, 185, 129, 0.3)'))
+                                }}>
+                                  {isMissed ? 'Missed' : (isLate ? `Late (+${sess.late_minutes || 15}m)` : (isResched ? 'Rescheduled' : 'On-Time'))}
+                                </span>
+                              </td>
+                              <td style={tableCellStyle}>
+                                <span style={{ fontSize: '0.85rem', color: isMissed ? '#666' : '#10b981' }}>
+                                  {sess.students_present !== undefined ? `${sess.students_present}/${sess.students_total || 4} Present` : '4/4 Present'}
+                                </span>
+                              </td>
+                              <td style={tableCellStyle}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                                  <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
+                                    {sess.remarks || 'Regular class session'}
+                                  </span>
+
+                                  {isMissed && (
+                                    <button
+                                      type="button"
+                                      onClick={() => handleOpenMakeupModal(sess)}
+                                      className="btn-primary"
+                                      style={{
+                                        padding: '4px 10px',
+                                        fontSize: '0.75rem',
+                                        fontWeight: 600,
+                                        borderRadius: '4px',
+                                        cursor: 'pointer',
+                                        whiteSpace: 'nowrap'
+                                      }}
+                                    >
+                                      Schedule Make-up
+                                    </button>
+                                  )}
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* STEP 3: RESCHEDULE REQUESTS VIEW */}
+            {classViewMode === 'reschedules' && (
+              <div>
+                {/* Filter Tabs */}
+                <div style={{ display: 'flex', gap: '8px', marginBottom: '1.25rem', flexWrap: 'wrap' }}>
+                  {['all', 'pending', 'approved', 'declined'].map((f) => (
+                    <button
+                      key={f}
+                      type="button"
+                      onClick={() => { setRescheduleFilter(f); void fetchReschedules(f); }}
+                      style={{
+                        padding: '6px 14px',
+                        borderRadius: '6px',
+                        fontSize: '0.82rem',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        textTransform: 'capitalize',
+                        border: rescheduleFilter === f ? '1px solid var(--color-primary)' : '1px solid rgba(255,255,255,0.1)',
+                        background: rescheduleFilter === f ? 'var(--color-primary)' : 'transparent',
+                        color: rescheduleFilter === f ? 'var(--color-bg-dark)' : 'var(--color-primary)'
+                      }}
+                    >
+                      {f}
+                    </button>
+                  ))}
+                </div>
+
+                {loadingReschedules ? (
+                  <div className="glass-panel" style={{ padding: '3rem', textAlign: 'center', color: '#aaa' }}>
+                    Loading reschedule requests...
+                  </div>
+                ) : reschedulesList.length === 0 ? (
+                  <div className="glass-panel" style={{ padding: '3rem', textAlign: 'center', color: '#888' }}>
+                    No reschedule requests found for filter: {rescheduleFilter}
+                  </div>
+                ) : (
+                  <div className="table-responsive-container">
+                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                      <thead>
+                        <tr>
+                          <th style={tableHeaderStyle}>Instructor</th>
+                          <th style={tableHeaderStyle}>Course / Slot</th>
+                          <th style={tableHeaderStyle}>Original Date</th>
+                          <th style={tableHeaderStyle}>Shifted To</th>
+                          <th style={tableHeaderStyle}>Reason</th>
+                          <th style={tableHeaderStyle}>Status</th>
+                          <th style={{ ...tableHeaderStyle, width: '220px', minWidth: '220px' }}>Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {reschedulesList.map((req) => {
+                          const isPending = req.status === 'Pending';
+                          const isApprv = req.status === 'Approved';
+                          const isDecl = req.status === 'Declined';
+                          const isDone = req.status === 'Conducted';
+
+                          return (
+                            <tr key={req.id || req._id} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.05)' }}>
+                              <td style={tableCellStyle}>
+                                <div style={{ fontWeight: 600, color: '#fff' }}>{req.instructor_name}</div>
+                                <span style={{ fontSize: '0.78rem', color: '#94a3b8' }}>{req.instructor_email}</span>
+                              </td>
+                              <td style={tableCellStyle}>
+                                <div style={{ color: 'var(--color-primary)', fontSize: '0.88rem' }}>{req.slot_name}</div>
+                              </td>
+                              <td style={tableCellStyle}>
+                                <span style={{ color: '#ff6b6b', fontWeight: 600 }}>{req.original_date}</span>
+                              </td>
+                              <td style={tableCellStyle}>
+                                <span style={{ color: '#10b981', fontWeight: 700 }}>{req.rescheduled_date}</span>
+                              </td>
+                              <td style={tableCellStyle}>
+                                <div style={{ maxWidth: '240px', fontSize: '0.85rem', color: '#cbd5e1', lineHeight: '1.4' }}>
+                                  {req.reason}
+                                </div>
+                              </td>
+                              <td style={tableCellStyle}>
+                                <span style={{
+                                  padding: '3px 8px',
+                                  borderRadius: '6px',
+                                  fontSize: '0.78rem',
+                                  fontWeight: 700,
+                                  background: isPending ? 'rgba(243, 156, 18, 0.15)' : (isApprv ? 'rgba(16, 185, 129, 0.15)' : (isDone ? 'rgba(56, 189, 248, 0.15)' : 'rgba(231, 76, 60, 0.15)')),
+                                  color: isPending ? '#f39c12' : (isApprv ? '#10b981' : (isDone ? '#38bdf8' : '#ff6b6b')),
+                                  border: isPending ? '1px solid rgba(243, 156, 18, 0.3)' : (isApprv ? '1px solid rgba(16, 185, 129, 0.3)' : (isDone ? '1px solid rgba(56, 189, 248, 0.3)' : '1px solid rgba(231, 76, 60, 0.3)'))
+                                }}>
+                                  {isDone ? 'Conducted' : req.status}
+                                </span>
+                              </td>
+                              <td style={{ ...tableCellStyle, width: '220px', minWidth: '220px' }}>
+                                {isPending ? (
+                                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                    <button
+                                      type="button"
+                                      disabled={rescheduleActionId === (req.id || req._id)}
+                                      onClick={() => handleApproveReschedule(req.id || req._id)}
+                                      className="btn-primary"
+                                      style={{
+                                        padding: '5px 12px',
+                                        fontSize: '0.8rem',
+                                        fontWeight: 600,
+                                        borderRadius: '6px',
+                                        cursor: 'pointer',
+                                        whiteSpace: 'nowrap'
+                                      }}
+                                    >
+                                      {rescheduleActionId === (req.id || req._id) ? 'Saving...' : 'Approve'}
+                                    </button>
+                                    <button
+                                      type="button"
+                                      disabled={rescheduleActionId === (req.id || req._id)}
+                                      onClick={() => handleDeclineReschedule(req.id || req._id)}
+                                      className="glass-panel"
+                                      style={{
+                                        padding: '5px 12px',
+                                        fontSize: '0.8rem',
+                                        color: '#ff6b6b',
+                                        border: '1px solid rgba(231, 76, 60, 0.4)',
+                                        borderRadius: '6px',
+                                        cursor: 'pointer',
+                                        fontWeight: 600,
+                                        background: 'rgba(231, 76, 60, 0.08)',
+                                        whiteSpace: 'nowrap'
+                                      }}
+                                    >
+                                      Decline
+                                    </button>
+                                  </div>
+                                ) : (
+                                  <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
+                                    {isApprv ? 'Shifted & Students Notified' : (isDecl ? 'Declined by Admin' : 'Class Conducted')}
+                                  </span>
+                                )}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* MAKE-UP SCHEDULING MODAL */}
+            {showMakeupModal && (
+              <div style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                backgroundColor: 'rgba(0, 0, 0, 0.75)',
+                backdropFilter: 'blur(8px)',
+                WebkitBackdropFilter: 'blur(8px)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                zIndex: 1000,
+                padding: '1rem'
+              }}>
+                <div className="glass-panel" style={{
+                  width: '100%',
+                  maxWidth: '480px',
+                  backgroundColor: '#072224',
+                  border: '1px solid rgba(197, 229, 232, 0.25)',
+                  borderRadius: '16px',
+                  padding: '2rem',
+                  boxShadow: '0 20px 50px rgba(0,0,0,0.8)'
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', borderBottom: '1px solid rgba(197, 229, 232, 0.15)', paddingBottom: '0.75rem' }}>
+                    <h3 style={{ color: 'var(--color-white)', margin: 0, fontSize: '1.25rem', fontWeight: 700 }} className="gradient-text">
+                      Schedule Make-up Class
+                    </h3>
+                    <button
+                      type="button"
+                      onClick={() => setShowMakeupModal(false)}
+                      className="glass-panel"
+                      style={{ border: 'none', color: '#94a3b8', padding: '6px 10px', fontSize: '1rem', cursor: 'pointer', borderRadius: '6px' }}
+                    >
+                      ✕
+                    </button>
+                  </div>
+
+                  {makeupSuccess && (
+                    <div style={{ padding: '10px 14px', borderRadius: '8px', background: 'rgba(16, 185, 129, 0.15)', border: '1px solid #10b981', color: '#10b981', fontSize: '0.85rem', marginBottom: '1rem' }}>
+                      {makeupSuccess}
+                    </div>
+                  )}
+
+                  {makeupError && (
+                    <div style={{ padding: '10px 14px', borderRadius: '8px', background: 'rgba(231, 76, 60, 0.15)', border: '1px solid #e74c3c', color: '#ff6b6b', fontSize: '0.85rem', marginBottom: '1rem' }}>
+                      {makeupError}
+                    </div>
+                  )}
+
+                  <form onSubmit={handleSubmitMakeup} style={{ display: 'flex', flexDirection: 'column', gap: '1.1rem' }}>
+                    <div>
+                      <label style={{ display: 'block', color: 'var(--color-primary)', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.4rem' }}>
+                        Make-up Date *
+                      </label>
+                      <input
+                        type="date"
+                        value={makeupDate}
+                        onChange={(e) => setMakeupDate(e.target.value)}
+                        style={{
+                          width: '100%',
+                          padding: '10px 12px',
+                          borderRadius: '8px',
+                          background: 'rgba(0, 0, 0, 0.35)',
+                          border: '1px solid rgba(197, 229, 232, 0.25)',
+                          color: '#fff',
+                          fontSize: '0.9rem',
+                          outline: 'none'
+                        }}
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label style={{ display: 'block', color: 'var(--color-primary)', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.4rem' }}>
+                        Make-up Time *
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="e.g. 05:00 PM"
+                        value={makeupTime}
+                        onChange={(e) => setMakeupTime(e.target.value)}
+                        style={{
+                          width: '100%',
+                          padding: '10px 12px',
+                          borderRadius: '8px',
+                          background: 'rgba(0, 0, 0, 0.35)',
+                          border: '1px solid rgba(197, 229, 232, 0.25)',
+                          color: '#fff',
+                          fontSize: '0.9rem',
+                          outline: 'none'
+                        }}
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label style={{ display: 'block', color: 'var(--color-primary)', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.4rem' }}>
+                        Remarks / Note
+                      </label>
+                      <textarea
+                        rows={2}
+                        value={makeupRemarks}
+                        onChange={(e) => setMakeupRemarks(e.target.value)}
+                        placeholder="Notes for students (e.g. Make-up session covering Chapter 3)..."
+                        style={{
+                          width: '100%',
+                          padding: '10px 12px',
+                          borderRadius: '8px',
+                          background: 'rgba(0, 0, 0, 0.35)',
+                          border: '1px solid rgba(197, 229, 232, 0.25)',
+                          color: '#fff',
+                          fontSize: '0.88rem',
+                          outline: 'none',
+                          resize: 'vertical'
+                        }}
+                      />
+                    </div>
+
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '0.5rem' }}>
+                      <button
+                        type="button"
+                        onClick={() => setShowMakeupModal(false)}
+                        className="glass-panel"
+                        style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.15)', color: '#cbd5e1', fontSize: '0.88rem', cursor: 'pointer' }}
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={makeupLoading}
+                        className="btn-primary"
+                        style={{ padding: '8px 20px', borderRadius: '8px', fontSize: '0.88rem', fontWeight: 700, cursor: makeupLoading ? 'not-allowed' : 'pointer' }}
+                      >
+                        {makeupLoading ? 'Scheduling...' : 'Confirm & Notify Students'}
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         {activeTab === 'modules' && (
           <div>
             <h2 style={{ color: 'var(--color-white)', marginBottom: '1.5rem', fontSize: '1.6rem' }}>Modules / Arabic Levels</h2>
@@ -3009,6 +3909,21 @@ export function AdminDashboard({ onLogout }) {
                       </div>
 
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                        {(notif.type === 'reschedule' || notif.notification_type === 'reschedule') && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setActiveTab('classes');
+                              setClassViewMode('reschedules');
+                              setRescheduleFilter('all');
+                              void fetchReschedules('all');
+                            }}
+                            className="btn-primary"
+                            style={{ padding: '6px 14px', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}
+                          >
+                            Review Request
+                          </button>
+                        )}
                         {(isProfileCompleted || notif.notification_type === 'student_update_request') && (
                           <button
                             onClick={async () => {

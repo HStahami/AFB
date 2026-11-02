@@ -216,12 +216,57 @@ async def start_class(
             raise HTTPException(status_code=404, detail="Slot not found")
 
         now = datetime.now(timezone.utc)
+        today_str = now.strftime("%Y-%m-%d")
+
+        # Check if an approved reschedule exists for this slot on today's date
+        reschedule = await db.reschedules.find_one({
+            "$or": [
+                {"slot_id": str(slot["_id"])},
+                {"slot_name": f"{slot.get('days', '')} {slot.get('time', '')}".strip()}
+            ],
+            "rescheduled_date": today_str,
+            "status": "Approved"
+        })
+
+        is_rescheduled = bool(reschedule)
+        if is_rescheduled:
+            await db.reschedules.update_one(
+                {"_id": reschedule["_id"]},
+                {"$set": {"status": "Conducted", "updated_at": now}}
+            )
+
+        inst_id = str(current_user["_id"])
+        inst_name = current_user.get("full_name") or current_user.get("name") or current_user.get("username") or "Instructor"
+
+        # Create persistent class session log
+        sess_doc = {
+            "instructor_id": inst_id,
+            "instructor_name": inst_name,
+            "slot_id": str(slot["_id"]),
+            "slot_title": f"{slot.get('days', '')} {slot.get('time', '')}".strip(),
+            "course_name": slot.get("course_name") or slot.get("module_name") or "Arabic Program",
+            "scheduled_date": today_str,
+            "scheduled_time": slot.get("time", ""),
+            "actual_start_at": now,
+            "actual_end_at": None,
+            "duration_minutes": None,
+            "status": "Conducted",
+            "is_late": False,
+            "late_minutes": 0,
+            "class_type": "Rescheduled" if is_rescheduled else "Regular",
+            "reschedule_id": str(reschedule["_id"]) if reschedule else None,
+            "created_at": now
+        }
+        sess_res = await db.class_sessions.insert_one(sess_doc)
+        active_sess_id = str(sess_res.inserted_id)
+
         await db.slots.update_one(
             {"_id": slot["_id"]},
             {"$set": {
                 "is_live": True,
                 "live_started_at": now,
-                "live_started_by": str(current_user["_id"])
+                "live_started_by": str(current_user["_id"]),
+                "active_session_id": active_sess_id
             }}
         )
 
@@ -286,6 +331,19 @@ async def end_class(
             raise HTTPException(status_code=404, detail="Slot not found")
 
         now = datetime.now(timezone.utc)
+        active_sess_id = slot.get("active_session_id")
+        if active_sess_id and ObjectId.is_valid(active_sess_id):
+            sess = await db.class_sessions.find_one({"_id": ObjectId(active_sess_id)})
+            if sess and sess.get("actual_start_at"):
+                start_t = sess["actual_start_at"]
+                if start_t.tzinfo is None:
+                    start_t = start_t.replace(tzinfo=timezone.utc)
+                duration = max(1, round((now - start_t).total_seconds() / 60))
+                await db.class_sessions.update_one(
+                    {"_id": ObjectId(active_sess_id)},
+                    {"$set": {"actual_end_at": now, "duration_minutes": duration}}
+                )
+
         await db.slots.update_one(
             {"_id": slot["_id"]},
             {"$set": {
