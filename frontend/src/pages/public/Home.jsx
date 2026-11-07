@@ -211,7 +211,7 @@ export function Home() {
                 Dedicated private tutoring designed for focused, individual attention and personalized Arabic learning pace.
               </p>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem', marginBottom: '2rem' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: '#e0e0e0', fontSize: '0.95rem' }}>
                   <CheckCircle2 size={18} color="var(--color-primary)" style={{ flexShrink: 0 }} />
                   <span>100% exclusive 1-on-1 instructor focus</span>
@@ -226,26 +226,6 @@ export function Home() {
                 </div>
               </div>
             </div>
-
-            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-              <Link
-                to="/admission"
-                className="btn-primary"
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '0.5rem',
-                  padding: '12px 24px',
-                  fontSize: '1rem',
-                  textDecoration: 'none',
-                  textAlign: 'center',
-                  width: '100%',
-                }}
-              >
-                Apply for 1-on-1 <ArrowRight size={18} />
-              </Link>
-            </motion.div>
           </motion.div>
 
           {/* Card 2: Weekend Group + 1 on 1 (With Brand Color) */}
@@ -288,7 +268,7 @@ export function Home() {
                 Collaborative group sessions with peers alongside flexible 1-on-1 slots, perfect for working professionals and weekend learners.
               </p>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem', marginBottom: '2rem' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: '#e0e0e0', fontSize: '0.95rem' }}>
                   <CheckCircle2 size={18} color="var(--color-primary)" style={{ flexShrink: 0 }} />
                   <span>Interactive small group learning & discussions</span>
@@ -303,26 +283,6 @@ export function Home() {
                 </div>
               </div>
             </div>
-
-            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-              <Link
-                to="/admission"
-                className="btn-primary"
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '0.5rem',
-                  padding: '12px 24px',
-                  fontSize: '1rem',
-                  textDecoration: 'none',
-                  textAlign: 'center',
-                  width: '100%',
-                }}
-              >
-                Apply for Weekend <ArrowRight size={18} />
-              </Link>
-            </motion.div>
           </motion.div>
         </div>
       </section>
