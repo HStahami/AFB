@@ -592,6 +592,11 @@ export const dashboardApi = {
     const res = await apiClient("/dashboard/stats");
     if (!res.ok) throw new Error("Failed to load stats");
     return res.json();
+  },
+  getOverviewAnalytics: async () => {
+    const res = await apiClient("/dashboard/overview-analytics");
+    if (!res.ok) throw new Error("Failed to load overview analytics");
+    return res.json();
   }
 };
 

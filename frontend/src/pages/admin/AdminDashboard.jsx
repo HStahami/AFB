@@ -1,9 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Plus, Trash2, LogOut, Bell, CheckCircle2, Megaphone, Shield, MessageSquare, Send, RefreshCw, Mail, Award, Search, Key } from 'lucide-react';
+import { Plus, Trash2, LogOut, Bell, CheckCircle2, Megaphone, Shield, MessageSquare, Send, RefreshCw, Mail, Award, Search, Key, Hourglass, Users, Trophy, BookOpen, AlertTriangle, Calendar, ArrowRight } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { API_BASE, getAvatarUrl } from '../../api/client';
 import { inputStyle } from '../../components/common/styles';
-import { notificationsApi, messagesApi, studentsApi, reschedulesApi, classSessionsApi } from '../../api';
+import { notificationsApi, messagesApi, studentsApi, reschedulesApi, classSessionsApi, dashboardApi } from '../../api';
 
 export function AdminDashboard({ onLogout }) {
   const { user: authUser } = useAuth();
@@ -133,6 +133,40 @@ export function AdminDashboard({ onLogout }) {
       console.error('Error loading reschedules:', err);
     } finally {
       setLoadingReschedules(false);
+    }
+  };
+
+  // Live Overview Analytics State & Fetcher
+  const [overviewAnalytics, setOverviewAnalytics] = useState({
+    lifecycle: {
+      total_students: 0,
+      active_students: 0,
+      dropout_students: 0,
+      graduated_students: 0,
+      active_pct: 0,
+      dropout_pct: 0,
+      graduated_pct: 0
+    },
+    pending_admissions: [],
+    top_instructors: [],
+    top_performing_students: [],
+    top_modules: [],
+    students_at_risk: [],
+    recent_reschedules: []
+  });
+  const [loadingOverview, setLoadingOverview] = useState(false);
+
+  const fetchOverviewAnalytics = async () => {
+    try {
+      setLoadingOverview(true);
+      const data = await dashboardApi.getOverviewAnalytics();
+      if (data && data.lifecycle) {
+        setOverviewAnalytics(data);
+      }
+    } catch (err) {
+      console.error('Error loading overview analytics:', err);
+    } finally {
+      setLoadingOverview(false);
     }
   };
 
@@ -667,9 +701,11 @@ export function AdminDashboard({ onLogout }) {
     void fetchInstructors();
     void fetchSlots();
     void fetchNotifications();
+    void fetchOverviewAnalytics();
 
     const notifTimer = setInterval(() => { void fetchNotifications(); }, 25000);
 
+    if (activeTab === 'overview') void fetchOverviewAnalytics();
     if (activeTab === 'admissions') void fetchAdmissions();
     if (activeTab === 'students' || activeTab === 'graduates' || activeTab === 'dropouts') { 
       void fetchStudents(); 
@@ -1368,188 +1404,914 @@ export function AdminDashboard({ onLogout }) {
       <div className="admin-content-area" style={{ flex: 1, padding: '2rem', width: '100%' }}>
         {activeTab === 'overview' && (
           <div>
-            <h2 style={{ color: 'var(--color-white)', marginBottom: '1.5rem', fontSize: '1.6rem' }}>Institute Overview</h2>
-            <div className="stats-cards-grid">
+            {/* Overview Top Header with Refresh Button */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.75rem', flexWrap: 'wrap', gap: '1rem' }}>
+              <div>
+                <h2 style={{ color: 'var(--color-white)', margin: 0, fontSize: '1.6rem', fontWeight: 700 }}>
+                  Institute Overview
+                </h2>
+                <p style={{ color: '#94a3b8', margin: '4px 0 0 0', fontSize: '0.88rem' }}>
+                  Real-time academic performance, live student lifecycle analytics, and operations pulse.
+                </p>
+              </div>
               <button
                 type="button"
-                className="glass-panel stat-card-btn"
-                style={{ padding: '1.5rem', textAlign: 'center', cursor: 'pointer', background: 'transparent', width: '100%', border: 'none' }}
-                onClick={() => { setActiveTab('admissions'); setAdmissionFilter('all'); }}
-                title="Click to view all admission forms"
+                onClick={fetchOverviewAnalytics}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '7px 16px',
+                  borderRadius: '8px',
+                  background: 'rgba(197, 229, 232, 0.08)',
+                  border: '1px solid rgba(197, 229, 232, 0.22)',
+                  color: 'var(--color-primary)',
+                  cursor: 'pointer',
+                  fontSize: '0.82rem',
+                  fontWeight: 600,
+                  transition: 'all 0.2s ease'
+                }}
+                title="Refresh live overview metrics directly from database"
               >
-                <h4 style={{ color: '#aaa', fontSize: '0.85rem', marginBottom: '0.4rem' }}>Total Forms</h4>
-                <p style={{ fontSize: '2.2rem', fontWeight: 'bold', color: 'var(--color-white)', margin: 0 }}>{stats.total}</p>
-              </button>
-
-              <button
-                type="button"
-                className="glass-panel stat-card-btn"
-                style={{ padding: '1.5rem', textAlign: 'center', borderLeft: '4px solid #f39c12', cursor: 'pointer', background: 'transparent', width: '100%', borderTop: 'none', borderRight: 'none', borderBottom: 'none' }}
-                onClick={() => { setActiveTab('admissions'); setAdmissionFilter('pending'); }}
-                title="Click to view pending admissions"
-              >
-                <h4 style={{ color: '#aaa', fontSize: '0.85rem', marginBottom: '0.4rem' }}>Pending</h4>
-                <p style={{ fontSize: '2.2rem', fontWeight: 'bold', color: '#f39c12', margin: 0 }}>{stats.pending}</p>
-              </button>
-
-              <button
-                type="button"
-                className="glass-panel stat-card-btn"
-                style={{ padding: '1.5rem', textAlign: 'center', borderLeft: '4px solid #2ecc71', cursor: 'pointer', background: 'transparent', width: '100%', borderTop: 'none', borderRight: 'none', borderBottom: 'none' }}
-                onClick={() => { setActiveTab('admissions'); setAdmissionFilter('approved'); }}
-                title="Click to view approved admissions"
-              >
-                <h4 style={{ color: '#aaa', fontSize: '0.85rem', marginBottom: '0.4rem' }}>Approved</h4>
-                <p style={{ fontSize: '2.2rem', fontWeight: 'bold', color: '#2ecc71', margin: 0 }}>{stats.approved}</p>
-              </button>
-
-              <button
-                type="button"
-                className="glass-panel stat-card-btn"
-                style={{ padding: '1.5rem', textAlign: 'center', borderLeft: '4px solid #e74c3c', cursor: 'pointer', background: 'transparent', width: '100%', borderTop: 'none', borderRight: 'none', borderBottom: 'none' }}
-                onClick={() => { setActiveTab('admissions'); setAdmissionFilter('canceled'); }}
-                title="Click to view canceled admissions"
-              >
-                <h4 style={{ color: '#aaa', fontSize: '0.85rem', marginBottom: '0.4rem' }}>Canceled</h4>
-                <p style={{ fontSize: '2.2rem', fontWeight: 'bold', color: '#e74c3c', margin: 0 }}>{stats.canceled}</p>
-              </button>
-
-              <button
-                type="button"
-                className="glass-panel stat-card-btn"
-                style={{ padding: '1.5rem', textAlign: 'center', borderLeft: '4px solid var(--color-primary)', cursor: 'pointer', background: 'transparent', width: '100%', borderTop: 'none', borderRight: 'none', borderBottom: 'none' }}
-                onClick={() => { setActiveTab('students'); setStudentFilter('active'); }}
-                title="Click to view active enrolled students"
-              >
-                <h4 style={{ color: '#aaa', fontSize: '0.85rem', marginBottom: '0.4rem' }}>Active Students</h4>
-                <p style={{ fontSize: '2.2rem', fontWeight: 'bold', color: 'var(--color-primary)', margin: 0 }}>{stats.total_students}</p>
-              </button>
-
-              <button
-                type="button"
-                className="glass-panel stat-card-btn"
-                style={{ padding: '1.5rem', textAlign: 'center', borderLeft: '4px solid #2ecc71', cursor: 'pointer', background: 'transparent', width: '100%', borderTop: 'none', borderRight: 'none', borderBottom: 'none' }}
-                onClick={() => setActiveTab('graduates')}
-                title="Click to view all graduated students"
-              >
-                <h4 style={{ color: '#aaa', fontSize: '0.85rem', marginBottom: '0.4rem' }}>Graduates</h4>
-                <p style={{ fontSize: '2.2rem', fontWeight: 'bold', color: '#2ecc71', margin: 0 }}>{stats.graduated_students || 0}</p>
-              </button>
-
-              <button
-                type="button"
-                className="glass-panel stat-card-btn"
-                style={{ padding: '1.5rem', textAlign: 'center', borderLeft: '4px solid #e74c3c', cursor: 'pointer', background: 'transparent', width: '100%', borderTop: 'none', borderRight: 'none', borderBottom: 'none' }}
-                onClick={() => setActiveTab('dropouts')}
-                title="Click to view all dropout students"
-              >
-                <h4 style={{ color: '#aaa', fontSize: '0.85rem', marginBottom: '0.4rem' }}>Dropouts</h4>
-                <p style={{ fontSize: '2.2rem', fontWeight: 'bold', color: '#e74c3c', margin: 0 }}>{stats.dropout_students || 0}</p>
-              </button>
-
-              <button
-                type="button"
-                className="glass-panel stat-card-btn"
-                style={{ padding: '1.5rem', textAlign: 'center', borderLeft: '4px solid var(--color-accent)', cursor: 'pointer', background: 'transparent', width: '100%', borderTop: 'none', borderRight: 'none', borderBottom: 'none' }}
-                onClick={() => setActiveTab('instructors')}
-                title="Click to view active instructors"
-              >
-                <h4 style={{ color: '#aaa', fontSize: '0.85rem', marginBottom: '0.4rem' }}>Active Instructors</h4>
-                <p style={{ fontSize: '2.2rem', fontWeight: 'bold', color: 'var(--color-accent)', margin: 0 }}>{instructors.length}</p>
-              </button>
-
-              <button
-                type="button"
-                className="glass-panel stat-card-btn"
-                style={{ padding: '1.5rem', textAlign: 'center', borderLeft: '4px solid #3498db', cursor: 'pointer', background: 'transparent', width: '100%', borderTop: 'none', borderRight: 'none', borderBottom: 'none' }}
-                onClick={() => setActiveTab('slots')}
-                title="Click to view class slots"
-              >
-                <h4 style={{ color: '#aaa', fontSize: '0.85rem', marginBottom: '0.4rem' }}>Class Slots</h4>
-                <p style={{ fontSize: '2.2rem', fontWeight: 'bold', color: '#3498db', margin: 0 }}>{stats.total_slots || slots.length || 0}</p>
-              </button>
-
-              <button
-                type="button"
-                className="glass-panel stat-card-btn"
-                style={{ padding: '1.5rem', textAlign: 'center', borderLeft: '4px solid #9b59b6', cursor: 'pointer', background: 'transparent', width: '100%', borderTop: 'none', borderRight: 'none', borderBottom: 'none' }}
-                onClick={() => setActiveTab('modules')}
-                title="Click to view modules"
-              >
-                <h4 style={{ color: '#aaa', fontSize: '0.85rem', marginBottom: '0.4rem' }}>Modules</h4>
-                <p style={{ fontSize: '2.2rem', fontWeight: 'bold', color: '#9b59b6', margin: 0 }}>{stats.total_modules || 0}</p>
+                <RefreshCw size={14} className={loadingOverview ? 'spin-animation' : ''} />
+                <span>Refresh Live Analytics</span>
               </button>
             </div>
 
-            {/* Active Instructors & Assigned Classes Breakdown */}
-            <div style={{ marginTop: '2.5rem' }}>
-              <h3 style={{ color: 'var(--color-white)', marginBottom: '1.5rem', fontSize: '1.4rem' }}>
-                Active Instructors & Class Workload Breakdown
-              </h3>
-
-              {instructors.length === 0 ? (
-                <div className="glass-panel" style={{ padding: '2rem', textAlign: 'center', color: '#aaa' }}>
-                  No active instructors registered yet.
+            {/* Top Analytical Charts Section (Side-by-Side: Bar Chart + Donut Chart) */}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))',
+              gap: '1.5rem',
+              marginBottom: '2rem'
+            }}>
+              {/* Left Chart: Student Lifecycle Bar Chart */}
+              <div className="glass-panel" style={{
+                padding: '1.5rem',
+                borderRadius: '16px',
+                border: '1px solid rgba(197, 229, 232, 0.15)',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                background: 'rgba(7, 34, 36, 0.92)'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                  <h3 style={{ color: '#fff', margin: 0, fontSize: '1.05rem', fontWeight: 600 }}>
+                    Student Lifecycle Distribution
+                  </h3>
+                  <span style={{ fontSize: '0.78rem', color: '#94a3b8' }}>Live Metric Scale</span>
                 </div>
-              ) : (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem' }}>
-                  {instructors.map(inst => {
-                    const slotMap = {};
-                    if (inst.students && inst.students.length > 0) {
-                      inst.students.forEach(s => {
-                        const sSlot = s.slot || 'Unassigned Slot';
-                        if (!slotMap[sSlot]) slotMap[sSlot] = [];
-                        slotMap[sSlot].push(s.name);
-                      });
-                    }
 
-                    const assignedSlotsCount = Object.keys(slotMap).length;
+                {/* Bar Chart Canvas with Y-Axis */}
+                {(() => {
+                  const maxVal = Math.max(overviewAnalytics.lifecycle.total_students, 10);
+                  const yMax = maxVal <= 10 ? 10 : (maxVal <= 50 ? 50 : (maxVal <= 100 ? 100 : (maxVal <= 500 ? 500 : (maxVal <= 1500 ? 1500 : Math.ceil(maxVal / 500) * 500))));
+                  const yMid1 = Math.round(yMax * 0.66);
+                  const yMid2 = Math.round(yMax * 0.33);
 
-                    return (
-                      <div key={inst._id || inst.id} className="glass-panel" style={{ padding: '1.5rem', border: '1px solid rgba(197, 229, 232, 0.15)', background: 'rgba(255,255,255,0.02)' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
+                  const bars = [
+                    { label: 'Enrolled Students', count: overviewAnalytics.lifecycle.total_students, color: '#072224', border: '1.5px solid #00A896', countColor: '#fff' },
+                    { label: 'Active Students', count: overviewAnalytics.lifecycle.active_students, color: '#00A896', border: 'none', countColor: '#fff' },
+                    { label: 'Dropout Students', count: overviewAnalytics.lifecycle.dropout_students, color: '#334e68', border: 'none', countColor: '#cbd5e1' },
+                    { label: 'Graduate Students', count: overviewAnalytics.lifecycle.graduated_students, color: '#C5E5E8', border: 'none', countColor: '#072224' }
+                  ];
+
+                  return (
+                    <div>
+                      <div style={{ display: 'flex', height: '175px', position: 'relative', paddingTop: '1.5rem', paddingBottom: '0.25rem' }}>
+                        {/* Y-Axis Labels & Guidelines */}
+                        <div style={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          justifyContent: 'space-between',
+                          width: '45px',
+                          paddingRight: '8px',
+                          textAlign: 'right',
+                          fontSize: '0.72rem',
+                          color: '#64748b',
+                          userSelect: 'none'
+                        }}>
+                          <span>{yMax.toLocaleString()}</span>
+                          <span>{yMid1.toLocaleString()}</span>
+                          <span>{yMid2.toLocaleString()}</span>
+                          <span>0</span>
+                        </div>
+
+                        {/* Chart Area */}
+                        <div style={{ flex: 1, position: 'relative', display: 'flex', alignItems: 'flex-end', justifyContent: 'space-around', gap: '1rem', borderBottom: '1px solid rgba(197, 229, 232, 0.18)' }}>
+                          {/* Background Grid Lines */}
+                          <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', pointerEvents: 'none', zIndex: 0 }}>
+                            <div style={{ borderTop: '1px dashed rgba(197, 229, 232, 0.08)', width: '100%' }} />
+                            <div style={{ borderTop: '1px dashed rgba(197, 229, 232, 0.08)', width: '100%' }} />
+                            <div style={{ borderTop: '1px dashed rgba(197, 229, 232, 0.08)', width: '100%' }} />
+                            <div style={{ borderTop: '1px solid transparent', width: '100%' }} />
+                          </div>
+
+                          {/* Bars */}
+                          {bars.map((b, idx) => {
+                            const barHeight = Math.max(8, Math.round((b.count / yMax) * 125));
+                            return (
+                              <div key={idx} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%', justifyContent: 'flex-end', position: 'relative', zIndex: 1 }}>
+                                <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#fff', marginBottom: '6px' }}>
+                                  {b.count.toLocaleString()}
+                                </span>
+                                <div style={{
+                                  width: '100%',
+                                  maxWidth: '68px',
+                                  height: `${barHeight}px`,
+                                  backgroundColor: b.color,
+                                  border: b.border,
+                                  borderRadius: '5px 5px 0 0',
+                                  transition: 'height 0.35s ease',
+                                  boxShadow: '0 4px 14px rgba(0, 0, 0, 0.35)'
+                                }} />
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* X-Axis Labels */}
+                      <div style={{ display: 'flex', paddingLeft: '45px', marginTop: '0.65rem' }}>
+                        {bars.map((b, idx) => (
+                          <div key={idx} style={{ flex: 1, textAlign: 'center', fontSize: '0.76rem', color: '#94a3b8', lineHeight: 1.3 }}>
+                            {b.label}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+
+              {/* Right Chart: Donut / Radial Chart with Center Total & Legend */}
+              <div className="glass-panel" style={{
+                padding: '1.5rem',
+                borderRadius: '16px',
+                border: '1px solid rgba(197, 229, 232, 0.15)',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                background: 'rgba(7, 34, 36, 0.92)'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                  <h3 style={{ color: '#fff', margin: 0, fontSize: '1.05rem', fontWeight: 600 }}>
+                    Enrollment Status Breakdown
+                  </h3>
+                  <span style={{ fontSize: '0.78rem', color: '#94a3b8' }}>Proportional Ratio</span>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-around', gap: '1.5rem', flexWrap: 'wrap', flex: 1, padding: '0.5rem 0' }}>
+                  {/* SVG Donut Circle */}
+                  <div style={{ position: 'relative', width: '160px', height: '160px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <svg width="160" height="160" viewBox="0 0 160 160" style={{ transform: 'rotate(-90deg)' }}>
+                      {/* Base Track */}
+                      <circle
+                        cx="80"
+                        cy="80"
+                        r="58"
+                        fill="transparent"
+                        stroke="rgba(197, 229, 232, 0.08)"
+                        strokeWidth="20"
+                      />
+                      {/* Segments */}
+                      {(() => {
+                        const tot = overviewAnalytics.lifecycle.total_students;
+                        const C = 2 * Math.PI * 58; // ~364.42
+                        if (tot === 0) return null;
+
+                        const actLen = (overviewAnalytics.lifecycle.active_students / tot) * C;
+                        const dropLen = (overviewAnalytics.lifecycle.dropout_students / tot) * C;
+                        const gradLen = (overviewAnalytics.lifecycle.graduated_students / tot) * C;
+
+                        return (
+                          <>
+                            {/* Active Students Slice */}
+                            {actLen > 0 && (
+                              <circle
+                                cx="80"
+                                cy="80"
+                                r="58"
+                                fill="transparent"
+                                stroke="#00A896"
+                                strokeWidth="20"
+                                strokeDasharray={`${actLen} ${C}`}
+                                strokeDashoffset={0}
+                              />
+                            )}
+                            {/* Dropout Students Slice */}
+                            {dropLen > 0 && (
+                              <circle
+                                cx="80"
+                                cy="80"
+                                r="58"
+                                fill="transparent"
+                                stroke="#334e68"
+                                strokeWidth="20"
+                                strokeDasharray={`${dropLen} ${C}`}
+                                strokeDashoffset={-actLen}
+                              />
+                            )}
+                            {/* Graduate Students Slice */}
+                            {gradLen > 0 && (
+                              <circle
+                                cx="80"
+                                cy="80"
+                                r="58"
+                                fill="transparent"
+                                stroke="#C5E5E8"
+                                strokeWidth="20"
+                                strokeDasharray={`${gradLen} ${C}`}
+                                strokeDashoffset={-(actLen + dropLen)}
+                              />
+                            )}
+                          </>
+                        );
+                      })()}
+                    </svg>
+
+                    {/* Donut Hole Center Text */}
+                    <div style={{ position: 'absolute', textAlign: 'center', pointerEvents: 'none' }}>
+                      <div style={{ fontSize: '1.65rem', fontWeight: 800, color: '#fff', lineHeight: 1.1 }}>
+                        {overviewAnalytics.lifecycle.total_students.toLocaleString()}
+                      </div>
+                      <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '2px' }}>
+                        Total Enrolled
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Donut Legend */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                    {[
+                      { label: 'Enrolled Students', count: overviewAnalytics.lifecycle.total_students, pct: 100, color: '#072224', border: '1.5px solid #00A896' },
+                      { label: 'Active Students', count: overviewAnalytics.lifecycle.active_students, pct: overviewAnalytics.lifecycle.active_pct, color: '#00A896' },
+                      { label: 'Dropout Students', count: overviewAnalytics.lifecycle.dropout_students, pct: overviewAnalytics.lifecycle.dropout_pct, color: '#334e68' },
+                      { label: 'Graduate Students', count: overviewAnalytics.lifecycle.graduated_students, pct: overviewAnalytics.lifecycle.graduated_pct, color: '#C5E5E8' }
+                    ].map((leg, lIdx) => (
+                      <div key={lIdx} style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.84rem' }}>
+                        <div style={{
+                          width: '12px',
+                          height: '12px',
+                          borderRadius: '50%',
+                          backgroundColor: leg.color,
+                          border: leg.border || 'none',
+                          flexShrink: 0
+                        }} />
+                        <div style={{ color: '#cbd5e1' }}>
+                          <span>{leg.label}</span>
+                          <strong style={{ color: '#fff', marginLeft: '6px' }}>
+                            {leg.count.toLocaleString()} ({leg.pct}%)
+                          </strong>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Bottom Section: 6 Actionable Dashboard Cards (3x2 Grid) */}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
+              gap: '1.5rem'
+            }}>
+              {/* Card 1: Pending Request of Admissions */}
+              <div style={{
+                borderRadius: '14px',
+                overflow: 'hidden',
+                border: '1px solid rgba(197, 229, 232, 0.16)',
+                backgroundColor: 'rgba(5, 23, 25, 0.95)',
+                display: 'flex',
+                flexDirection: 'column',
+                boxShadow: '0 8px 24px rgba(0, 0, 0, 0.35)'
+              }}>
+                {/* Header */}
+                <div style={{
+                  backgroundColor: '#072224',
+                  borderBottom: '1px solid rgba(197, 229, 232, 0.12)',
+                  padding: '0.85rem 1.15rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Hourglass size={17} style={{ color: '#f39c12' }} />
+                    <span style={{ color: '#fff', fontWeight: 700, fontSize: '0.92rem' }}>
+                      Pending Request of Admissions
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => { setActiveTab('admissions'); setAdmissionFilter('pending'); }}
+                    style={{
+                      background: 'rgba(197, 229, 232, 0.08)',
+                      border: '1px solid rgba(197, 229, 232, 0.22)',
+                      color: 'var(--color-primary)',
+                      borderRadius: '20px',
+                      padding: '3px 12px',
+                      fontSize: '0.75rem',
+                      fontWeight: 600,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    View All →
+                  </button>
+                </div>
+
+                {/* Body */}
+                <div style={{ padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem', flex: 1, justifyContent: 'center' }}>
+                  {overviewAnalytics.pending_admissions.length === 0 ? (
+                    <div style={{ textAlign: 'center', padding: '1.75rem 1rem' }}>
+                      <CheckCircle2 size={24} style={{ color: '#2ecc71', margin: '0 auto 6px auto' }} />
+                      <div style={{ color: '#cbd5e1', fontSize: '0.86rem', fontWeight: 600 }}>No Pending Applications</div>
+                      <div style={{ color: '#64748b', fontSize: '0.78rem', marginTop: '2px' }}>All received admission forms have been processed.</div>
+                    </div>
+                  ) : (
+                    overviewAnalytics.pending_admissions.slice(0, 3).map((adm) => {
+                      const getInitials = (str) => {
+                        if (!str) return 'AS';
+                        const parts = str.trim().split(/\s+/);
+                        return parts.length >= 2 ? (parts[0][0] + parts[1][0]).toUpperCase() : str.slice(0, 2).toUpperCase();
+                      };
+
+                      const formatTimeAgo = (dt) => {
+                        if (!dt) return 'Recently';
+                        try {
+                          const diff = Date.now() - new Date(dt).getTime();
+                          if (isNaN(diff) || diff < 0) return 'Recently';
+                          const h = Math.floor(diff / 3600000);
+                          return h < 1 ? 'Just now' : (h < 24 ? `${h}h ago` : `${Math.floor(h / 24)}d ago`);
+                        } catch { return 'Recently'; }
+                      };
+
+                      return (
+                        <div key={adm.id} style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          gap: '0.75rem',
+                          padding: '0.7rem 0.85rem',
+                          backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                          border: '1px solid rgba(197, 229, 232, 0.08)',
+                          borderRadius: '10px'
+                        }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
+                            <div style={{
+                              width: '36px',
+                              height: '36px',
+                              borderRadius: '50%',
+                              backgroundColor: 'rgba(197, 229, 232, 0.12)',
+                              border: '1px solid rgba(197, 229, 232, 0.25)',
+                              color: 'var(--color-primary)',
+                              fontWeight: 700,
+                              fontSize: '0.8rem',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              flexShrink: 0
+                            }}>
+                              {getInitials(adm.name)}
+                            </div>
+                            <div style={{ minWidth: 0 }}>
+                              <div style={{ color: '#fff', fontWeight: 600, fontSize: '0.88rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                {adm.name}
+                              </div>
+                              <div style={{ color: '#94a3b8', fontSize: '0.76rem' }}>
+                                Applied for {adm.course} • {formatTimeAgo(adm.created_at)}
+                              </div>
+                            </div>
+                          </div>
+                          <span style={{
+                            backgroundColor: 'rgba(243, 156, 18, 0.15)',
+                            color: '#f39c12',
+                            border: '1px solid rgba(243, 156, 18, 0.3)',
+                            padding: '3px 9px',
+                            borderRadius: '12px',
+                            fontSize: '0.72rem',
+                            fontWeight: 600,
+                            flexShrink: 0
+                          }}>
+                            Pending
+                          </span>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+
+              {/* Card 2: Top Instructors */}
+              <div style={{
+                borderRadius: '14px',
+                overflow: 'hidden',
+                border: '1px solid rgba(197, 229, 232, 0.16)',
+                backgroundColor: 'rgba(5, 23, 25, 0.95)',
+                display: 'flex',
+                flexDirection: 'column',
+                boxShadow: '0 8px 24px rgba(0, 0, 0, 0.35)'
+              }}>
+                {/* Header */}
+                <div style={{
+                  backgroundColor: '#072224',
+                  borderBottom: '1px solid rgba(197, 229, 232, 0.12)',
+                  padding: '0.85rem 1.15rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Users size={17} style={{ color: 'var(--color-primary)' }} />
+                    <span style={{ color: '#fff', fontWeight: 700, fontSize: '0.92rem' }}>
+                      Top Instructors
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('instructors')}
+                    style={{
+                      background: 'rgba(197, 229, 232, 0.08)',
+                      border: '1px solid rgba(197, 229, 232, 0.22)',
+                      color: 'var(--color-primary)',
+                      borderRadius: '20px',
+                      padding: '3px 12px',
+                      fontSize: '0.75rem',
+                      fontWeight: 600,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    View All →
+                  </button>
+                </div>
+
+                {/* Body */}
+                <div style={{ padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem', flex: 1, justifyContent: 'center' }}>
+                  {overviewAnalytics.top_instructors.length === 0 ? (
+                    <div style={{ textAlign: 'center', padding: '1.75rem 1rem' }}>
+                      <Users size={24} style={{ color: '#64748b', margin: '0 auto 6px auto' }} />
+                      <div style={{ color: '#cbd5e1', fontSize: '0.86rem', fontWeight: 600 }}>No Instructors Enrolled</div>
+                      <div style={{ color: '#64748b', fontSize: '0.78rem', marginTop: '2px' }}>Add instructors from the Instructors tab.</div>
+                    </div>
+                  ) : (
+                    overviewAnalytics.top_instructors.slice(0, 3).map((inst, idx) => (
+                      <div key={inst.id} style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: '0.75rem',
+                        padding: '0.7rem 0.85rem',
+                        backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                        border: '1px solid rgba(197, 229, 232, 0.08)',
+                        borderRadius: '10px'
+                      }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
                           <img
                             src={getAvatarUrl(inst.avatar, inst.name)}
                             alt={inst.name}
-                            style={{ width: '50px', height: '50px', borderRadius: '50%', objectFit: 'cover', background: 'var(--color-bg-dark)' }}
+                            style={{ width: '36px', height: '36px', borderRadius: '50%', objectFit: 'cover', background: '#041416', flexShrink: 0 }}
                           />
-                          <div>
-                            <h4 style={{ color: 'var(--color-white)', fontSize: '1.1rem', fontWeight: '600' }}>{inst.name}</h4>
-                            <p style={{ color: 'var(--color-primary)', fontSize: '0.85rem' }}>{inst.specialty || inst.about || 'Arabic Instructor'}</p>
-                          </div>
-                          <div style={{ marginLeft: 'auto', textAlign: 'right' }}>
-                            <span style={{ fontSize: '1.2rem', fontWeight: 'bold', color: 'var(--color-primary)' }}>{inst.total_students || 0}</span>
-                            <div style={{ fontSize: '0.75rem', color: '#aaa' }}>Students</div>
+                          <div style={{ minWidth: 0 }}>
+                            <div style={{ color: '#fff', fontWeight: 600, fontSize: '0.88rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              {inst.name}
+                            </div>
+                            <div style={{ color: '#94a3b8', fontSize: '0.76rem' }}>
+                              {inst.students_count} Student{inst.students_count === 1 ? '' : 's'}
+                            </div>
                           </div>
                         </div>
-
-                        <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '0.8rem', marginTop: '0.8rem' }}>
-                          <div style={{ fontSize: '0.85rem', fontWeight: '600', color: '#e0e0e0', marginBottom: '0.5rem' }}>
-                            Assigned Classes ({assignedSlotsCount})
-                          </div>
-                          {assignedSlotsCount > 0 ? (
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
-                              {Object.entries(slotMap).map(([slotName, studentList], idx) => (
-                                <div key={idx} style={{ background: 'rgba(0,0,0,0.3)', padding: '0.6rem 0.8rem', borderRadius: '6px', fontSize: '0.85rem' }}>
-                                  <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--color-primary)', fontWeight: '500', marginBottom: '4px' }}>
-                                    <span>• {slotName}</span>
-                                    <span style={{ color: '#2ecc71', fontWeight: 'bold' }}>{studentList.length} Student{studentList.length > 1 ? 's' : ''}</span>
-                                  </div>
-                                  <div style={{ color: '#aaa', fontSize: '0.8rem', paddingLeft: '0.8rem' }}>
-                                    {studentList.join(', ')}
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          ) : (
-                            <span style={{ color: '#666', fontSize: '0.85rem', italic: 'true' }}>No active class assignments yet</span>
-                          )}
+                        <div style={{
+                          width: '24px',
+                          height: '24px',
+                          borderRadius: '50%',
+                          backgroundColor: '#041c1e',
+                          border: '1px solid rgba(197, 229, 232, 0.3)',
+                          color: 'var(--color-primary)',
+                          fontSize: '0.78rem',
+                          fontWeight: 700,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexShrink: 0
+                        }}>
+                          {idx + 1}
                         </div>
                       </div>
-                    );
-                  })}
+                    ))
+                  )}
                 </div>
-              )}
+              </div>
+
+              {/* Card 3: Top Performing Students */}
+              <div style={{
+                borderRadius: '14px',
+                overflow: 'hidden',
+                border: '1px solid rgba(197, 229, 232, 0.16)',
+                backgroundColor: 'rgba(5, 23, 25, 0.95)',
+                display: 'flex',
+                flexDirection: 'column',
+                boxShadow: '0 8px 24px rgba(0, 0, 0, 0.35)'
+              }}>
+                {/* Header */}
+                <div style={{
+                  backgroundColor: '#072224',
+                  borderBottom: '1px solid rgba(197, 229, 232, 0.12)',
+                  padding: '0.85rem 1.15rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Trophy size={17} style={{ color: '#f1c40f' }} />
+                    <span style={{ color: '#fff', fontWeight: 700, fontSize: '0.92rem' }}>
+                      Top Performing Students
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => { setActiveTab('students'); setStudentFilter('all'); }}
+                    style={{
+                      background: 'rgba(197, 229, 232, 0.08)',
+                      border: '1px solid rgba(197, 229, 232, 0.22)',
+                      color: 'var(--color-primary)',
+                      borderRadius: '20px',
+                      padding: '3px 12px',
+                      fontSize: '0.75rem',
+                      fontWeight: 600,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    View All →
+                  </button>
+                </div>
+
+                {/* Body */}
+                <div style={{ padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem', flex: 1, justifyContent: 'center' }}>
+                  {overviewAnalytics.top_performing_students.length === 0 ? (
+                    <div style={{ textAlign: 'center', padding: '1.75rem 1rem' }}>
+                      <Trophy size={24} style={{ color: '#64748b', margin: '0 auto 6px auto' }} />
+                      <div style={{ color: '#cbd5e1', fontSize: '0.86rem', fontWeight: 600 }}>No Student Evaluations</div>
+                      <div style={{ color: '#64748b', fontSize: '0.78rem', marginTop: '2px' }}>Ranks compute as coursework is assessed.</div>
+                    </div>
+                  ) : (
+                    overviewAnalytics.top_performing_students.slice(0, 3).map((st) => {
+                      const medalStyles = {
+                        1: { bg: 'linear-gradient(135deg, #f39c12, #f1c40f)', text: '#041416', shadow: '0 0 10px rgba(241, 196, 15, 0.45)' },
+                        2: { bg: 'linear-gradient(135deg, #64748b, #94a3b8)', text: '#041416', shadow: 'none' },
+                        3: { bg: 'linear-gradient(135deg, #b45309, #d97706)', text: '#fff', shadow: 'none' }
+                      };
+                      const m = medalStyles[st.rank] || medalStyles[3];
+
+                      return (
+                        <div key={st.id} style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          gap: '0.75rem',
+                          padding: '0.7rem 0.85rem',
+                          backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                          border: '1px solid rgba(197, 229, 232, 0.08)',
+                          borderRadius: '10px'
+                        }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
+                            <img
+                              src={getAvatarUrl(st.avatar, st.name)}
+                              alt={st.name}
+                              style={{ width: '36px', height: '36px', borderRadius: '50%', objectFit: 'cover', background: '#041416', flexShrink: 0 }}
+                            />
+                            <div style={{ minWidth: 0 }}>
+                              <div style={{ color: '#fff', fontWeight: 600, fontSize: '0.88rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                {st.name}
+                              </div>
+                              <div style={{ color: '#38bdf8', fontSize: '0.76rem', fontWeight: 600 }}>
+                                {st.academic_score}% • {st.grade}
+                              </div>
+                            </div>
+                          </div>
+                          <div style={{
+                            width: '24px',
+                            height: '24px',
+                            borderRadius: '50%',
+                            background: m.bg,
+                            color: m.text,
+                            boxShadow: m.shadow,
+                            fontSize: '0.78rem',
+                            fontWeight: 800,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            flexShrink: 0
+                          }}>
+                            {st.rank}
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+
+              {/* Card 4: Top 3 Modules */}
+              <div style={{
+                borderRadius: '14px',
+                overflow: 'hidden',
+                border: '1px solid rgba(197, 229, 232, 0.16)',
+                backgroundColor: 'rgba(5, 23, 25, 0.95)',
+                display: 'flex',
+                flexDirection: 'column',
+                boxShadow: '0 8px 24px rgba(0, 0, 0, 0.35)'
+              }}>
+                {/* Header */}
+                <div style={{
+                  backgroundColor: '#072224',
+                  borderBottom: '1px solid rgba(197, 229, 232, 0.12)',
+                  padding: '0.85rem 1.15rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <BookOpen size={17} style={{ color: 'var(--color-primary)' }} />
+                    <span style={{ color: '#fff', fontWeight: 700, fontSize: '0.92rem' }}>
+                      Top 3 Modules
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('modules')}
+                    style={{
+                      background: 'rgba(197, 229, 232, 0.08)',
+                      border: '1px solid rgba(197, 229, 232, 0.22)',
+                      color: 'var(--color-primary)',
+                      borderRadius: '20px',
+                      padding: '3px 12px',
+                      fontSize: '0.75rem',
+                      fontWeight: 600,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    View All →
+                  </button>
+                </div>
+
+                {/* Body */}
+                <div style={{ padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem', flex: 1, justifyContent: 'center' }}>
+                  {overviewAnalytics.top_modules.length === 0 ? (
+                    <div style={{ textAlign: 'center', padding: '1.75rem 1rem' }}>
+                      <BookOpen size={24} style={{ color: '#64748b', margin: '0 auto 6px auto' }} />
+                      <div style={{ color: '#cbd5e1', fontSize: '0.86rem', fontWeight: 600 }}>No Modules Configured</div>
+                      <div style={{ color: '#64748b', fontSize: '0.78rem', marginTop: '2px' }}>Configure curriculum modules in the Modules tab.</div>
+                    </div>
+                  ) : (
+                    overviewAnalytics.top_modules.slice(0, 3).map((mod, idx) => (
+                      <div key={mod.id} style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: '0.75rem',
+                        padding: '0.7rem 0.85rem',
+                        backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                        border: '1px solid rgba(197, 229, 232, 0.08)',
+                        borderRadius: '10px'
+                      }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0, flex: 1 }}>
+                          <div style={{
+                            width: '24px',
+                            height: '24px',
+                            borderRadius: '50%',
+                            backgroundColor: '#041c1e',
+                            border: '1px solid rgba(197, 229, 232, 0.3)',
+                            color: 'var(--color-primary)',
+                            fontSize: '0.78rem',
+                            fontWeight: 700,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            flexShrink: 0
+                          }}>
+                            {idx + 1}
+                          </div>
+                          <div style={{ minWidth: 0, flex: 1 }}>
+                            <div style={{ color: '#fff', fontWeight: 600, fontSize: '0.88rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              {mod.name}
+                            </div>
+                            <div style={{ color: '#94a3b8', fontSize: '0.76rem' }}>
+                              {mod.avg_progress}% Avg. Progress
+                            </div>
+                          </div>
+                        </div>
+                        <div style={{ width: '80px', height: '6px', background: 'rgba(255, 255, 255, 0.1)', borderRadius: '3px', overflow: 'hidden', flexShrink: 0 }}>
+                          <div style={{ width: `${mod.avg_progress}%`, height: '100%', background: 'var(--color-primary)', borderRadius: '3px' }} />
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+
+              {/* Card 5: Students at Risk */}
+              <div style={{
+                borderRadius: '14px',
+                overflow: 'hidden',
+                border: '1px solid rgba(197, 229, 232, 0.16)',
+                backgroundColor: 'rgba(5, 23, 25, 0.95)',
+                display: 'flex',
+                flexDirection: 'column',
+                boxShadow: '0 8px 24px rgba(0, 0, 0, 0.35)'
+              }}>
+                {/* Header */}
+                <div style={{
+                  backgroundColor: '#072224',
+                  borderBottom: '1px solid rgba(197, 229, 232, 0.12)',
+                  padding: '0.85rem 1.15rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <AlertTriangle size={17} style={{ color: '#e74c3c' }} />
+                    <span style={{ color: '#fff', fontWeight: 700, fontSize: '0.92rem' }}>
+                      Students at Risk
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => { setActiveTab('students'); setStudentFilter('active'); }}
+                    style={{
+                      background: 'rgba(197, 229, 232, 0.08)',
+                      border: '1px solid rgba(197, 229, 232, 0.22)',
+                      color: 'var(--color-primary)',
+                      borderRadius: '20px',
+                      padding: '3px 12px',
+                      fontSize: '0.75rem',
+                      fontWeight: 600,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    View All →
+                  </button>
+                </div>
+
+                {/* Body */}
+                <div style={{ padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem', flex: 1, justifyContent: 'center' }}>
+                  {overviewAnalytics.students_at_risk.length === 0 ? (
+                    <div style={{ textAlign: 'center', padding: '1.75rem 1rem' }}>
+                      <CheckCircle2 size={24} style={{ color: '#10b981', margin: '0 auto 6px auto' }} />
+                      <div style={{ color: '#cbd5e1', fontSize: '0.86rem', fontWeight: 600 }}>Zero Students at Risk</div>
+                      <div style={{ color: '#94a3b8', fontSize: '0.78rem', marginTop: '2px' }}>All students maintain attendance ≥ 80% & timely tasks.</div>
+                    </div>
+                  ) : (
+                    overviewAnalytics.students_at_risk.slice(0, 3).map((st) => (
+                      <div key={st.id} style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: '0.75rem',
+                        padding: '0.7rem 0.85rem',
+                        backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                        border: '1px solid rgba(197, 229, 232, 0.08)',
+                        borderRadius: '10px'
+                      }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
+                          <img
+                            src={getAvatarUrl(st.avatar, st.name)}
+                            alt={st.name}
+                            style={{ width: '36px', height: '36px', borderRadius: '50%', objectFit: 'cover', background: '#041416', flexShrink: 0 }}
+                          />
+                          <div style={{ minWidth: 0 }}>
+                            <div style={{ color: '#fff', fontWeight: 600, fontSize: '0.88rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              {st.name}
+                            </div>
+                            <div style={{ color: '#f87171', fontSize: '0.76rem', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              {st.reason}
+                            </div>
+                          </div>
+                        </div>
+                        <span style={{
+                          backgroundColor: 'rgba(231, 76, 60, 0.18)',
+                          color: '#e74c3c',
+                          border: '1px solid rgba(231, 76, 60, 0.35)',
+                          padding: '3px 9px',
+                          borderRadius: '12px',
+                          fontSize: '0.72rem',
+                          fontWeight: 700,
+                          flexShrink: 0
+                        }}>
+                          At Risk
+                        </span>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+
+              {/* Card 6: Recent Rescheduling Requests */}
+              <div style={{
+                borderRadius: '14px',
+                overflow: 'hidden',
+                border: '1px solid rgba(197, 229, 232, 0.16)',
+                backgroundColor: 'rgba(5, 23, 25, 0.95)',
+                display: 'flex',
+                flexDirection: 'column',
+                boxShadow: '0 8px 24px rgba(0, 0, 0, 0.35)'
+              }}>
+                {/* Header */}
+                <div style={{
+                  backgroundColor: '#072224',
+                  borderBottom: '1px solid rgba(197, 229, 232, 0.12)',
+                  padding: '0.85rem 1.15rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Calendar size={17} style={{ color: 'var(--color-primary)' }} />
+                    <span style={{ color: '#fff', fontWeight: 700, fontSize: '0.92rem' }}>
+                      Recent Rescheduling Requests
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => { setActiveTab('classes'); setClassViewMode('reschedules'); }}
+                    style={{
+                      background: 'rgba(197, 229, 232, 0.08)',
+                      border: '1px solid rgba(197, 229, 232, 0.22)',
+                      color: 'var(--color-primary)',
+                      borderRadius: '20px',
+                      padding: '3px 12px',
+                      fontSize: '0.75rem',
+                      fontWeight: 600,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    View All →
+                  </button>
+                </div>
+
+                {/* Body */}
+                <div style={{ padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem', flex: 1, justifyContent: 'center' }}>
+                  {overviewAnalytics.recent_reschedules.length === 0 ? (
+                    <div style={{ textAlign: 'center', padding: '1.75rem 1rem' }}>
+                      <CheckCircle2 size={24} style={{ color: '#10b981', margin: '0 auto 6px auto' }} />
+                      <div style={{ color: '#cbd5e1', fontSize: '0.86rem', fontWeight: 600 }}>No Rescheduling Requests</div>
+                      <div style={{ color: '#64748b', fontSize: '0.78rem', marginTop: '2px' }}>All classes are executing according to regular timetable.</div>
+                    </div>
+                  ) : (
+                    overviewAnalytics.recent_reschedules.slice(0, 3).map((r) => {
+                      const formatTimeAgo = (dt) => {
+                        if (!dt) return 'Recently';
+                        try {
+                          const diff = Date.now() - new Date(dt).getTime();
+                          if (isNaN(diff) || diff < 0) return 'Recently';
+                          const h = Math.floor(diff / 3600000);
+                          return h < 1 ? 'Just now' : (h < 24 ? `${h}h ago` : `${Math.floor(h / 24)}d ago`);
+                        } catch { return 'Recently'; }
+                      };
+
+                      return (
+                        <div key={r.id} style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          gap: '0.75rem',
+                          padding: '0.7rem 0.85rem',
+                          backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                          border: '1px solid rgba(197, 229, 232, 0.08)',
+                          borderRadius: '10px'
+                        }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
+                            <div style={{
+                              width: '36px',
+                              height: '36px',
+                              borderRadius: '8px',
+                              backgroundColor: 'rgba(197, 229, 232, 0.08)',
+                              border: '1px solid rgba(197, 229, 232, 0.15)',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              color: 'var(--color-primary)',
+                              flexShrink: 0
+                            }}>
+                              <Calendar size={17} />
+                            </div>
+                            <div style={{ minWidth: 0 }}>
+                              <div style={{ color: '#fff', fontWeight: 600, fontSize: '0.88rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                {r.instructor_name}
+                              </div>
+                              <div style={{ color: '#94a3b8', fontSize: '0.76rem' }}>
+                                Reschedule to {r.rescheduled_date}
+                              </div>
+                            </div>
+                          </div>
+                          <span style={{ color: '#64748b', fontSize: '0.76rem', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                            {formatTimeAgo(r.created_at)}
+                          </span>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         )}
