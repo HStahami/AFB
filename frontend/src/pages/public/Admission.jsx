@@ -227,7 +227,7 @@ export function Admission() {
                 cursor: loading ? 'not-allowed' : 'pointer'
               }}
             >
-              {loading ? "Processing..." : <>Submit Application & Receive Fee Details <Send size={18} /></>}
+              {loading ? "Processing..." : "Submit Application"}
             </button>
           </form>
         )}
