@@ -35,6 +35,8 @@ const InstructorClassroom = lazy(() => import('./pages/instructor/InstructorClas
 const StudentLayout = lazy(() => import('./components/student/StudentLayout').then(m => ({ default: m.StudentLayout })));
 const StudentLogin = lazy(() => import('./pages/student/StudentLogin').then(m => ({ default: m.StudentLogin })));
 const StudentDashboard = lazy(() => import('./pages/student/StudentDashboard').then(m => ({ default: m.StudentDashboard })));
+const StudentTypingLab = lazy(() => import('./pages/student/StudentTypingLab'));
+const VerifyCertificate = lazy(() => import('./pages/public/VerifyCertificate').then(m => ({ default: m.VerifyCertificate })));
 const StudentClassroom = lazy(() => import('./pages/student/StudentClassroom').then(m => ({ default: m.StudentClassroom })));
 const StudentNotes = lazy(() => import('./pages/student/StudentNotes').then(m => ({ default: m.StudentNotes })));
 const StudentCourses = lazy(() => import('./pages/student/StudentCourses').then(m => ({ default: m.StudentCourses })));
@@ -132,6 +134,8 @@ function AppLayout() {
               <Route path="/contact" element={<Contact />} />
               <Route path="/admission" element={<Admission />} />
               <Route path="/admin" element={<AdminRoute />} />
+              <Route path="/verify-certificate" element={<VerifyCertificate />} />
+              <Route path="/verify-certificate/:certId" element={<VerifyCertificate />} />
 
               {/* Instructor Portal Routes */}
               <Route path="/instructor/login" element={<InstructorLogin />} />
@@ -169,6 +173,7 @@ function AppLayout() {
                 }
               >
                 <Route index element={<StudentDashboard />} />
+                <Route path="typing-lab" element={<StudentTypingLab />} />
                 <Route path="classroom" element={<StudentClassroom />} />
                 <Route path="notes" element={<StudentNotes />} />
                 <Route path="courses" element={<StudentCourses />} />

@@ -7,7 +7,7 @@ from pathlib import Path
 from app.database import connect_to_mongo, close_mongo_connection
 from app.routers import (
     admissions, students, instructors, modules, slots, contact, auth, dashboard,
-    enrollments, tasks, submissions, assessments, attendance, notifications, resources, reports, storage, admins, messages, notes, reschedules, class_sessions
+    enrollments, tasks, submissions, assessments, attendance, notifications, resources, reports, storage, admins, messages, notes, reschedules, class_sessions, typing
 )
 
 
@@ -165,6 +165,7 @@ app.include_router(messages.router)
 app.include_router(notes.router)
 app.include_router(reschedules.router)
 app.include_router(class_sessions.router)
+app.include_router(typing.router)
 
 from fastapi.responses import FileResponse
 

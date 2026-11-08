@@ -714,5 +714,53 @@ export const classSessionsApi = {
   },
 };
 
-
+// Arabic Typing Lab API
+export const typingApi = {
+  getStages: async () => {
+    const res = await apiClient("/typing/stages");
+    if (!res.ok) throw new Error("Failed to load typing stages");
+    return res.json();
+  },
+  getFingerMappings: async () => {
+    const res = await apiClient("/typing/finger-mappings");
+    if (!res.ok) throw new Error("Failed to load finger mappings");
+    return res.json();
+  },
+  getLevels: async (includeText = false) => {
+    const res = await apiClient(`/typing/levels?include_text=${includeText}`);
+    if (!res.ok) throw new Error("Failed to load typing levels");
+    return res.json();
+  },
+  getLevel: async (levelId) => {
+    const res = await apiClient(`/typing/level/${levelId}`);
+    if (!res.ok) throw new Error(`Failed to load level ${levelId}`);
+    return res.json();
+  },
+  getProgress: async () => {
+    const res = await apiClient("/typing/progress");
+    if (!res.ok) throw new Error("Failed to load typing progress");
+    return res.json();
+  },
+  submitResult: async (payload) => {
+    const res = await apiClient("/typing/submit-result", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ detail: "Failed to submit typing result" }));
+      throw new Error(err.detail || "Failed to submit typing result");
+    }
+    return res.json();
+  },
+  getCertificate: async () => {
+    const res = await apiClient("/typing/certificate");
+    if (!res.ok) throw new Error("Failed to load certificate data");
+    return res.json();
+  },
+  verifyCertificate: async (certificateId) => {
+    const res = await apiClient(`/typing/verify/${certificateId}`);
+    if (!res.ok) throw new Error("Verification query failed");
+    return res.json();
+  },
+};
 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { BookOpen } from 'lucide-react';
+import { BookOpen, Keyboard, Award } from 'lucide-react';
 import { studentsApi } from '../../api';
 import { useAuth } from '../../context/AuthContext';
 
@@ -179,6 +179,77 @@ export function StudentDashboard() {
             </div>
           </div>
         )}
+      </div>
+
+      {/* Arabic Touch-Typing Lab Banner */}
+      <div
+        className="glass-panel"
+        style={{
+          padding: '1.5rem 2rem',
+          background: 'linear-gradient(135deg, rgba(12, 62, 66, 0.7) 0%, rgba(7, 34, 36, 0.9) 100%)',
+          border: '1px solid #14494e',
+          borderRadius: '12px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '1.25rem'
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+          <div
+            style={{
+              width: '52px',
+              height: '52px',
+              borderRadius: '12px',
+              backgroundColor: 'rgba(223, 178, 89, 0.15)',
+              border: '1px solid rgba(223, 178, 89, 0.3)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#dfb259'
+            }}
+          >
+            <Keyboard size={28} />
+          </div>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+              <span style={{ fontSize: '0.75rem', fontWeight: 700, padding: '2px 8px', borderRadius: '4px', backgroundColor: 'rgba(197, 229, 232, 0.15)', color: '#C5E5E8', border: '1px solid rgba(197, 229, 232, 0.25)' }}>
+                200 مستويات تدريبية
+              </span>
+              <span style={{ fontSize: '0.75rem', fontWeight: 700, padding: '2px 8px', borderRadius: '4px', backgroundColor: 'rgba(223, 178, 89, 0.15)', color: '#dfb259', border: '1px solid rgba(223, 178, 89, 0.3)' }}>
+                شهادة إتمام معتمدة
+              </span>
+            </div>
+            <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#fff', margin: 0 }}>
+              مَخْبَرُ الكِتَابَة العربية (Arabic Touch-Typing Lab)
+            </h3>
+            <p style={{ color: '#b0c4c6', fontSize: '0.85rem', margin: '0.25rem 0 0 0' }}>
+              تدرّب على الطباعة السريعة باللمس للأصابع العشرة، وارتقِ بمستواك من الصفر حتى الاحتراف لنيل شهادة التميز الرسمية.
+            </p>
+          </div>
+        </div>
+
+        <Link
+          to="/student/typing-lab"
+          className="btn-primary"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            padding: '0.75rem 1.5rem',
+            fontSize: '0.9rem',
+            fontWeight: 700,
+            textDecoration: 'none',
+            borderRadius: '8px',
+            background: 'linear-gradient(to right, #dfb259, #b8862d)',
+            color: '#072224',
+            boxShadow: '0 4px 14px rgba(223, 178, 89, 0.3)'
+          }}
+        >
+          <Keyboard size={18} />
+          <span>دخول مختبر الطباعة</span>
+        </Link>
       </div>
 
       {/* KPI Metrics Cards */}

@@ -17,6 +17,7 @@ import {
   Lock,
   MessageCircle,
   Video,
+  Keyboard,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { notificationsApi } from '../../api';
@@ -58,6 +59,7 @@ export function StudentLayout({ children }) {
     { label: 'Dashboard', path: '/student', icon: <LayoutDashboard size={19} /> },
     { label: 'Live Classroom', path: '/student/classroom', icon: <Video size={19} /> },
     { label: 'Class Notes', path: '/student/notes', icon: <BookOpen size={19} /> },
+    { label: 'Typing Lab (مَخْبَرُ الكِتَابَة)', path: '/student/typing-lab', icon: <Keyboard size={19} /> },
     { label: 'My Courses', path: '/student/courses', icon: <BookOpen size={19} /> },
     { label: 'Course Tasks', path: '/student/tasks', icon: <CheckSquare size={19} /> },
     { label: 'Submissions', path: '/student/submissions', icon: <FileText size={19} /> },
