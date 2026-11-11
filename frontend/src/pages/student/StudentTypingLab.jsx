@@ -403,9 +403,6 @@ export default function StudentTypingLab() {
                 <Trophy size={13} />
                 <span>Level {currentLevelId} of 200</span>
               </span>
-              <span className="px-3 py-1 rounded-full text-xs font-semibold bg-[#072224] text-[#C5E5E8] border border-[#14494e]">
-                {levelData?.stage_title || 'Current Stage'}
-              </span>
             </div>
             <h1 className="text-2xl lg:text-3xl font-extrabold text-white flex items-center gap-3">
               <Keyboard className="text-[#C5E5E8]" size={30} />
@@ -510,16 +507,6 @@ export default function StudentTypingLab() {
             <h2 className="text-lg font-bold text-white flex items-center gap-2">
               <span>{levelData?.title || `Level ${currentLevelId}`}</span>
             </h2>
-            <div className="flex items-center gap-2 mt-1">
-              <span className="text-xs text-gray-400">Target Keys:</span>
-              <div className="flex items-center gap-1">
-                {(levelData?.target_keys || []).map((k, i) => (
-                  <span key={i} className="px-2 py-0.5 rounded bg-[#072224] border border-[#14494e] text-[#C5E5E8] font-bold text-xs" dir="rtl">
-                    {k}
-                  </span>
-                ))}
-              </div>
-            </div>
           </div>
 
           {/* Target Criteria Badges */}
@@ -604,16 +591,8 @@ export default function StudentTypingLab() {
           })}
         </div>
 
-        {/* Finger Placement Instruction Hint */}
-        <div className="flex items-center justify-between gap-3 mt-4 text-xs text-gray-400 px-2">
-          <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#dfb259] animate-ping"></span>
-            <span>Target Key:</span>
-            <span className="font-bold text-white text-sm px-2 py-0.5 rounded bg-[#072224] border border-[#14494e]">
-              {currentTargetChar === ' ' ? 'Space' : currentTargetChar}
-            </span>
-          </div>
-
+        {/* Keyboard layout info note */}
+        <div className="flex items-center justify-end gap-3 mt-4 text-xs text-gray-400 px-2">
           <div className="text-[11px] text-[#C5E5E8] flex items-center gap-1.5">
             <HelpCircle size={14} />
             <span>Type freely with Arabic or English keyboard (automatically mapped to Arabic 101 keys).</span>
@@ -631,12 +610,12 @@ export default function StudentTypingLab() {
           </h3>
 
           {/* Finger Zones Legend */}
-          <div className="hidden lg:flex items-center gap-3 text-[11px]">
-            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-rose-500"></span> Pinky</span>
-            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-amber-500"></span> Ring</span>
-            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Middle</span>
-            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-cyan-500"></span> Index</span>
-            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-purple-500"></span> Thumb</span>
+          <div className="hidden lg:flex items-center gap-3 text-[11px] text-gray-300">
+            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: '#f43f5e' }}></span> Pinky</span>
+            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: '#f59e0b' }}></span> Ring</span>
+            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: '#10b981' }}></span> Middle</span>
+            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: '#06b6d4' }}></span> Index</span>
+            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: '#a855f7' }}></span> Thumb</span>
           </div>
         </div>
 
@@ -655,7 +634,7 @@ export default function StudentTypingLab() {
                       k.width || 'w-10 sm:w-12'
                     } h-10 sm:h-12 ${
                       isActive
-                        ? 'bg-gradient-to-br from-[#dfb259] to-[#b8862d] text-[#072224] border-[#dfb259] scale-105 shadow-lg shadow-[#dfb259]/30 ring-2 ring-[#dfb259]'
+                        ? `bg-gradient-to-br from-[#dfb259] to-[#b8862d] text-[#072224] border-[#dfb259] ${k.isSpace ? 'z-10 ring-2 ring-[#dfb259]' : 'scale-105 z-10 ring-2 ring-[#dfb259]'} shadow-lg shadow-[#dfb259]/30`
                         : fingerClass
                     } ${k.isAnchor ? 'border-b-4 border-b-cyan-400' : ''}`}
                   >
@@ -786,9 +765,17 @@ export default function StudentTypingLab() {
 
       {/* 5. LEVELS ROADMAP DRAWER */}
       {showRoadmap && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-          <div className="bg-[#092a2d] border border-[#14494e] rounded-2xl max-w-4xl w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-[#14494e] bg-[#072224]">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowRoadmap(false);
+          }}
+        >
+          <div
+            className="bg-[#092a2d] border border-[#14494e] rounded-2xl max-w-4xl w-full flex flex-col shadow-2xl overflow-hidden"
+            style={{ maxHeight: '85vh', height: '85vh', display: 'flex', flexDirection: 'column' }}
+          >
+            <div className="flex items-center justify-between px-6 py-4 border-b border-[#14494e] bg-[#072224] shrink-0">
               <div>
                 <h3 className="text-lg font-bold text-white flex items-center gap-2">
                   <Layers size={20} className="text-[#C5E5E8]" />
@@ -801,13 +788,18 @@ export default function StudentTypingLab() {
               <button
                 onClick={() => setShowRoadmap(false)}
                 className="p-2 text-gray-400 hover:text-white rounded-lg hover:bg-white/10"
+                style={{ cursor: 'pointer' }}
+                title="Close"
               >
-                <X size={20} />
+                <X size={22} />
               </button>
             </div>
 
             {/* Stages & Levels Grid */}
-            <div className="p-6 overflow-y-auto space-y-6">
+            <div
+              className="p-6 overflow-y-auto space-y-6"
+              style={{ overflowY: 'auto', flex: 1, maxHeight: 'calc(85vh - 130px)' }}
+            >
               {stages.map((stage) => {
                 const [startLvl, endLvl] = stage.levels_range;
                 const stageLevels = levelsSummary.filter(
@@ -865,6 +857,17 @@ export default function StudentTypingLab() {
                   </div>
                 );
               })}
+            </div>
+
+            {/* Modal Footer Close Button */}
+            <div className="flex items-center justify-end px-6 py-3 border-t border-[#14494e] bg-[#072224] shrink-0">
+              <button
+                onClick={() => setShowRoadmap(false)}
+                className="px-5 py-2 rounded-xl bg-[#14494e] hover:bg-[#1a5b61] text-white text-xs font-bold transition-all"
+                style={{ cursor: 'pointer' }}
+              >
+                Close
+              </button>
             </div>
           </div>
         </div>

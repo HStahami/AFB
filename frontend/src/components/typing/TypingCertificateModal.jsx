@@ -84,7 +84,8 @@ export default function TypingCertificateModal({ isOpen, onClose, certificate })
             <img
               src="/afb_kufic_logo.png"
               alt=""
-              className="absolute left-6 top-1/2 -translate-y-1/2 w-72 opacity-[0.035] pointer-events-none filter drop-shadow-md"
+              className="absolute left-6 top-1/2 -translate-y-1/2 w-72 pointer-events-none filter drop-shadow-md"
+              style={{ opacity: 0.035, pointerEvents: 'none' }}
             />
 
             {/* 1. TOP HEADER (Emam on Left, Title Center, AFB on Right) */}

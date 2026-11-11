@@ -18,6 +18,8 @@ import {
   MessageCircle,
   Video,
   Keyboard,
+  PanelLeftClose,
+  PanelLeftOpen,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { notificationsApi } from '../../api';
@@ -29,6 +31,7 @@ export function StudentLayout({ children }) {
   const navigate = useNavigate();
 
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
 
   // Mandatory Onboarding Check from Server-Authoritative State
@@ -92,6 +95,30 @@ export function StudentLayout({ children }) {
               Alarabia LMS
             </span>
           </Link>
+
+          {/* Desktop Sidebar Collapse Toggle */}
+          <button
+            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+            className="hide-mobile"
+            style={{
+              background: 'rgba(255, 255, 255, 0.06)',
+              border: '1px solid rgba(255, 255, 255, 0.12)',
+              color: '#C5E5E8',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '32px',
+              height: '32px',
+              padding: 0,
+              transition: 'all 0.2s ease',
+            }}
+            title={sidebarCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
+            aria-label="Toggle Sidebar"
+          >
+            {sidebarCollapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
+          </button>
 
           <span
             className="portal-header-badge"
@@ -217,7 +244,15 @@ export function StudentLayout({ children }) {
       </header>
 
       {/* Desktop Sidebar (Hidden on mobile via CSS) */}
-      <aside className="portal-desktop-sidebar">
+      <aside
+        className="portal-desktop-sidebar"
+        style={{
+          transform: sidebarCollapsed ? 'translateX(-100%)' : 'translateX(0)',
+          opacity: sidebarCollapsed ? 0 : 1,
+          pointerEvents: sidebarCollapsed ? 'none' : 'auto',
+          transition: 'transform 0.25s ease, opacity 0.2s ease',
+        }}
+      >
         {needsOnboarding && (
           <div style={{
             background: 'rgba(255, 183, 3, 0.1)',
@@ -482,8 +517,15 @@ export function StudentLayout({ children }) {
         </div>
       )}
 
-      {/* Main Content Area (Full width on mobile, offset on desktop) */}
-      <main className="portal-main-content">
+      {/* Main Content Area (Full width on mobile, offset on desktop, expands when sidebar is collapsed) */}
+      <main
+        className="portal-main-content"
+        style={{
+          marginLeft: sidebarCollapsed ? 0 : undefined,
+          width: sidebarCollapsed ? '100%' : undefined,
+          transition: 'margin-left 0.25s ease, width 0.25s ease',
+        }}
+      >
         {children || <Outlet />}
       </main>
 
