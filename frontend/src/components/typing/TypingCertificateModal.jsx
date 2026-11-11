@@ -180,11 +180,21 @@ export default function TypingCertificateModal({ isOpen, onClose, certificate })
             {/* 3. FOOTER (Stamp on Left, Disclaimer Center, Student Details on Right) */}
             <div className="relative z-10 w-full flex items-end justify-between pt-2" style={{ direction: 'ltr' }}>
               {/* Golden Stamp on Left */}
-              <div className="w-16 h-16 sm:w-22 sm:h-22 lg:w-24 lg:h-24 flex items-center justify-center">
+              <div
+                className="flex items-center justify-center shrink-0"
+                style={{
+                  width: '84px',
+                  height: '84px',
+                  minWidth: '84px',
+                  minHeight: '84px',
+                  aspectRatio: '1 / 1'
+                }}
+              >
                 <img
                   src="/golden_seal_clean.png"
                   alt="Golden Seal"
                   className="w-full h-full object-contain filter drop-shadow-xl"
+                  style={{ width: '100%', height: '100%', objectFit: 'contain' }}
                 />
               </div>
 

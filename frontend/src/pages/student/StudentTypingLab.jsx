@@ -17,6 +17,8 @@ import {
   HelpCircle,
   Volume2,
   VolumeX,
+  ArrowLeft,
+  Play,
   X
 } from 'lucide-react';
 import { typingApi } from '../../api';
@@ -136,6 +138,9 @@ export default function StudentTypingLab() {
   const [isCompleted, setIsCompleted] = useState(false);
   const [levelResult, setLevelResult] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+
+  // View Mode: 'roadmap' (Journey Map View) or 'practice' (Active Typing Arena)
+  const [viewMode, setViewMode] = useState('roadmap');
 
   // UI Drawers & Modals
   const [showRoadmap, setShowRoadmap] = useState(false);
@@ -391,415 +396,159 @@ export default function StudentTypingLab() {
 
   return (
     <div className="space-y-6 pb-12" ref={containerRef}>
-      {/* 1. TOP HEADER & METRICS BAR */}
-      <div className="bg-[#092a2d] border border-[#14494e] rounded-2xl p-5 shadow-xl relative overflow-hidden">
-        {/* Background glow accent */}
-        <div className="absolute top-0 right-0 w-80 h-80 bg-cyan-500/5 rounded-full blur-3xl pointer-events-none"></div>
+      {/* =========================================================================
+          SCREEN 1: 200 LEVELS JOURNEY / ROADMAP VIEW (DEFAULT SCREEN)
+      ========================================================================= */}
+      {viewMode === 'roadmap' && (
+        <>
+          {/* 1. TOP HEADER & METRICS BAR */}
+          <div className="bg-[#092a2d] border border-[#14494e] rounded-2xl p-5 shadow-xl relative overflow-hidden">
+            {/* Background glow accent */}
+            <div className="absolute top-0 right-0 w-80 h-80 bg-cyan-500/5 rounded-full blur-3xl pointer-events-none"></div>
 
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 relative z-10">
-          <div>
-            <div className="flex items-center gap-2 mb-1.5">
-              <span className="px-3 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-[#dfb259] to-[#b8862d] text-[#072224] shadow-sm flex items-center gap-1.5">
-                <Trophy size={13} />
-                <span>Level {currentLevelId} of 200</span>
-              </span>
-            </div>
-            <h1 className="text-2xl lg:text-3xl font-extrabold text-white flex items-center gap-3">
-              <Keyboard className="text-[#C5E5E8]" size={30} />
-              <span>Arabic Touch-Typing Lab</span>
-            </h1>
-            <p className="text-xs sm:text-sm text-gray-300 mt-1">
-              Master touch-typing on the standard Arabic 101 keyboard across 200 progressive levels to earn your official verified certificate.
-            </p>
-          </div>
-
-          {/* Quick Action Buttons */}
-          <div className="flex items-center gap-2.5 flex-wrap">
-            <button
-              onClick={() => setShowRoadmap(true)}
-              className="px-4 py-2.5 rounded-xl bg-[#072224] border border-[#14494e] hover:border-[#C5E5E8] text-white text-xs font-bold transition-all flex items-center gap-2 shadow-sm"
-            >
-              <Layers size={16} className="text-[#C5E5E8]" />
-              <span>200 Levels Roadmap</span>
-            </button>
-
-            {/* Certificate Unlock / Preview Button */}
-            <button
-              onClick={handleOpenCertificate}
-              className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shadow-md ${
-                progress?.certificate_unlocked || currentLevelId >= 200
-                  ? 'bg-gradient-to-r from-[#dfb259] to-[#b8862d] text-[#072224] animate-pulse hover:brightness-110'
-                  : 'bg-[#14494e] text-[#C5E5E8] hover:bg-[#1a5b61]'
-              }`}
-            >
-              <Award size={16} />
-              <span>{progress?.certificate_unlocked ? 'View Verified Certificate' : 'Preview Certificate'}</span>
-            </button>
-
-            <button
-              onClick={() => setSoundEnabled(!soundEnabled)}
-              className="p-2.5 rounded-xl bg-[#072224] border border-[#14494e] text-gray-300 hover:text-white transition-colors"
-              title={soundEnabled ? 'Mute Click Audio' : 'Enable Key Click Audio'}
-            >
-              {soundEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
-            </button>
-          </div>
-        </div>
-
-        {/* Global Student Stats Ribbon */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-5 pt-4 border-t border-[#14494e]/70">
-          <div className="bg-[#072224]/80 border border-[#14494e] rounded-xl p-3 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400">
-              <Zap size={20} />
-            </div>
-            <div>
-              <div className="text-[11px] text-gray-400">Average Speed</div>
-              <div className="text-base font-extrabold text-white">
-                {progress?.avg_wpm || 0} <span className="text-xs font-normal text-gray-400">WPM</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-[#072224]/80 border border-[#14494e] rounded-xl p-3 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
-              <Target size={20} />
-            </div>
-            <div>
-              <div className="text-[11px] text-gray-400">Average Accuracy</div>
-              <div className="text-base font-extrabold text-white">
-                {progress?.avg_accuracy || 100}%
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-[#072224]/80 border border-[#14494e] rounded-xl p-3 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400">
-              <Clock size={20} />
-            </div>
-            <div>
-              <div className="text-[11px] text-gray-400">Practice Time</div>
-              <div className="text-xs sm:text-sm font-extrabold text-white truncate max-w-[140px]">
-                {Math.floor((progress?.total_practice_seconds || 0) / 60)} mins
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-[#072224]/80 border border-[#14494e] rounded-xl p-3 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-[#dfb259]/10 border border-[#dfb259]/20 flex items-center justify-center text-[#dfb259]">
-              <Trophy size={20} />
-            </div>
-            <div>
-              <div className="text-[11px] text-gray-400">Completed Levels</div>
-              <div className="text-base font-extrabold text-[#dfb259]">
-                {Object.keys(progress?.completed_levels || {}).length} / 200
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* 2. ACTIVE PRACTICE ARENA */}
-      <div className="bg-[#092a2d] border border-[#14494e] rounded-2xl p-5 sm:p-7 shadow-xl">
-        
-        {/* Level Goal Header */}
-        <div className="flex flex-wrap items-center justify-between gap-3 pb-4 mb-4 border-b border-[#14494e]">
-          <div>
-            <h2 className="text-lg font-bold text-white flex items-center gap-2">
-              <span>{levelData?.title || `Level ${currentLevelId}`}</span>
-            </h2>
-          </div>
-
-          {/* Target Criteria Badges */}
-          <div className="flex items-center gap-2 text-xs">
-            <div className="px-3 py-1.5 rounded-lg bg-[#072224] border border-[#14494e] text-gray-300">
-              Target Accuracy: <strong className="text-white font-bold">{levelData?.min_accuracy}%</strong>
-            </div>
-            <div className="px-3 py-1.5 rounded-lg bg-[#072224] border border-[#14494e] text-gray-300">
-              Target Speed: <strong className="text-white font-bold">{levelData?.min_wpm} WPM</strong>
-            </div>
-            <button
-              onClick={() => resetLevelState()}
-              className="p-2 rounded-lg bg-[#072224] hover:bg-[#14494e] text-gray-300 hover:text-white transition-colors"
-              title="Restart Level"
-            >
-              <RotateCcw size={16} />
-            </button>
-          </div>
-        </div>
-
-        {/* Live Typing HUD */}
-        <div className="flex items-center justify-between gap-4 py-2 px-4 bg-[#072224] rounded-xl border border-[#14494e] mb-5">
-          <div className="flex items-center gap-6">
-            <div className="flex items-center gap-1.5 text-xs text-gray-400">
-              <span>Current Speed:</span>
-              <span className="text-base font-extrabold text-cyan-400 font-mono">{wpm}</span>
-              <span className="text-[10px]">WPM</span>
-            </div>
-            <div className="flex items-center gap-1.5 text-xs text-gray-400">
-              <span>Accuracy:</span>
-              <span className="text-base font-extrabold text-emerald-400 font-mono">{accuracy}%</span>
-            </div>
-            <div className="flex items-center gap-1.5 text-xs text-gray-400">
-              <span>Time:</span>
-              <span className="text-base font-extrabold text-[#dfb259] font-mono">{elapsedSeconds}s</span>
-            </div>
-          </div>
-
-          <div className="text-xs text-gray-400 flex items-center gap-2">
-            <span>Progress:</span>
-            <span className="font-mono text-white font-bold">
-              {currentIndex} / {levelData?.text?.length || 0}
-            </span>
-          </div>
-        </div>
-
-        {/* Interactive Target Text Box (Arabic text with RTL display) */}
-        <div
-          onClick={() => containerRef.current?.focus()}
-          className="relative min-h-[140px] p-6 bg-[#041416] border-2 border-[#1a5b61] rounded-2xl flex flex-wrap items-center content-center gap-y-3 font-mono text-xl sm:text-2xl leading-loose tracking-wider select-none cursor-text shadow-inner transition-all focus-within:border-[#C5E5E8]"
-          style={{ direction: 'rtl', fontFamily: "'Cairo', 'Amiri', monospace" }}
-        >
-          {(levelData?.text || '').split('').map((char, index) => {
-            const typed = typedChars[index];
-            const isCurrent = index === currentIndex;
-
-            let charColor = 'text-gray-500';
-            let bgHighlight = '';
-
-            if (typed) {
-              if (typed.status === 'correct') {
-                charColor = 'text-emerald-400 font-bold';
-              } else {
-                charColor = 'text-rose-400 font-bold';
-                bgHighlight = 'bg-rose-500/20 rounded';
-              }
-            } else if (isCurrent) {
-              charColor = 'text-white font-black underline decoration-[#dfb259] decoration-4 underline-offset-8';
-              bgHighlight = 'bg-[#dfb259]/20 rounded px-1 animate-pulse';
-            }
-
-            return (
-              <span
-                key={index}
-                className={`relative inline-block transition-colors duration-75 ${charColor} ${bgHighlight} ${
-                  char === ' ' ? 'w-3' : 'px-0.5'
-                }`}
-              >
-                {char === ' ' ? (isCurrent ? '␣' : ' ') : char}
-              </span>
-            );
-          })}
-        </div>
-
-        {/* Keyboard layout info note */}
-        <div className="flex items-center justify-end gap-3 mt-4 text-xs text-gray-400 px-2">
-          <div className="text-[11px] text-[#C5E5E8] flex items-center gap-1.5">
-            <HelpCircle size={14} />
-            <span>Type freely with Arabic or English keyboard (automatically mapped to Arabic 101 keys).</span>
-          </div>
-        </div>
-
-      </div>
-
-      {/* 3. REALISTIC INTERACTIVE ARABIC VIRTUAL KEYBOARD */}
-      <div className="bg-[#092a2d] border border-[#14494e] rounded-2xl p-4 sm:p-6 shadow-xl">
-        <div className="flex items-center justify-between gap-3 mb-4 pb-3 border-b border-[#14494e]">
-          <h3 className="text-sm font-bold text-white flex items-center gap-2">
-            <Keyboard size={18} className="text-[#C5E5E8]" />
-            <span>Interactive Keyboard & Finger Placement Guide</span>
-          </h3>
-
-          {/* Finger Zones Legend */}
-          <div className="hidden lg:flex items-center gap-3 text-[11px] text-gray-300">
-            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: '#f43f5e' }}></span> Pinky</span>
-            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: '#f59e0b' }}></span> Ring</span>
-            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: '#10b981' }}></span> Middle</span>
-            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: '#06b6d4' }}></span> Index</span>
-            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: '#a855f7' }}></span> Thumb</span>
-          </div>
-        </div>
-
-        {/* Keyboard Keys Grid (ARABIC 101 KEYS) */}
-        <div className="flex flex-col gap-1.5 max-w-4xl mx-auto select-none p-3 bg-[#041416] rounded-xl border border-[#14494e]">
-          {KEYBOARD_ROWS.map((row, rIdx) => (
-            <div key={rIdx} className="flex justify-center gap-1.5">
-              {row.map((k, kIdx) => {
-                const isActive = (k.ar === currentTargetChar) || (k.isSpace && currentTargetChar === ' ');
-                const fingerClass = FINGER_COLORS[k.finger] || FINGER_COLORS['default'];
-
-                return (
-                  <div
-                    key={kIdx}
-                    className={`relative flex flex-col items-center justify-center rounded-lg border text-xs sm:text-sm font-bold transition-all ${
-                      k.width || 'w-10 sm:w-12'
-                    } h-10 sm:h-12 ${
-                      isActive
-                        ? `bg-gradient-to-br from-[#dfb259] to-[#b8862d] text-[#072224] border-[#dfb259] ${k.isSpace ? 'z-10 ring-2 ring-[#dfb259]' : 'scale-105 z-10 ring-2 ring-[#dfb259]'} shadow-lg shadow-[#dfb259]/30`
-                        : fingerClass
-                    } ${k.isAnchor ? 'border-b-4 border-b-cyan-400' : ''}`}
-                  >
-                    <span>{k.ar}</span>
-                    <span className="text-[9px] opacity-40 font-mono hidden sm:inline">{k.en}</span>
-                    {k.isAnchor && (
-                      <span className="absolute bottom-0.5 w-2 h-0.5 bg-white/60 rounded"></span>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* 4. LEVEL COMPLETION MODAL */}
-      {isCompleted && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-          <div className="bg-[#092a2d] border border-[#14494e] rounded-2xl max-w-md w-full p-6 text-center shadow-2xl animate-in fade-in zoom-in-95">
-            {levelResult?.passed ? (
-              <>
-                <div className="w-16 h-16 rounded-full bg-emerald-500/20 border-2 border-emerald-500 flex items-center justify-center mx-auto text-emerald-400 mb-3 shadow-lg">
-                  <CheckCircle2 size={36} />
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 relative z-10">
+              <div>
+                <div className="flex items-center gap-2 mb-1.5">
+                  <span className="px-3 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-[#dfb259] to-[#b8862d] text-[#072224] shadow-sm flex items-center gap-1.5">
+                    <Trophy size={13} />
+                    <span>Current: Level {progress?.current_level || 1} of 200</span>
+                  </span>
                 </div>
-                <h3 className="text-xl font-extrabold text-white mb-1">
-                  Congratulations! Level {currentLevelId} Completed
-                </h3>
-                <p className="text-xs text-gray-300 mb-4">
-                  You achieved the speed and accuracy required for this level.
+                <h1 className="text-2xl lg:text-3xl font-extrabold text-white flex items-center gap-3">
+                  <Keyboard className="text-[#C5E5E8]" size={30} />
+                  <span>Arabic Touch-Typing Lab</span>
+                </h1>
+                <p className="text-xs sm:text-sm text-gray-300 mt-1">
+                  Master touch-typing on the standard Arabic 101 keyboard across 200 progressive levels to earn your official verified certificate.
                 </p>
+              </div>
 
-                {/* Stars Display */}
-                <div className="flex items-center justify-center gap-2 mb-5">
-                  {[1, 2, 3].map((starIdx) => (
-                    <Star
-                      key={starIdx}
-                      size={28}
-                      className={starIdx <= (levelResult?.stars || 1) ? 'text-[#dfb259] fill-[#dfb259]' : 'text-gray-600'}
-                    />
-                  ))}
-                </div>
+              {/* Quick Action Buttons */}
+              <div className="flex items-center gap-2.5 flex-wrap">
+                {/* 1-Click Continue Button */}
+                <button
+                  onClick={() => {
+                    const activeLvl = progress?.current_level || 1;
+                    setCurrentLevelId(activeLvl);
+                    loadLevel(activeLvl);
+                    setViewMode('practice');
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#dfb259] to-[#b8862d] text-[#072224] text-xs sm:text-sm font-extrabold transition-all flex items-center gap-2 shadow-lg hover:brightness-110 active:scale-95"
+                >
+                  <Play size={16} className="fill-[#072224]" />
+                  <span>Continue Level {progress?.current_level || 1}</span>
+                </button>
 
-                {/* Metrics Pill Grid */}
-                <div className="grid grid-cols-2 gap-3 mb-6 bg-[#072224] p-3 rounded-xl border border-[#14494e]">
-                  <div>
-                    <div className="text-[11px] text-gray-400">Achieved Speed</div>
-                    <div className="text-lg font-black text-cyan-400 font-mono">{wpm} WPM</div>
-                  </div>
-                  <div>
-                    <div className="text-[11px] text-gray-400">Achieved Accuracy</div>
-                    <div className="text-lg font-black text-emerald-400 font-mono">{accuracy}%</div>
-                  </div>
-                </div>
-
-                {/* Level 200 Final Championship Banner */}
-                {currentLevelId === 200 && (
-                  <div className="p-4 rounded-xl bg-gradient-to-r from-[#dfb259]/20 to-[#b8862d]/20 border border-[#dfb259] mb-5">
-                    <Sparkles className="text-[#dfb259] mx-auto mb-1" size={24} />
-                    <h4 className="text-sm font-bold text-white">Championship Achievement! All 200 Levels Completed</h4>
-                    <p className="text-xs text-[#dfb259] mt-0.5">
-                      Your official verified certificate of mastery has been issued successfully.
-                    </p>
-                  </div>
+                {/* Certificate Button (Only visible once officially earned & unlocked) */}
+                {progress?.certificate_unlocked && (
+                  <button
+                    onClick={handleOpenCertificate}
+                    className="px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shadow-md bg-gradient-to-r from-[#dfb259] to-[#b8862d] text-[#072224] animate-pulse hover:brightness-110"
+                  >
+                    <Award size={16} />
+                    <span>View Verified Certificate</span>
+                  </button>
                 )}
 
-                <div className="flex items-center gap-3">
-                  {currentLevelId === 200 ? (
-                    <button
-                      onClick={handleOpenCertificate}
-                      className="flex-1 py-3 rounded-xl bg-gradient-to-r from-[#dfb259] to-[#b8862d] text-[#072224] font-extrabold text-sm hover:brightness-110 shadow-lg flex items-center justify-center gap-2"
-                    >
-                      <Award size={18} />
-                      <span>View Official Certificate</span>
-                    </button>
-                  ) : (
-                    <button
-                      onClick={handleNextLevel}
-                      className="flex-1 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm shadow-lg flex items-center justify-center gap-2 transition-all"
-                    >
-                      <span>Next Level</span>
-                      <ChevronRight size={18} />
-                    </button>
-                  )}
-                  <button
-                    onClick={() => resetLevelState()}
-                    className="px-4 py-3 rounded-xl bg-[#072224] hover:bg-[#14494e] text-gray-300 font-medium text-xs transition-colors"
-                  >
-                    Try Again
-                  </button>
-                </div>
-              </>
-            ) : (
-              <>
-                <div className="w-16 h-16 rounded-full bg-rose-500/20 border-2 border-rose-500 flex items-center justify-center mx-auto text-rose-400 mb-3 shadow-lg">
-                  <RotateCcw size={32} />
-                </div>
-                <h3 className="text-xl font-extrabold text-white mb-1">
-                  Level Criteria Not Met
-                </h3>
-                <p className="text-xs text-gray-300 mb-4">
-                  Required: Minimum {levelData?.min_accuracy}% accuracy and {levelData?.min_wpm} WPM.
-                </p>
-
-                <div className="grid grid-cols-2 gap-3 mb-6 bg-[#072224] p-3 rounded-xl border border-[#14494e]">
-                  <div>
-                    <div className="text-[11px] text-gray-400">Current Speed</div>
-                    <div className="text-lg font-bold text-white font-mono">{wpm} WPM</div>
-                  </div>
-                  <div>
-                    <div className="text-[11px] text-gray-400">Current Accuracy</div>
-                    <div className="text-lg font-bold text-rose-400 font-mono">{accuracy}%</div>
-                  </div>
-                </div>
-
                 <button
-                  onClick={() => resetLevelState()}
-                  className="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-600 to-cyan-500 text-white font-bold text-sm hover:brightness-110 shadow-lg flex items-center justify-center gap-2"
+                  onClick={() => setSoundEnabled(!soundEnabled)}
+                  className="p-2.5 rounded-xl bg-[#072224] border border-[#14494e] text-gray-300 hover:text-white transition-colors"
+                  title={soundEnabled ? 'Mute Click Audio' : 'Enable Key Click Audio'}
                 >
-                  <RotateCcw size={16} />
-                  <span>Try Again</span>
+                  {soundEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
                 </button>
-              </>
-            )}
-          </div>
-        </div>
-      )}
+              </div>
+            </div>
 
-      {/* 5. LEVELS ROADMAP DRAWER */}
-      {showRoadmap && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) setShowRoadmap(false);
-          }}
-        >
-          <div
-            className="bg-[#092a2d] border border-[#14494e] rounded-2xl max-w-4xl w-full flex flex-col shadow-2xl overflow-hidden"
-            style={{ maxHeight: '85vh', height: '85vh', display: 'flex', flexDirection: 'column' }}
-          >
-            <div className="flex items-center justify-between px-6 py-4 border-b border-[#14494e] bg-[#072224] shrink-0">
+            {/* Global Student Stats Ribbon */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-5 pt-4 border-t border-[#14494e]/70">
+              <div className="bg-[#072224]/80 border border-[#14494e] rounded-xl p-3 flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400">
+                  <Zap size={20} />
+                </div>
+                <div>
+                  <div className="text-[11px] text-gray-400">Average Speed</div>
+                  <div className="text-base font-extrabold text-white">
+                    {progress?.avg_wpm || 0} <span className="text-xs font-normal text-gray-400">WPM</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-[#072224]/80 border border-[#14494e] rounded-xl p-3 flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+                  <Target size={20} />
+                </div>
+                <div>
+                  <div className="text-[11px] text-gray-400">Average Accuracy</div>
+                  <div className="text-base font-extrabold text-white">
+                    {progress?.avg_accuracy || 100}%
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-[#072224]/80 border border-[#14494e] rounded-xl p-3 flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400">
+                  <Clock size={20} />
+                </div>
+                <div>
+                  <div className="text-[11px] text-gray-400">Practice Time</div>
+                  <div className="text-xs sm:text-sm font-extrabold text-white truncate max-w-[140px]">
+                    {Math.floor((progress?.total_practice_seconds || 0) / 60)} mins
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-[#072224]/80 border border-[#14494e] rounded-xl p-3 flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-[#dfb259]/10 border border-[#dfb259]/20 flex items-center justify-center text-[#dfb259]">
+                  <Trophy size={20} />
+                </div>
+                <div>
+                  <div className="text-[11px] text-gray-400">Completed Levels</div>
+                  <div className="text-base font-extrabold text-[#dfb259]">
+                    {Object.keys(progress?.completed_levels || {}).length} / 200
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 200 LEVELS ROADMAP (FULL PAGE VIEW) */}
+          <div className="bg-[#092a2d] border border-[#14494e] rounded-2xl p-5 sm:p-7 shadow-xl space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-4 border-b border-[#14494e]">
               <div>
-                <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                  <Layers size={20} className="text-[#C5E5E8]" />
-                  <span>200 Levels Roadmap (10 Stages)</span>
-                </h3>
-                <p className="text-xs text-gray-400 mt-0.5">
-                  Select any unlocked level to practice or improve your score
+                <h2 className="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
+                  <Layers size={22} className="text-[#C5E5E8]" />
+                  <span>200 Progressive Levels Journey (10 Stages)</span>
+                </h2>
+                <p className="text-xs text-gray-300 mt-1">
+                  Click your current level or any unlocked level to start typing practice.
                 </p>
               </div>
-              <button
-                onClick={() => setShowRoadmap(false)}
-                className="p-2 text-gray-400 hover:text-white rounded-lg hover:bg-white/10"
-                style={{ cursor: 'pointer' }}
-                title="Close"
-              >
-                <X size={22} />
-              </button>
+
+              {/* Status Legend */}
+              <div className="flex items-center gap-3 text-xs flex-wrap">
+                <span className="flex items-center gap-1.5 text-gray-300">
+                  <span className="w-3.5 h-3.5 rounded bg-emerald-500/20 border border-emerald-500/40 inline-flex items-center justify-center">
+                    <CheckCircle2 size={11} className="text-emerald-400" />
+                  </span>
+                  <span>Completed</span>
+                </span>
+                <span className="flex items-center gap-1.5 text-gray-300">
+                  <span className="w-3.5 h-3.5 rounded bg-gradient-to-br from-[#dfb259] to-[#b8862d] inline-block shadow-sm"></span>
+                  <span>Current Active</span>
+                </span>
+                <span className="flex items-center gap-1.5 text-gray-400">
+                  <span className="w-3.5 h-3.5 rounded bg-[#05181a] border border-white/10 inline-flex items-center justify-center">
+                    <Lock size={10} className="text-gray-500" />
+                  </span>
+                  <span>Locked</span>
+                </span>
+              </div>
             </div>
 
             {/* Stages & Levels Grid */}
-            <div
-              className="p-6 overflow-y-auto space-y-6"
-              style={{ overflowY: 'auto', flex: 1, maxHeight: 'calc(85vh - 130px)' }}
-            >
+            <div className="space-y-6">
               {stages.map((stage) => {
                 const [startLvl, endLvl] = stage.levels_range;
                 const stageLevels = levelsSummary.filter(
@@ -807,13 +556,13 @@ export default function StudentTypingLab() {
                 );
 
                 return (
-                  <div key={stage.id} className="bg-[#072224] border border-[#14494e] rounded-xl p-4">
-                    <div className="flex items-center justify-between gap-3 mb-3 pb-2 border-b border-[#14494e]/70">
+                  <div key={stage.id} className="bg-[#072224] border border-[#14494e] rounded-xl p-4 sm:p-5">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4 pb-3 border-b border-[#14494e]/70">
                       <div>
-                        <h4 className="text-sm font-bold text-[#C5E5E8]">{stage.title}</h4>
+                        <h3 className="text-base font-bold text-[#C5E5E8]">{stage.title}</h3>
                         <p className="text-xs text-gray-400 mt-0.5">{stage.description}</p>
                       </div>
-                      <span className="text-xs text-gray-400 font-mono">
+                      <span className="text-xs text-gray-300 font-mono bg-[#092a2d] px-3 py-1 rounded-full border border-[#14494e] self-start sm:self-auto shrink-0">
                         Levels {startLvl} - {endLvl}
                       </span>
                     </div>
@@ -822,7 +571,7 @@ export default function StudentTypingLab() {
                       {stageLevels.map((lvl) => {
                         const isUnlocked = isLevelUnlocked(lvl.level_id);
                         const isCompleted = !!progress?.completed_levels?.[String(lvl.level_id)];
-                        const isCurrent = lvl.level_id === currentLevelId;
+                        const isCurrent = lvl.level_id === (progress?.current_level || 1);
 
                         return (
                           <button
@@ -831,21 +580,31 @@ export default function StudentTypingLab() {
                             onClick={() => {
                               setCurrentLevelId(lvl.level_id);
                               loadLevel(lvl.level_id);
-                              setShowRoadmap(false);
+                              setViewMode('practice');
+                              window.scrollTo({ top: 0, behavior: 'smooth' });
                             }}
                             className={`relative aspect-square rounded-lg flex flex-col items-center justify-center text-xs font-bold transition-all ${
                               isCurrent
-                                ? 'bg-gradient-to-br from-[#dfb259] to-[#b8862d] text-[#072224] ring-2 ring-[#dfb259] shadow-md scale-105'
+                                ? 'bg-gradient-to-br from-[#dfb259] to-[#b8862d] text-[#072224] ring-2 ring-[#dfb259] shadow-lg scale-105'
                                 : isCompleted
                                 ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 hover:bg-emerald-500/30'
                                 : isUnlocked
-                                ? 'bg-[#092a2d] text-white border border-[#14494e] hover:border-[#C5E5E8]'
+                                ? 'bg-[#092a2d] text-white border border-[#14494e] hover:border-[#C5E5E8] hover:scale-105'
                                 : 'bg-[#05181a] text-gray-600 border border-white/5 cursor-not-allowed opacity-50'
                             }`}
+                            title={
+                              !isUnlocked
+                                ? `Level ${lvl.level_id} (Locked)`
+                                : isCompleted
+                                ? `Level ${lvl.level_id} (Completed)`
+                                : isCurrent
+                                ? `Level ${lvl.level_id} (Current Active Level)`
+                                : `Level ${lvl.level_id}`
+                            }
                           >
                             <span>{lvl.level_id}</span>
                             {isCompleted && (
-                              <CheckCircle2 size={10} className="text-emerald-400 absolute bottom-1" />
+                              <CheckCircle2 size={11} className="text-emerald-400 absolute bottom-1" />
                             )}
                             {!isUnlocked && (
                               <Lock size={10} className="text-gray-600 absolute bottom-1" />
@@ -858,22 +617,337 @@ export default function StudentTypingLab() {
                 );
               })}
             </div>
+          </div>
+        </>
+      )}
 
-            {/* Modal Footer Close Button */}
-            <div className="flex items-center justify-end px-6 py-3 border-t border-[#14494e] bg-[#072224] shrink-0">
+      {/* =========================================================================
+          SCREEN 2: ACTIVE PRACTICE ARENA (WHEN LEVEL IS SELECTED)
+      ========================================================================= */}
+      {viewMode === 'practice' && (
+        <>
+          {/* PRACTICE TOP NAVIGATION BAR */}
+          <div className="bg-[#092a2d] border border-[#14494e] rounded-2xl p-4 sm:p-5 shadow-xl flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
               <button
-                onClick={() => setShowRoadmap(false)}
-                className="px-5 py-2 rounded-xl bg-[#14494e] hover:bg-[#1a5b61] text-white text-xs font-bold transition-all"
-                style={{ cursor: 'pointer' }}
+                onClick={() => {
+                  setViewMode('roadmap');
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                className="px-4 py-2 rounded-xl bg-[#072224] border border-[#14494e] hover:border-[#C5E5E8] text-white text-xs sm:text-sm font-bold transition-all flex items-center gap-2 shadow-sm"
               >
-                Close
+                <ArrowLeft size={18} className="text-[#C5E5E8]" />
+                <span>Back to 200 Levels Roadmap</span>
+              </button>
+
+              <span className="px-3 py-1.5 rounded-full text-xs font-bold bg-gradient-to-r from-[#dfb259] to-[#b8862d] text-[#072224] shadow-sm flex items-center gap-1.5">
+                <Trophy size={13} />
+                <span>Level {currentLevelId} of 200</span>
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2.5">
+              {/* Certificate Button (Only visible once officially earned & unlocked) */}
+              {progress?.certificate_unlocked && (
+                <button
+                  onClick={handleOpenCertificate}
+                  className="px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shadow-md bg-gradient-to-r from-[#dfb259] to-[#b8862d] text-[#072224] animate-pulse hover:brightness-110"
+                >
+                  <Award size={15} />
+                  <span>View Verified Certificate</span>
+                </button>
+              )}
+
+              <button
+                onClick={() => setSoundEnabled(!soundEnabled)}
+                className="p-2 rounded-xl bg-[#072224] border border-[#14494e] text-gray-300 hover:text-white transition-colors"
+                title={soundEnabled ? 'Mute Click Audio' : 'Enable Key Click Audio'}
+              >
+                {soundEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
               </button>
             </div>
           </div>
-        </div>
+
+          {/* ACTIVE PRACTICE ARENA */}
+          <div className="bg-[#092a2d] border border-[#14494e] rounded-2xl p-5 sm:p-7 shadow-xl">
+            {/* Level Goal Header */}
+            <div className="flex flex-wrap items-center justify-between gap-3 pb-4 mb-4 border-b border-[#14494e]">
+              <div>
+                <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                  <span>{levelData?.title || `Level ${currentLevelId}`}</span>
+                </h2>
+              </div>
+
+              {/* Target Criteria Badges */}
+              <div className="flex items-center gap-2 text-xs">
+                <div className="px-3 py-1.5 rounded-lg bg-[#072224] border border-[#14494e] text-gray-300">
+                  Target Accuracy: <strong className="text-white font-bold">{levelData?.min_accuracy}%</strong>
+                </div>
+                <div className="px-3 py-1.5 rounded-lg bg-[#072224] border border-[#14494e] text-gray-300">
+                  Target Speed: <strong className="text-white font-bold">{levelData?.min_wpm} WPM</strong>
+                </div>
+                <button
+                  onClick={() => resetLevelState()}
+                  className="p-2 rounded-lg bg-[#072224] hover:bg-[#14494e] text-gray-300 hover:text-white transition-colors"
+                  title="Restart Level"
+                >
+                  <RotateCcw size={16} />
+                </button>
+              </div>
+            </div>
+
+            {/* Live Typing HUD */}
+            <div className="flex items-center justify-between gap-4 py-2 px-4 bg-[#072224] rounded-xl border border-[#14494e] mb-5">
+              <div className="flex items-center gap-6">
+                <div className="flex items-center gap-1.5 text-xs text-gray-400">
+                  <span>Current Speed:</span>
+                  <span className="text-base font-extrabold text-cyan-400 font-mono">{wpm}</span>
+                  <span className="text-[10px]">WPM</span>
+                </div>
+                <div className="flex items-center gap-1.5 text-xs text-gray-400">
+                  <span>Accuracy:</span>
+                  <span className="text-base font-extrabold text-emerald-400 font-mono">{accuracy}%</span>
+                </div>
+                <div className="flex items-center gap-1.5 text-xs text-gray-400">
+                  <span>Time:</span>
+                  <span className="text-base font-extrabold text-[#dfb259] font-mono">{elapsedSeconds}s</span>
+                </div>
+              </div>
+
+              <div className="text-xs text-gray-400 flex items-center gap-2">
+                <span>Progress:</span>
+                <span className="font-mono text-white font-bold">
+                  {currentIndex} / {levelData?.text?.length || 0}
+                </span>
+              </div>
+            </div>
+
+            {/* Interactive Arabic Text Box */}
+            <div
+              onClick={() => containerRef.current?.focus()}
+              className="relative p-6 sm:p-8 bg-[#041416] rounded-xl border-2 border-[#14494e] focus-within:border-cyan-400 text-2xl sm:text-3xl lg:text-4xl leading-loose font-medium select-none cursor-text transition-colors text-right shadow-inner min-h-[140px] flex flex-wrap items-center justify-start gap-1"
+              style={{ direction: 'rtl', fontFamily: "'Cairo', 'Tajawal', sans-serif" }}
+              tabIndex={0}
+              onKeyDown={handleKeyDown}
+            >
+              {(levelData?.text || '').split('').map((char, index) => {
+                const typed = typedChars[index];
+                let charStyle = 'text-gray-500';
+
+                if (typed) {
+                  charStyle = typed.status === 'correct' 
+                    ? 'text-emerald-400 font-bold bg-emerald-500/10 rounded px-0.5' 
+                    : 'text-rose-400 font-bold bg-rose-500/20 underline decoration-rose-500 rounded px-0.5';
+                } else if (index === currentIndex) {
+                  charStyle = 'text-white bg-cyan-500/30 border-b-2 border-cyan-400 animate-pulse px-0.5 rounded';
+                }
+
+                return (
+                  <span key={index} className={`inline-block transition-colors ${charStyle}`}>
+                    {char === ' ' ? ' ' : char}
+                  </span>
+                );
+              })}
+            </div>
+
+            {/* Keyboard layout info note */}
+            <div className="flex items-center justify-end gap-3 mt-4 text-xs text-gray-400 px-2">
+              <div className="text-[11px] text-[#C5E5E8] flex items-center gap-1.5">
+                <HelpCircle size={14} />
+                <span>Type freely with Arabic or English keyboard (automatically mapped to Arabic 101 keys).</span>
+              </div>
+            </div>
+          </div>
+
+          {/* REALISTIC INTERACTIVE ARABIC VIRTUAL KEYBOARD */}
+          <div className="bg-[#092a2d] border border-[#14494e] rounded-2xl p-4 sm:p-6 shadow-xl">
+            <div className="flex items-center justify-between gap-3 mb-4 pb-3 border-b border-[#14494e]">
+              <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                <Keyboard size={18} className="text-[#C5E5E8]" />
+                <span>Interactive Keyboard & Finger Placement Guide</span>
+              </h3>
+
+              {/* Finger Zones Legend */}
+              <div className="hidden lg:flex items-center gap-3 text-[11px] text-gray-300">
+                <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: '#f43f5e' }}></span> Pinky</span>
+                <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: '#f59e0b' }}></span> Ring</span>
+                <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: '#10b981' }}></span> Middle</span>
+                <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: '#06b6d4' }}></span> Index</span>
+                <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: '#a855f7' }}></span> Thumb</span>
+              </div>
+            </div>
+
+            {/* Keyboard Keys Grid (ARABIC 101 KEYS) */}
+            <div className="flex flex-col gap-1.5 max-w-4xl mx-auto select-none p-3 bg-[#041416] rounded-xl border border-[#14494e]">
+              {KEYBOARD_ROWS.map((row, rIdx) => (
+                <div key={rIdx} className="flex justify-center gap-1.5">
+                  {row.map((k, kIdx) => {
+                    const isActive = (k.ar === currentTargetChar) || (k.isSpace && currentTargetChar === ' ');
+                    const fingerClass = FINGER_COLORS[k.finger] || FINGER_COLORS['default'];
+
+                    return (
+                      <div
+                        key={kIdx}
+                        className={`relative flex flex-col items-center justify-center rounded-lg border text-xs sm:text-sm font-bold transition-all ${
+                          k.width || 'w-10 sm:w-12'
+                        } h-10 sm:h-12 ${
+                          isActive
+                            ? `bg-gradient-to-br from-[#dfb259] to-[#b8862d] text-[#072224] border-[#dfb259] ${k.isSpace ? 'z-10 ring-2 ring-[#dfb259]' : 'scale-105 z-10 ring-2 ring-[#dfb259]'} shadow-lg shadow-[#dfb259]/30`
+                            : fingerClass
+                        } ${k.isAnchor ? 'border-b-4 border-b-cyan-400' : ''}`}
+                      >
+                        <span>{k.ar}</span>
+                        <span className="text-[9px] opacity-40 font-mono hidden sm:inline">{k.en}</span>
+                        {k.isAnchor && (
+                          <span className="absolute bottom-0.5 w-2 h-0.5 bg-white/60 rounded"></span>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* LEVEL COMPLETION MODAL */}
+          {isCompleted && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+              <div className="bg-[#092a2d] border border-[#14494e] rounded-2xl max-w-md w-full p-6 text-center shadow-2xl animate-in fade-in zoom-in-95">
+                {levelResult?.passed ? (
+                  <>
+                    <div className="w-16 h-16 rounded-full bg-emerald-500/20 border-2 border-emerald-500 flex items-center justify-center mx-auto text-emerald-400 mb-3 shadow-lg">
+                      <CheckCircle2 size={36} />
+                    </div>
+                    <h3 className="text-xl font-extrabold text-white mb-1">
+                      Congratulations! Level {currentLevelId} Completed
+                    </h3>
+                    <p className="text-xs text-gray-300 mb-4">
+                      You achieved the speed and accuracy required for this level.
+                    </p>
+
+                    {/* Stars Display */}
+                    <div className="flex items-center justify-center gap-2 mb-5">
+                      {[1, 2, 3].map((starIdx) => (
+                        <Star
+                          key={starIdx}
+                          size={28}
+                          className={starIdx <= (levelResult?.stars || 1) ? 'text-[#dfb259] fill-[#dfb259]' : 'text-gray-600'}
+                        />
+                      ))}
+                    </div>
+
+                    {/* Metrics Pill Grid */}
+                    <div className="grid grid-cols-2 gap-3 mb-6 bg-[#072224] p-3 rounded-xl border border-[#14494e]">
+                      <div>
+                        <div className="text-[11px] text-gray-400">Achieved Speed</div>
+                        <div className="text-lg font-black text-cyan-400 font-mono">{wpm} WPM</div>
+                      </div>
+                      <div>
+                        <div className="text-[11px] text-gray-400">Achieved Accuracy</div>
+                        <div className="text-lg font-black text-emerald-400 font-mono">{accuracy}%</div>
+                      </div>
+                    </div>
+
+                    {/* Level 200 Final Championship Banner */}
+                    {currentLevelId === 200 && (
+                      <div className="p-4 rounded-xl bg-gradient-to-r from-[#dfb259]/20 to-[#b8862d]/20 border border-[#dfb259] mb-5">
+                        <Sparkles className="text-[#dfb259] mx-auto mb-1" size={24} />
+                        <h4 className="text-sm font-bold text-white">Championship Achievement! All 200 Levels Completed</h4>
+                        <p className="text-xs text-[#dfb259] mt-0.5">
+                          Your official verified certificate of mastery has been issued successfully.
+                        </p>
+                      </div>
+                    )}
+
+                    <div className="flex items-center gap-2">
+                      {currentLevelId === 200 ? (
+                        <button
+                          onClick={handleOpenCertificate}
+                          className="flex-1 py-3 rounded-xl bg-gradient-to-r from-[#dfb259] to-[#b8862d] text-[#072224] font-extrabold text-sm hover:brightness-110 shadow-lg flex items-center justify-center gap-2"
+                        >
+                          <Award size={18} />
+                          <span>View Official Certificate</span>
+                        </button>
+                      ) : (
+                        <button
+                          onClick={handleNextLevel}
+                          className="flex-1 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm shadow-lg flex items-center justify-center gap-2 transition-all"
+                        >
+                          <span>Next Level</span>
+                          <ChevronRight size={18} />
+                        </button>
+                      )}
+                      <button
+                        onClick={() => {
+                          setIsCompleted(false);
+                          setViewMode('roadmap');
+                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }}
+                        className="px-4 py-3 rounded-xl bg-[#072224] hover:bg-[#14494e] text-[#C5E5E8] border border-[#14494e] font-bold text-xs transition-colors flex items-center gap-1.5"
+                      >
+                        <Layers size={14} />
+                        <span>Roadmap</span>
+                      </button>
+                      <button
+                        onClick={() => resetLevelState()}
+                        className="px-4 py-3 rounded-xl bg-[#072224] hover:bg-[#14494e] text-gray-300 font-medium text-xs transition-colors"
+                      >
+                        Try Again
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="w-16 h-16 rounded-full bg-rose-500/20 border-2 border-rose-500 flex items-center justify-center mx-auto text-rose-400 mb-3 shadow-lg">
+                      <RotateCcw size={32} />
+                    </div>
+                    <h3 className="text-xl font-extrabold text-white mb-1">
+                      Level Criteria Not Met
+                    </h3>
+                    <p className="text-xs text-gray-300 mb-4">
+                      Required: Minimum {levelData?.min_accuracy}% accuracy and {levelData?.min_wpm} WPM.
+                    </p>
+
+                    <div className="grid grid-cols-2 gap-3 mb-6 bg-[#072224] p-3 rounded-xl border border-[#14494e]">
+                      <div>
+                        <div className="text-[11px] text-gray-400">Current Speed</div>
+                        <div className="text-lg font-bold text-white font-mono">{wpm} WPM</div>
+                      </div>
+                      <div>
+                        <div className="text-[11px] text-gray-400">Current Accuracy</div>
+                        <div className="text-lg font-bold text-rose-400 font-mono">{accuracy}%</div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => resetLevelState()}
+                        className="flex-1 py-3 rounded-xl bg-gradient-to-r from-cyan-600 to-cyan-500 text-white font-bold text-sm hover:brightness-110 shadow-lg flex items-center justify-center gap-2"
+                      >
+                        <RotateCcw size={16} />
+                        <span>Try Again</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          setIsCompleted(false);
+                          setViewMode('roadmap');
+                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }}
+                        className="px-4 py-3 rounded-xl bg-[#072224] hover:bg-[#14494e] text-[#C5E5E8] border border-[#14494e] font-bold text-xs transition-colors flex items-center gap-1.5"
+                      >
+                        <Layers size={14} />
+                        <span>Roadmap</span>
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
+        </>
       )}
 
-      {/* 6. OFFICIAL VERIFIED ARABIC CERTIFICATE MODAL */}
+      {/* OFFICIAL VERIFIED ARABIC CERTIFICATE MODAL */}
       <TypingCertificateModal
         isOpen={showCertModal}
         onClose={() => setShowCertModal(false)}
