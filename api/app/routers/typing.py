@@ -116,7 +116,7 @@ async def get_levels(include_text: bool = Query(False, description="Include full
 async def get_single_level(level_id: int):
     level = get_level_by_id(level_id)
     if not level:
-        raise HTTPException(status_code=404, detail="المستوى المطلوب غير موجود")
+        raise HTTPException(status_code=404, detail="Requested level not found")
     return {"success": True, "level": level}
 
 
@@ -172,11 +172,11 @@ async def submit_typing_result(
 ):
     db = get_db()
     if db is None:
-        raise HTTPException(status_code=500, detail="قاعدة البيانات غير متصلة")
+        raise HTTPException(status_code=500, detail="Database not connected")
 
     level = get_level_by_id(payload.level_id)
     if not level:
-        raise HTTPException(status_code=404, detail="المستوى غير موجود")
+        raise HTTPException(status_code=404, detail="Level not found")
 
     user_id = str(current_user.get("_id") or current_user.get("id"))
     email = current_user.get("email")
@@ -303,7 +303,7 @@ async def submit_typing_result(
 async def get_student_certificate(current_user: dict = Depends(get_current_user)):
     db = get_db()
     if db is None:
-        raise HTTPException(status_code=500, detail="قاعدة البيانات غير متصلة")
+        raise HTTPException(status_code=500, detail="Database not connected")
 
     user_id = str(current_user.get("_id") or current_user.get("id"))
     email = current_user.get("email")
@@ -370,7 +370,7 @@ async def get_student_certificate(current_user: dict = Depends(get_current_user)
 async def verify_certificate_public(certificate_id: str):
     db = get_db()
     if db is None:
-        raise HTTPException(status_code=500, detail="قاعدة البيانات غير متصلة")
+        raise HTTPException(status_code=500, detail="Database not connected")
 
     cid = certificate_id.strip()
     progress = await db.typing_progress.find_one({"certificate_id": cid})
@@ -379,7 +379,7 @@ async def verify_certificate_public(certificate_id: str):
         return {
             "success": False,
             "valid": False,
-            "message": "عذراً، رقم الشهادة المدخل غير مسجل في السجلات الرسمية للأكاديمية."
+            "message": "The certificate ID entered is not registered in the official academy records."
         }
 
     user_id = progress.get("student_id")

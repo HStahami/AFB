@@ -103,7 +103,7 @@ const KEYBOARD_ROWS = [
   ]
 ];
 
-// Color coding styles for finger zones
+// Color mapping for finger placement guide
 const FINGER_COLORS = {
   'left-pinky': 'border-rose-500/40 bg-rose-500/10 text-rose-300',
   'left-ring': 'border-amber-500/40 bg-amber-500/10 text-amber-300',
@@ -143,10 +143,10 @@ export default function StudentTypingLab() {
   const [certificateData, setCertificateData] = useState(null);
   const [soundEnabled, setSoundEnabled] = useState(true);
 
-  const containerRef = useRef(null);
   const timerRef = useRef(null);
+  const containerRef = useRef(null);
 
-  // Load initial progress and level metadata
+  // Initialize data on mount
   useEffect(() => {
     async function initData() {
       try {
@@ -224,7 +224,7 @@ export default function StudentTypingLab() {
     return () => clearInterval(timerRef.current);
   }, [startTime, isCompleted, typedChars]);
 
-  // Audio feedback (gentle pleasant clicks)
+  // Audio feedback
   const playClickSound = (isError = false) => {
     if (!soundEnabled) return;
     try {
@@ -240,7 +240,7 @@ export default function StudentTypingLab() {
       osc.start();
       osc.stop(ctx.currentTime + 0.08);
     } catch (e) {
-      // AudioContext may be restricted before user gesture
+      // AudioContext policy
     }
   };
 
@@ -248,7 +248,6 @@ export default function StudentTypingLab() {
   const handleKeyDown = useCallback((e) => {
     if (isCompleted || !levelData) return;
 
-    // Ignore modifier keys
     if (['Shift', 'Control', 'Alt', 'Meta', 'CapsLock', 'Tab'].includes(e.key)) {
       return;
     }
@@ -268,13 +267,12 @@ export default function StudentTypingLab() {
 
     e.preventDefault();
 
-    // Map key from QWERTY if typed in English
+    // Map key from QWERTY if typed on English layout
     let inputChar = e.key;
     if (QWERTY_TO_ARABIC[inputChar]) {
       inputChar = QWERTY_TO_ARABIC[inputChar];
     }
 
-    // Start timer on first keystroke
     if (!startTime) {
       setStartTime(Date.now());
     }
@@ -301,7 +299,6 @@ export default function StudentTypingLab() {
     const nextIndex = currentIndex + 1;
     setCurrentIndex(nextIndex);
 
-    // Check if level completed
     if (nextIndex >= targetText.length) {
       handleLevelCompletion(newTyped);
     }
@@ -338,18 +335,15 @@ export default function StudentTypingLab() {
 
       setLevelResult(res);
 
-      // Refresh progress
       const updatedProgRes = await typingApi.getProgress();
       if (updatedProgRes.success) {
         setProgress(updatedProgRes.progress);
       }
 
-      // If Level 200 completed or certificate unlocked, fetch certificate data
       if (res.certificate_unlocked || currentLevelId === 200) {
         const certRes = await typingApi.getCertificate();
         if (certRes.success && certRes.certificate) {
           setCertificateData(certRes.certificate);
-          // Show Certificate modal on completing Level 200!
           setTimeout(() => setShowCertModal(true), 1200);
         }
       }
@@ -360,7 +354,6 @@ export default function StudentTypingLab() {
     }
   };
 
-  // Next level navigation
   const handleNextLevel = () => {
     if (currentLevelId < 200) {
       const nextId = currentLevelId + 1;
@@ -369,7 +362,6 @@ export default function StudentTypingLab() {
     }
   };
 
-  // Open Certificate Modal
   const handleOpenCertificate = async () => {
     try {
       const certRes = await typingApi.getCertificate();
@@ -386,7 +378,7 @@ export default function StudentTypingLab() {
     return (
       <div className="min-h-[70vh] flex flex-col items-center justify-center gap-3">
         <div className="w-10 h-10 border-4 border-[#C5E5E8] border-t-transparent rounded-full animate-spin"></div>
-        <p className="text-sm text-gray-300">جارٍ تحميل مَخْبَرُ الكِتَابَة العربية ومستوياته...</p>
+        <p className="text-sm text-gray-300">Loading Arabic Touch-Typing Lab...</p>
       </div>
     );
   }
@@ -409,18 +401,18 @@ export default function StudentTypingLab() {
             <div className="flex items-center gap-2 mb-1.5">
               <span className="px-3 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-[#dfb259] to-[#b8862d] text-[#072224] shadow-sm flex items-center gap-1.5">
                 <Trophy size={13} />
-                <span>المستوى {currentLevelId} من 200</span>
+                <span>Level {currentLevelId} of 200</span>
               </span>
               <span className="px-3 py-1 rounded-full text-xs font-semibold bg-[#072224] text-[#C5E5E8] border border-[#14494e]">
-                {levelData?.stage_title || 'المرحلة الحالية'}
+                {levelData?.stage_title || 'Current Stage'}
               </span>
             </div>
             <h1 className="text-2xl lg:text-3xl font-extrabold text-white flex items-center gap-3">
               <Keyboard className="text-[#C5E5E8]" size={30} />
-              <span>مَخْبَرُ الكِتَابَة باللغة العربية</span>
+              <span>Arabic Touch-Typing Lab</span>
             </h1>
             <p className="text-xs sm:text-sm text-gray-300 mt-1">
-              برنامج احترافي متدرج لتعلم الطباعة باللمس بجميع الأصابع عبر 200 مستوى للحصول على شهادة الإتقان المعتمدة.
+              Master touch-typing on the standard Arabic 101 keyboard across 200 progressive levels to earn your official verified certificate.
             </p>
           </div>
 
@@ -431,7 +423,7 @@ export default function StudentTypingLab() {
               className="px-4 py-2.5 rounded-xl bg-[#072224] border border-[#14494e] hover:border-[#C5E5E8] text-white text-xs font-bold transition-all flex items-center gap-2 shadow-sm"
             >
               <Layers size={16} className="text-[#C5E5E8]" />
-              <span>خريطة الـ 200 مستوى</span>
+              <span>200 Levels Roadmap</span>
             </button>
 
             {/* Certificate Unlock / Preview Button */}
@@ -444,13 +436,13 @@ export default function StudentTypingLab() {
               }`}
             >
               <Award size={16} />
-              <span>{progress?.certificate_unlocked ? 'عرض الشهادة المعتمدة' : 'معاينة الشهادة الرسمية'}</span>
+              <span>{progress?.certificate_unlocked ? 'View Verified Certificate' : 'Preview Certificate'}</span>
             </button>
 
             <button
               onClick={() => setSoundEnabled(!soundEnabled)}
               className="p-2.5 rounded-xl bg-[#072224] border border-[#14494e] text-gray-300 hover:text-white transition-colors"
-              title={soundEnabled ? 'كتم الصوت' : 'تفعيل صوت النقر'}
+              title={soundEnabled ? 'Mute Click Audio' : 'Enable Key Click Audio'}
             >
               {soundEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
             </button>
@@ -464,9 +456,9 @@ export default function StudentTypingLab() {
               <Zap size={20} />
             </div>
             <div>
-              <div className="text-[11px] text-gray-400">متوسط السرعة</div>
+              <div className="text-[11px] text-gray-400">Average Speed</div>
               <div className="text-base font-extrabold text-white">
-                {progress?.avg_wpm || 0} <span className="text-xs font-normal text-gray-400">ك/د</span>
+                {progress?.avg_wpm || 0} <span className="text-xs font-normal text-gray-400">WPM</span>
               </div>
             </div>
           </div>
@@ -476,7 +468,7 @@ export default function StudentTypingLab() {
               <Target size={20} />
             </div>
             <div>
-              <div className="text-[11px] text-gray-400">متوسط الدقة</div>
+              <div className="text-[11px] text-gray-400">Average Accuracy</div>
               <div className="text-base font-extrabold text-white">
                 {progress?.avg_accuracy || 100}%
               </div>
@@ -488,9 +480,9 @@ export default function StudentTypingLab() {
               <Clock size={20} />
             </div>
             <div>
-              <div className="text-[11px] text-gray-400">إجمالي وقت التدريب</div>
+              <div className="text-[11px] text-gray-400">Practice Time</div>
               <div className="text-xs sm:text-sm font-extrabold text-white truncate max-w-[140px]">
-                {Math.floor((progress?.total_practice_seconds || 0) / 60)} دقيقة
+                {Math.floor((progress?.total_practice_seconds || 0) / 60)} mins
               </div>
             </div>
           </div>
@@ -500,7 +492,7 @@ export default function StudentTypingLab() {
               <Trophy size={20} />
             </div>
             <div>
-              <div className="text-[11px] text-gray-400">المستويات المكتملة</div>
+              <div className="text-[11px] text-gray-400">Completed Levels</div>
               <div className="text-base font-extrabold text-[#dfb259]">
                 {Object.keys(progress?.completed_levels || {}).length} / 200
               </div>
@@ -516,13 +508,13 @@ export default function StudentTypingLab() {
         <div className="flex flex-wrap items-center justify-between gap-3 pb-4 mb-4 border-b border-[#14494e]">
           <div>
             <h2 className="text-lg font-bold text-white flex items-center gap-2">
-              <span>{levelData?.title || `المستوى ${currentLevelId}`}</span>
+              <span>{levelData?.title || `Level ${currentLevelId}`}</span>
             </h2>
             <div className="flex items-center gap-2 mt-1">
-              <span className="text-xs text-gray-400">المفاتيح المستهدفة:</span>
+              <span className="text-xs text-gray-400">Target Keys:</span>
               <div className="flex items-center gap-1">
                 {(levelData?.target_keys || []).map((k, i) => (
-                  <span key={i} className="px-2 py-0.5 rounded bg-[#072224] border border-[#14494e] text-[#C5E5E8] font-bold text-xs">
+                  <span key={i} className="px-2 py-0.5 rounded bg-[#072224] border border-[#14494e] text-[#C5E5E8] font-bold text-xs" dir="rtl">
                     {k}
                   </span>
                 ))}
@@ -533,15 +525,15 @@ export default function StudentTypingLab() {
           {/* Target Criteria Badges */}
           <div className="flex items-center gap-2 text-xs">
             <div className="px-3 py-1.5 rounded-lg bg-[#072224] border border-[#14494e] text-gray-300">
-              الدقة المطلوبة: <strong className="text-white font-bold">{levelData?.min_accuracy}%</strong>
+              Target Accuracy: <strong className="text-white font-bold">{levelData?.min_accuracy}%</strong>
             </div>
             <div className="px-3 py-1.5 rounded-lg bg-[#072224] border border-[#14494e] text-gray-300">
-              السرعة المطلوبة: <strong className="text-white font-bold">{levelData?.min_wpm} ك/د</strong>
+              Target Speed: <strong className="text-white font-bold">{levelData?.min_wpm} WPM</strong>
             </div>
             <button
               onClick={() => resetLevelState()}
               className="p-2 rounded-lg bg-[#072224] hover:bg-[#14494e] text-gray-300 hover:text-white transition-colors"
-              title="إعادة بدء المستوى"
+              title="Restart Level"
             >
               <RotateCcw size={16} />
             </button>
@@ -552,29 +544,29 @@ export default function StudentTypingLab() {
         <div className="flex items-center justify-between gap-4 py-2 px-4 bg-[#072224] rounded-xl border border-[#14494e] mb-5">
           <div className="flex items-center gap-6">
             <div className="flex items-center gap-1.5 text-xs text-gray-400">
-              <span>السرعة الحالية:</span>
+              <span>Current Speed:</span>
               <span className="text-base font-extrabold text-cyan-400 font-mono">{wpm}</span>
-              <span className="text-[10px]">ك/د</span>
+              <span className="text-[10px]">WPM</span>
             </div>
             <div className="flex items-center gap-1.5 text-xs text-gray-400">
-              <span>الدقة الحالية:</span>
+              <span>Accuracy:</span>
               <span className="text-base font-extrabold text-emerald-400 font-mono">{accuracy}%</span>
             </div>
             <div className="flex items-center gap-1.5 text-xs text-gray-400">
-              <span>الوقت:</span>
-              <span className="text-base font-extrabold text-[#dfb259] font-mono">{elapsedSeconds} ثانية</span>
+              <span>Time:</span>
+              <span className="text-base font-extrabold text-[#dfb259] font-mono">{elapsedSeconds}s</span>
             </div>
           </div>
 
           <div className="text-xs text-gray-400 flex items-center gap-2">
-            <span>التقدم:</span>
+            <span>Progress:</span>
             <span className="font-mono text-white font-bold">
               {currentIndex} / {levelData?.text?.length || 0}
             </span>
           </div>
         </div>
 
-        {/* Interactive Target Text Box */}
+        {/* Interactive Target Text Box (Arabic text with RTL display) */}
         <div
           onClick={() => containerRef.current?.focus()}
           className="relative min-h-[140px] p-6 bg-[#041416] border-2 border-[#1a5b61] rounded-2xl flex flex-wrap items-center content-center gap-y-3 font-mono text-xl sm:text-2xl leading-loose tracking-wider select-none cursor-text shadow-inner transition-all focus-within:border-[#C5E5E8]"
@@ -616,39 +608,39 @@ export default function StudentTypingLab() {
         <div className="flex items-center justify-between gap-3 mt-4 text-xs text-gray-400 px-2">
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-[#dfb259] animate-ping"></span>
-            <span>الحرف الحالي المطلوب:</span>
+            <span>Target Key:</span>
             <span className="font-bold text-white text-sm px-2 py-0.5 rounded bg-[#072224] border border-[#14494e]">
-              {currentTargetChar === ' ' ? 'مسافة (Space)' : currentTargetChar}
+              {currentTargetChar === ' ' ? 'Space' : currentTargetChar}
             </span>
           </div>
 
           <div className="text-[11px] text-[#C5E5E8] flex items-center gap-1.5">
             <HelpCircle size={14} />
-            <span>يمكنك الكتابة بلوحة المفاتيح العربية أو الإنجليزية مباشرة (يتم التحويل تلقائياً).</span>
+            <span>Type freely with Arabic or English keyboard (automatically mapped to Arabic 101 keys).</span>
           </div>
         </div>
 
       </div>
 
-      {/* 3. REALISTIC INTERACTIVE VIRTUAL KEYBOARD */}
+      {/* 3. REALISTIC INTERACTIVE ARABIC VIRTUAL KEYBOARD */}
       <div className="bg-[#092a2d] border border-[#14494e] rounded-2xl p-4 sm:p-6 shadow-xl">
         <div className="flex items-center justify-between gap-3 mb-4 pb-3 border-b border-[#14494e]">
           <h3 className="text-sm font-bold text-white flex items-center gap-2">
             <Keyboard size={18} className="text-[#C5E5E8]" />
-            <span>لوحة المفاتيح التفاعلية وتوزيع الأصابع المعتمد</span>
+            <span>Interactive Keyboard & Finger Placement Guide</span>
           </h3>
 
           {/* Finger Zones Legend */}
           <div className="hidden lg:flex items-center gap-3 text-[11px]">
-            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-rose-500"></span> الخنصر</span>
-            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-amber-500"></span> البنصر</span>
-            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> الوسطى</span>
-            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-cyan-500"></span> السبابة</span>
-            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-purple-500"></span> الإبهام</span>
+            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-rose-500"></span> Pinky</span>
+            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-amber-500"></span> Ring</span>
+            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Middle</span>
+            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-cyan-500"></span> Index</span>
+            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-purple-500"></span> Thumb</span>
           </div>
         </div>
 
-        {/* Keyboard Keys Grid */}
+        {/* Keyboard Keys Grid (ARABIC 101 KEYS) */}
         <div className="flex flex-col gap-1.5 max-w-4xl mx-auto select-none p-3 bg-[#041416] rounded-xl border border-[#14494e]">
           {KEYBOARD_ROWS.map((row, rIdx) => (
             <div key={rIdx} className="flex justify-center gap-1.5">
@@ -690,10 +682,10 @@ export default function StudentTypingLab() {
                   <CheckCircle2 size={36} />
                 </div>
                 <h3 className="text-xl font-extrabold text-white mb-1">
-                  مبارك! أتممت المستوى {currentLevelId} بنجاح
+                  Congratulations! Level {currentLevelId} Completed
                 </h3>
                 <p className="text-xs text-gray-300 mb-4">
-                  أظهرت دقة ممتازة وسرعة متوافقة مع متطلبات المستوى.
+                  You achieved the speed and accuracy required for this level.
                 </p>
 
                 {/* Stars Display */}
@@ -710,11 +702,11 @@ export default function StudentTypingLab() {
                 {/* Metrics Pill Grid */}
                 <div className="grid grid-cols-2 gap-3 mb-6 bg-[#072224] p-3 rounded-xl border border-[#14494e]">
                   <div>
-                    <div className="text-[11px] text-gray-400">السرعة المحققة</div>
-                    <div className="text-lg font-black text-cyan-400 font-mono">{wpm} ك/د</div>
+                    <div className="text-[11px] text-gray-400">Achieved Speed</div>
+                    <div className="text-lg font-black text-cyan-400 font-mono">{wpm} WPM</div>
                   </div>
                   <div>
-                    <div className="text-[11px] text-gray-400">الدقة المحققة</div>
+                    <div className="text-[11px] text-gray-400">Achieved Accuracy</div>
                     <div className="text-lg font-black text-emerald-400 font-mono">{accuracy}%</div>
                   </div>
                 </div>
@@ -723,9 +715,9 @@ export default function StudentTypingLab() {
                 {currentLevelId === 200 && (
                   <div className="p-4 rounded-xl bg-gradient-to-r from-[#dfb259]/20 to-[#b8862d]/20 border border-[#dfb259] mb-5">
                     <Sparkles className="text-[#dfb259] mx-auto mb-1" size={24} />
-                    <h4 className="text-sm font-bold text-white">إنجاز تاريخي! لقد أتممت الـ 200 مستوى</h4>
+                    <h4 className="text-sm font-bold text-white">Championship Achievement! All 200 Levels Completed</h4>
                     <p className="text-xs text-[#dfb259] mt-0.5">
-                      تم إصدار شهادة الإتقان والتفوق المعتمدة باسمك بنجاح!
+                      Your official verified certificate of mastery has been issued successfully.
                     </p>
                   </div>
                 )}
@@ -737,22 +729,22 @@ export default function StudentTypingLab() {
                       className="flex-1 py-3 rounded-xl bg-gradient-to-r from-[#dfb259] to-[#b8862d] text-[#072224] font-extrabold text-sm hover:brightness-110 shadow-lg flex items-center justify-center gap-2"
                     >
                       <Award size={18} />
-                      <span>عرض الشهادة الرسمية</span>
+                      <span>View Official Certificate</span>
                     </button>
                   ) : (
                     <button
                       onClick={handleNextLevel}
                       className="flex-1 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm shadow-lg flex items-center justify-center gap-2 transition-all"
                     >
-                      <span>الانتقال للمستوى التالي</span>
-                      <ChevronLeft size={18} />
+                      <span>Next Level</span>
+                      <ChevronRight size={18} />
                     </button>
                   )}
                   <button
                     onClick={() => resetLevelState()}
                     className="px-4 py-3 rounded-xl bg-[#072224] hover:bg-[#14494e] text-gray-300 font-medium text-xs transition-colors"
                   >
-                    إعادة المحاولة
+                    Try Again
                   </button>
                 </div>
               </>
@@ -762,19 +754,19 @@ export default function StudentTypingLab() {
                   <RotateCcw size={32} />
                 </div>
                 <h3 className="text-xl font-extrabold text-white mb-1">
-                  لم يتم استيفاء شروط المستوى
+                  Level Criteria Not Met
                 </h3>
                 <p className="text-xs text-gray-300 mb-4">
-                  المطلوب: دقة لا تقل عن {levelData?.min_accuracy}% وسرعة {levelData?.min_wpm} ك/د.
+                  Required: Minimum {levelData?.min_accuracy}% accuracy and {levelData?.min_wpm} WPM.
                 </p>
 
                 <div className="grid grid-cols-2 gap-3 mb-6 bg-[#072224] p-3 rounded-xl border border-[#14494e]">
                   <div>
-                    <div className="text-[11px] text-gray-400">السرعة الحالية</div>
-                    <div className="text-lg font-bold text-white font-mono">{wpm} ك/د</div>
+                    <div className="text-[11px] text-gray-400">Current Speed</div>
+                    <div className="text-lg font-bold text-white font-mono">{wpm} WPM</div>
                   </div>
                   <div>
-                    <div className="text-[11px] text-gray-400">الدقة الحالية</div>
+                    <div className="text-[11px] text-gray-400">Current Accuracy</div>
                     <div className="text-lg font-bold text-rose-400 font-mono">{accuracy}%</div>
                   </div>
                 </div>
@@ -784,7 +776,7 @@ export default function StudentTypingLab() {
                   className="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-600 to-cyan-500 text-white font-bold text-sm hover:brightness-110 shadow-lg flex items-center justify-center gap-2"
                 >
                   <RotateCcw size={16} />
-                  <span>إعادة المحاولة مجدداً</span>
+                  <span>Try Again</span>
                 </button>
               </>
             )}
@@ -800,10 +792,10 @@ export default function StudentTypingLab() {
               <div>
                 <h3 className="text-lg font-bold text-white flex items-center gap-2">
                   <Layers size={20} className="text-[#C5E5E8]" />
-                  <span>خريطة الـ 200 مستوى (المراحل العشر)</span>
+                  <span>200 Levels Roadmap (10 Stages)</span>
                 </h3>
                 <p className="text-xs text-gray-400 mt-0.5">
-                  اختر أي مستوى متاح للتدريب أو تحسين النتيجة
+                  Select any unlocked level to practice or improve your score
                 </p>
               </div>
               <button
@@ -830,7 +822,7 @@ export default function StudentTypingLab() {
                         <p className="text-xs text-gray-400 mt-0.5">{stage.description}</p>
                       </div>
                       <span className="text-xs text-gray-400 font-mono">
-                        المستويات {startLvl} - {endLvl}
+                        Levels {startLvl} - {endLvl}
                       </span>
                     </div>
 
@@ -878,7 +870,7 @@ export default function StudentTypingLab() {
         </div>
       )}
 
-      {/* 6. OFFICIAL VERIFIED CERTIFICATE MODAL */}
+      {/* 6. OFFICIAL VERIFIED ARABIC CERTIFICATE MODAL */}
       <TypingCertificateModal
         isOpen={showCertModal}
         onClose={() => setShowCertModal(false)}

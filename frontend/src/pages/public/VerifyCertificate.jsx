@@ -38,7 +38,7 @@ export function VerifyCertificate() {
   const performVerification = async (idToVerify) => {
     const trimmed = (idToVerify || '').trim();
     if (!trimmed) {
-      setError('يرجى إدخال رقم الشهادة للتحقق');
+      setError('Please enter a certificate ID to verify');
       return;
     }
 
@@ -51,11 +51,11 @@ export function VerifyCertificate() {
       if (res && res.valid && res.certificate) {
         setResult(res.certificate);
       } else {
-        setError(res?.message || 'عذراً، لم يتم العثور على شهادة بهذا الرقم في السجلات المعتمدة.');
+        setError(res?.message || 'No certificate found matching this credential ID in the central registry.');
       }
     } catch (err) {
       console.error('Verification error:', err);
-      setError('حدث خطأ أثناء الاتصال بالخادم للتحقق من الشهادة. يرجى المحاولة مرة أخرى.');
+      setError('An error occurred while connecting to the verification server. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -77,14 +77,14 @@ export function VerifyCertificate() {
         <div className="text-center space-y-3">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#0c3e42]/60 border border-[#14494e] text-[#C5E5E8] text-xs font-semibold">
             <ShieldCheck size={16} className="text-[#dfb259]" />
-            <span>نظام التحقق الرسمي من الشهادات المعتمدة</span>
+            <span>Official Credential Registry</span>
           </div>
 
           <h1 className="text-2xl sm:text-4xl font-extrabold text-white tracking-wide">
-            التحقق من صحة شهادة الطباعة العربية
+            Verify Arabic Touch-Typing Certificate
           </h1>
           <p className="text-sm sm:text-base text-gray-300 max-w-2xl mx-auto leading-relaxed">
-            تتيح هذه البوابة للمؤسسات وجهات التوظيف وأولياء الأمور التحقق الفوري من مصداقية وصحة شهادة إتقان الطباعة العربية باللمس الصادرة عن مؤسستي العربية في بيوتكم وإمام.
+            Instant credential verification for academic and employment institutions. Authenticate official Arabic Touch-Typing Mastery certificates issued by Alarabia Fi Buyutikum and Emam Platform.
           </p>
         </div>
 
@@ -97,7 +97,7 @@ export function VerifyCertificate() {
                 type="text"
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
-                placeholder="أدخل رقم الشهادة (مثال: CERT-AR-948210)"
+                placeholder="Enter Certificate ID (e.g., CERT-AR-948210)"
                 className="w-full pl-10 pr-4 py-3 bg-[#05181a] border border-[#14494e] rounded-xl text-white placeholder-gray-500 text-sm focus:outline-none focus:border-[#C5E5E8] transition-colors"
                 dir="ltr"
               />
@@ -108,11 +108,11 @@ export function VerifyCertificate() {
               className="px-6 py-3 bg-gradient-to-r from-[#dfb259] to-[#b8862d] text-[#072224] font-bold text-sm rounded-xl hover:brightness-110 active:scale-95 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {loading ? (
-                <span>جارٍ التحقق...</span>
+                <span>Verifying...</span>
               ) : (
                 <>
                   <ShieldCheck size={18} />
-                  <span>تحقق الآن</span>
+                  <span>Verify Now</span>
                 </>
               )}
             </button>
@@ -124,7 +124,7 @@ export function VerifyCertificate() {
               <div>
                 <p className="font-semibold">{error}</p>
                 <p className="text-[11px] text-red-400/80 mt-0.5">
-                  تأكد من كتابة رمز الشهادة بدقة كما هو مدون في أسفل الشهادة الرسمية.
+                  Please make sure the certificate ID is typed exactly as shown on the credential document.
                 </p>
               </div>
             </div>
@@ -143,14 +143,14 @@ export function VerifyCertificate() {
                 <div>
                   <div className="flex items-center gap-2">
                     <h3 className="text-base sm:text-lg font-bold text-emerald-300">
-                      شهادة معتمدة وموثقة رسمياً
+                      Officially Verified & Authenticated Credential
                     </h3>
                     <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/40">
-                      صحيحة
+                      Active & Valid
                     </span>
                   </div>
                   <p className="text-xs text-gray-300 mt-0.5">
-                    البيانات التالية مطابقة تماماً للأصل في السجل الرقمي المركزي للأكاديمية.
+                    The credential records below match the official central registry.
                   </p>
                 </div>
               </div>
@@ -160,7 +160,7 @@ export function VerifyCertificate() {
                 className="px-4 py-2 bg-gradient-to-r from-[#dfb259] to-[#b8862d] text-[#072224] text-xs font-bold rounded-lg hover:brightness-110 transition-all flex items-center gap-1.5 shadow-md self-end sm:self-auto"
               >
                 <Award size={15} />
-                <span>عرض الشهادة الرسمية</span>
+                <span>View Official Certificate</span>
               </button>
             </div>
 
@@ -173,18 +173,18 @@ export function VerifyCertificate() {
                     <User size={28} />
                   </div>
                   <div>
-                    <span className="text-xs text-gray-400">اسم الخريج / الخريجة</span>
+                    <span className="text-xs text-gray-400">Recipient Student Name</span>
                     <h2 className="text-xl sm:text-2xl font-extrabold text-white mt-0.5">
                       {result.student_name}
                     </h2>
                     <span className="text-xs text-emerald-400 font-medium">
-                      أتم بنجاح كافة متطلبات برنامج الطباعة باللغة العربية (200 مستوى)
+                      Completed all 200 levels of the Arabic Touch-Typing Curriculum
                     </span>
                   </div>
                 </div>
 
                 <div className="text-left sm:text-right w-full sm:w-auto pt-3 sm:pt-0 border-t sm:border-t-0 border-[#14494e]/60">
-                  <span className="text-xs text-gray-400">رقم الشهادة المعتمد</span>
+                  <span className="text-xs text-gray-400">Official Certificate ID</span>
                   <div className="text-sm font-mono font-bold text-[#dfb259] mt-0.5" dir="ltr">
                     {result.certificate_id}
                   </div>
@@ -197,7 +197,7 @@ export function VerifyCertificate() {
                   <div className="w-8 h-8 rounded-lg bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 mx-auto mb-2">
                     <Award size={16} />
                   </div>
-                  <span className="text-[11px] text-gray-400">المستويات المنجزة</span>
+                  <span className="text-[11px] text-gray-400">Completed Levels</span>
                   <p className="text-base sm:text-lg font-bold text-white mt-1">
                     {result.levels_completed || '200 / 200'}
                   </p>
@@ -207,7 +207,7 @@ export function VerifyCertificate() {
                   <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 mx-auto mb-2">
                     <Target size={16} />
                   </div>
-                  <span className="text-[11px] text-gray-400">متوسط دقة الطباعة</span>
+                  <span className="text-[11px] text-gray-400">Average Accuracy</span>
                   <p className="text-base sm:text-lg font-bold text-[#dfb259] mt-1">
                     {result.avg_accuracy}
                   </p>
@@ -217,7 +217,7 @@ export function VerifyCertificate() {
                   <div className="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 mx-auto mb-2">
                     <Zap size={16} />
                   </div>
-                  <span className="text-[11px] text-gray-400">متوسط سرعة الطباعة</span>
+                  <span className="text-[11px] text-gray-400">Average Typing Speed</span>
                   <p className="text-base sm:text-lg font-bold text-[#dfb259] mt-1">
                     {result.avg_wpm}
                   </p>
@@ -227,7 +227,7 @@ export function VerifyCertificate() {
                   <div className="w-8 h-8 rounded-lg bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400 mx-auto mb-2">
                     <Clock size={16} />
                   </div>
-                  <span className="text-[11px] text-gray-400">إجمالي وقت التدريب</span>
+                  <span className="text-[11px] text-gray-400">Practice Time</span>
                   <p className="text-base sm:text-lg font-bold text-white mt-1">
                     {result.total_time}
                   </p>
@@ -237,25 +237,25 @@ export function VerifyCertificate() {
               {/* Administrative Details Table */}
               <div className="bg-[#05181a] border border-[#14494e] rounded-xl p-4 sm:p-5">
                 <h4 className="text-xs font-bold text-[#C5E5E8] mb-3 pb-2 border-b border-[#14494e]/70">
-                  تفاصيل الإصدار والجهات المانحة
+                  Issuance & Institutional Records
                 </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
                   <div>
-                    <span className="text-gray-400">رقم قيد الطالب:</span>
+                    <span className="text-gray-400">Student ID / Code:</span>
                     <p className="font-mono font-bold text-white mt-0.5" dir="ltr">
                       {result.student_code}
                     </p>
                   </div>
                   <div>
-                    <span className="text-gray-400">تاريخ الإصدار:</span>
+                    <span className="text-gray-400">Issue Date:</span>
                     <p className="font-bold text-white mt-0.5">
                       {result.issue_date}
                     </p>
                   </div>
                   <div>
-                    <span className="text-gray-400">الجهات المانحة:</span>
+                    <span className="text-gray-400">Issuing Authority:</span>
                     <p className="font-bold text-white mt-0.5">
-                      العربية في بيوتكم بالتعاون مع منصة إمام
+                      Alarabia Fi Buyutikum & Emam Platform
                     </p>
                   </div>
                 </div>
@@ -268,7 +268,7 @@ export function VerifyCertificate() {
                   className="px-6 py-3 bg-gradient-to-r from-[#dfb259] to-[#b8862d] text-[#072224] font-bold text-xs sm:text-sm rounded-xl hover:brightness-110 active:scale-95 transition-all shadow-lg flex items-center gap-2"
                 >
                   <Award size={18} />
-                  <span>معاينة وطباعة الشهادة الرقمية</span>
+                  <span>View Official Certificate</span>
                 </button>
               </div>
             </div>

@@ -215,17 +215,17 @@ export function StudentDashboard() {
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
               <span style={{ fontSize: '0.75rem', fontWeight: 700, padding: '2px 8px', borderRadius: '4px', backgroundColor: 'rgba(197, 229, 232, 0.15)', color: '#C5E5E8', border: '1px solid rgba(197, 229, 232, 0.25)' }}>
-                200 مستويات تدريبية
+                200 Practice Levels
               </span>
               <span style={{ fontSize: '0.75rem', fontWeight: 700, padding: '2px 8px', borderRadius: '4px', backgroundColor: 'rgba(223, 178, 89, 0.15)', color: '#dfb259', border: '1px solid rgba(223, 178, 89, 0.3)' }}>
-                شهادة إتمام معتمدة
+                Verified Certificate
               </span>
             </div>
             <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#fff', margin: 0 }}>
-              مَخْبَرُ الكِتَابَة العربية (Arabic Touch-Typing Lab)
+              Arabic Touch-Typing Lab
             </h3>
             <p style={{ color: '#b0c4c6', fontSize: '0.85rem', margin: '0.25rem 0 0 0' }}>
-              تدرّب على الطباعة السريعة باللمس للأصابع العشرة، وارتقِ بمستواك من الصفر حتى الاحتراف لنيل شهادة التميز الرسمية.
+              Master touch typing on the Arabic keyboard across 200 progressive levels to earn your official certificate.
             </p>
           </div>
         </div>
@@ -248,7 +248,7 @@ export function StudentDashboard() {
           }}
         >
           <Keyboard size={18} />
-          <span>دخول مختبر الطباعة</span>
+          <span>Enter Typing Lab</span>
         </Link>
       </div>
 

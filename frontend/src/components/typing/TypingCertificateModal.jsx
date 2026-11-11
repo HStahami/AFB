@@ -31,13 +31,13 @@ export default function TypingCertificateModal({ isOpen, onClose, certificate })
             </div>
             <div>
               <h3 className="text-base font-bold text-white flex items-center gap-2">
-                <span>شهادة إتمام وتفوق معتمدة</span>
+                <span>Official Verified Certificate</span>
                 <span className="text-[11px] font-normal px-2.5 py-0.5 rounded-full bg-[#14494e] text-[#C5E5E8] border border-[#1a5b61]">
-                  مستوى 200/200
+                  Level 200 / 200
                 </span>
               </h3>
               <p className="text-xs text-gray-400 mt-0.5">
-                شهادة رسمية صادرة من مؤسستي العربية في بيوتكم وإمام
+                Official credential issued by Alarabia Fi Buyutikum and Emam Platform
               </p>
             </div>
           </div>
@@ -48,7 +48,7 @@ export default function TypingCertificateModal({ isOpen, onClose, certificate })
               className="px-4 py-2 rounded-lg bg-gradient-to-r from-[#dfb259] to-[#b8862d] text-[#072224] font-bold text-xs hover:brightness-110 active:scale-95 transition-all shadow-md flex items-center gap-1.5"
             >
               <Printer size={15} />
-              <span>طباعة / حفظ كملف PDF</span>
+              <span>Print / Save as PDF</span>
             </button>
             <button
               onClick={onClose}
@@ -217,7 +217,7 @@ export default function TypingCertificateModal({ isOpen, onClose, certificate })
         {/* Modal Footer Controls (Hidden on Print) */}
         <div className="flex flex-wrap items-center justify-between gap-3 px-6 py-4 border-t border-[#14494e] bg-[#072224] print:hidden">
           <div className="text-xs text-gray-400 flex items-center gap-2">
-            <span>رابط التحقق الرسمي:</span>
+            <span>Official Verification Link:</span>
             <a
               href={`/verify-certificate/${certificate_id}`}
               target="_blank"
@@ -235,13 +235,13 @@ export default function TypingCertificateModal({ isOpen, onClose, certificate })
               className="px-5 py-2.5 rounded-lg bg-gradient-to-r from-[#dfb259] to-[#b8862d] text-[#072224] font-bold text-xs hover:brightness-110 active:scale-95 transition-all shadow-md flex items-center gap-2"
             >
               <Printer size={16} />
-              <span>طباعة الشهادة (A4 Landscape)</span>
+              <span>Print Certificate (A4 Landscape)</span>
             </button>
             <button
               onClick={onClose}
               className="px-4 py-2.5 rounded-lg bg-[#14494e] hover:bg-[#1a5b61] text-white text-xs font-medium transition-all"
             >
-              إغلاق
+              Close
             </button>
           </div>
         </div>
