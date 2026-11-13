@@ -53,16 +53,16 @@ def build_base_email_html(
     Renders the unified, professional email template for Emam.
     Fully compatible with Gmail, Outlook, Apple Mail, mobile & desktop clients.
     """
-    badge_html = f'''<div style="display: inline-block; background-color: rgba(0, 102, 102, 0.08); color: #006666; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 4px; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 12px;">{badge_label}</div>''' if badge_label else ""
+    badge_html = f'''<div style="display: inline-block; background-color: rgba(105, 14, 31, 0.08); color: #690e1f; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 4px; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 12px;">{badge_label}</div>''' if badge_label else ""
     
     button_markup = ""
     if button_label and button_url:
         button_markup = f'''
         <div style="text-align: center; margin: 26px 0 14px 0;">
-          <a href="{button_url}" style="background-color: #006666; color: #ffffff !important; text-decoration: none; padding: 13px 32px; border-radius: 8px; font-weight: bold; font-size: 14px; display: inline-block; letter-spacing: 0.5px; box-shadow: 0 2px 6px rgba(0, 102, 102, 0.25);">{button_label}</a>
+          <a href="{button_url}" style="background-color: #690e1f; color: #ffffff !important; text-decoration: none; padding: 13px 32px; border-radius: 8px; font-weight: bold; font-size: 14px; display: inline-block; letter-spacing: 0.5px; box-shadow: 0 2px 6px rgba(105, 14, 31, 0.25);">{button_label}</a>
         </div>
         <div style="text-align: center; font-size: 11.5px; color: #94a3b8; margin-bottom: 16px;">
-          Direct Link: <a href="{button_url}" style="color: #006666; word-break: break-all;">{button_url}</a>
+          Direct Link: <a href="{button_url}" style="color: #690e1f; word-break: break-all;">{button_url}</a>
         </div>
         '''
 
@@ -86,9 +86,9 @@ def build_base_email_html(
           
           <!-- BRAND HEADER -->
           <tr>
-            <td style="background-color: #002b2b; padding: 26px 24px 22px 24px; text-align: center; border-bottom: 3px solid #d4af37;">
-              <div style="font-size: 24px; font-weight: 800; color: #d4af37; letter-spacing: 2px; text-transform: uppercase;">Emam</div>
-              <div style="font-size: 12px; color: #94a3b8; margin-top: 4px; letter-spacing: 0.5px;">Online Learning Institute</div>
+            <td style="background-color: #690e1f; padding: 26px 24px 22px 24px; text-align: center; border-bottom: 3px solid #f1a32a;">
+              <div style="font-size: 24px; font-weight: 800; color: #f1a32a; letter-spacing: 2px; text-transform: uppercase;">Emam</div>
+              <div style="font-size: 12px; color: #f0ceb3; margin-top: 4px; letter-spacing: 0.5px;">Online Learning Institute</div>
             </td>
           </tr>
 
@@ -96,7 +96,7 @@ def build_base_email_html(
           <tr>
             <td style="padding: 32px 28px;">
               {badge_html}
-              <h1 style="color: #002b2b; font-size: 20px; font-weight: 700; margin: 0 0 16px 0; line-height: 1.4;">{title}</h1>
+              <h1 style="color: #690e1f; font-size: 20px; font-weight: 700; margin: 0 0 16px 0; line-height: 1.4;">{title}</h1>
               <p style="font-size: 15px; color: #1e293b; margin: 0 0 14px 0;">Dear <strong>{recipient_name}</strong>,</p>
               
               <div style="font-size: 14.5px; line-height: 1.65; color: #334155;">
@@ -113,7 +113,7 @@ def build_base_email_html(
           <tr>
             <td style="background-color: #f8fafc; border-top: 1px solid #e2e8f0; padding: 22px 24px; text-align: center; font-size: 12px; color: #64748b; line-height: 1.6;">
               <div style="font-weight: 600; color: #334155; margin-bottom: 4px;">Emam • Admissions & Academic Office</div>
-              <div>Official Email: <a href="mailto:{official_email}" style="color: #006666; text-decoration: none;">{official_email}</a> | WhatsApp: <strong>{official_phone}</strong></div>
+              <div>Official Email: <a href="mailto:{official_email}" style="color: #690e1f; text-decoration: none;">{official_email}</a> | WhatsApp: <strong>{official_phone}</strong></div>
               <div style="margin-top: 8px; font-size: 11px; color: #94a3b8;">This is an official administrative email. Please keep your account credentials secure.</div>
             </td>
           </tr>
@@ -127,7 +127,7 @@ def build_base_email_html(
     return html
 
 
-def create_table_box(rows: List[Tuple[str, str, bool]], border_color: str = "#006666", bg_color: str = "#f8fafc") -> str:
+def create_table_box(rows: List[Tuple[str, str, bool]], border_color: str = "#690e1f", bg_color: str = "#f8fafc") -> str:
     """
     Renders a styled key-value highlight box.
     rows: list of tuples (Label, Value, is_monospace)
@@ -450,7 +450,7 @@ Emam
         body_html=f'''
         <p>Assalamu Alaikum wa Rahmatullah,</p>
         <p>Thank you for reaching out to <strong>Emam</strong>. We have received your inquiry regarding:</p>
-        <div style="background: #f8fafc; border-left: 3px solid #006666; padding: 12px 16px; margin: 16px 0; font-style: italic; color: #1e293b;">
+        <div style="background: #f8fafc; border-left: 3px solid #690e1f; padding: 12px 16px; margin: 16px 0; font-style: italic; color: #1e293b;">
           "{inquiry_subject}"
         </div>
         <p>Our team is reviewing your message and will respond to you shortly via this email address.</p>

@@ -66,7 +66,7 @@ Emam Administration
         ("Username / Email", student_email, False),
         ("Temporary Password", temp_password, True),
         ("Portal Login URL", target_login_url, False)
-    ], border_color="#006666")
+    ], border_color="#690e1f")
 
     html_body = build_base_email_html(
         title="Student Portal Login Credentials",
@@ -134,7 +134,7 @@ Emam Administration
         ("Registered Email", instructor_email, False),
         ("Temporary Password", temp_password, True),
         ("Instructor Portal", target_login_url, False)
-    ], border_color="#006666")
+    ], border_color="#690e1f")
 
     html_body = build_base_email_html(
         title="Instructor Portal Login Credentials",
