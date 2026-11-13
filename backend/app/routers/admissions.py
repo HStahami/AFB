@@ -1,5 +1,6 @@
 from bson import ObjectId
 from datetime import timezone, datetime
+from typing import Optional
 from fastapi import APIRouter, HTTPException, Depends, status
 from app.database import get_db
 from app.models import AdmissionCreate, FeeStatusUpdate, AdmissionCancelRequest
