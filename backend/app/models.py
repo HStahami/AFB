@@ -24,6 +24,10 @@ class FeeStatusUpdate(BaseModel):
     fee_status: str  # pending, paid, verified, waived, failed
 
 
+class AdmissionCancelRequest(BaseModel):
+    reason: Optional[str] = "Administrative review / Fee verification pending"
+
+
 # --- Contact Models ---
 class ContactCreate(BaseModel):
     first_name: str

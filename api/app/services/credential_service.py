@@ -2,7 +2,7 @@ import secrets
 import string
 from typing import Optional
 from app.config import settings
-from app.services.email_service import send_email
+from app.services.email_service import send_email, build_base_email_html, create_table_box
 
 
 def generate_secure_temporary_password(length: int = 10) -> str:
@@ -30,14 +30,17 @@ def send_student_credentials(
     login_url: Optional[str] = None
 ) -> bool:
     """
-    Delivers newly provisioned student credentials via email.
-    Plaintext password exists only in-memory for this notification and is never saved in the database.
+    Delivers newly provisioned student credentials via email using the institute branded template.
+    Plaintext password exists only in-memory for this notification and is never saved in plaintext.
     """
-    target_login_url = login_url or settings.STUDENT_PORTAL_URL or "/login"
-    subject = "Your Alarabia Fi Buyutikum Student Portal Credentials"
+    target_login_url = login_url or getattr(settings, "STUDENT_PORTAL_URL", "/student/login") or "/student/login"
+    subject = "Your Emam Student Portal Credentials"
+
     body = f"""Dear {student_name},
 
-Congratulations! Your admission to Alarabia Fi Buyutikum has been approved, and your student account has been successfully created.
+Assalamu Alaikum wa Rahmatullah,
+
+Congratulations! Your admission to Emam has been approved, and your student account has been successfully created.
 
 Here are your account credentials:
 ------------------------------------------
@@ -55,9 +58,38 @@ Important Next Steps:
 If you have any questions, feel free to reply to this email.
 
 JazakAllah Khair,
-Alarabia Fi Buyutikum Administration
+Emam Administration
 """
-    return send_email(student_email, subject, body)
+
+    box = create_table_box([
+        ("Student ID / Code", student_code, True),
+        ("Username / Email", student_email, False),
+        ("Temporary Password", temp_password, True),
+        ("Portal Login URL", target_login_url, False)
+    ], border_color="#006666")
+
+    html_body = build_base_email_html(
+        title="Student Portal Login Credentials",
+        recipient_name=student_name,
+        badge_label="Admission Confirmed",
+        body_html='''
+        <p>Assalamu Alaikum wa Rahmatullah,</p>
+        <p>Congratulations! Your admission to <strong>Emam</strong> has been officially approved. Your student account has been provisioned and is ready for access.</p>
+        <p>Your secure portal login credentials are listed below:</p>
+        ''',
+        highlight_box_html=box,
+        button_label="Log In to Student Portal",
+        button_url=target_login_url,
+        sub_note_html='''
+        <strong>Important Next Steps:</strong><br/>
+        1. Click the button above to access the Student Portal.<br/>
+        2. Log in using your <strong>Student ID</strong> (or Email) and <strong>Temporary Password</strong>.<br/>
+        3. For security, update your password immediately upon your first login.<br/>
+        4. Complete your onboarding profile to begin accessing course materials and the <strong>Arabic Touch-Typing Lab</strong>.
+        '''
+    )
+
+    return send_email(student_email, subject, body, html_body)
 
 
 def send_instructor_credentials(
@@ -68,16 +100,17 @@ def send_instructor_credentials(
     login_url: Optional[str] = None
 ) -> bool:
     """
-    Delivers instructor credentials via email.
+    Delivers instructor credentials via email using the institute branded template.
     Plaintext password exists only in-memory for this notification and is never saved in plaintext.
     """
-    target_login_url = login_url or settings.INSTRUCTOR_PORTAL_URL or "/instructor/login"
-    subject = "Your Alarabia Fi Buyutikum Instructor Portal Credentials"
+    target_login_url = login_url or getattr(settings, "INSTRUCTOR_PORTAL_URL", "/instructor/login") or "/instructor/login"
+    subject = "Your Emam Instructor Portal Credentials"
+
     body = f"""Dear {instructor_name},
 
 Assalamu Alaikum wa Rahmatullah,
 
-Your official instructor account at Alarabia Fi Buyutikum has been provisioned by the administration.
+Your official instructor account at Emam has been provisioned by the administration.
 
 Here are your account login credentials:
 ------------------------------------------
@@ -93,57 +126,34 @@ Important Security Instructions:
 3. For security, please update your password upon your first login.
 
 JazakAllah Khair,
-Alarabia Fi Buyutikum Administration
+Emam Administration
 """
 
-    html_body = f"""
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="utf-8">
-      <style>
-        body {{ font-family: 'Segoe UI', Arial, sans-serif; background-color: #041416; color: #e2e8f0; margin: 0; padding: 24px; }}
-        .card {{ max-width: 580px; margin: 0 auto; background: #072224; border: 1px solid rgba(197, 229, 232, 0.25); border-radius: 14px; padding: 32px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }}
-        .header {{ text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 20px; margin-bottom: 24px; }}
-        .brand {{ color: #00a896; font-size: 22px; font-weight: bold; margin: 0; }}
-        .box {{ background: rgba(0, 0, 0, 0.35); border: 1px solid rgba(0, 168, 150, 0.35); border-radius: 8px; padding: 18px; margin: 20px 0; }}
-        .box p {{ margin: 6px 0; font-size: 15px; color: #cbd5e1; }}
-        .cred {{ color: #ffffff; font-weight: bold; font-family: monospace; background: rgba(255,255,255,0.08); padding: 2px 8px; border-radius: 4px; }}
-        .btn {{ display: inline-block; background: #00a896; color: #ffffff !important; padding: 12px 28px; border-radius: 8px; text-decoration: none; font-weight: bold; margin-top: 10px; }}
-        .footer {{ margin-top: 28px; font-size: 13px; color: #94a3b8; text-align: center; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 16px; }}
-      </style>
-    </head>
-    <body>
-      <div class="card">
-        <div class="header">
-          <h2 class="brand">Alarabia Fi Buyutikum</h2>
-          <p style="color: #94a3b8; margin: 6px 0 0 0; font-size: 14px;">Instructor Account Provisioning</p>
-        </div>
-        <p>Dear <strong>{instructor_name}</strong>,</p>
+    box = create_table_box([
+        ("Username", username, True),
+        ("Registered Email", instructor_email, False),
+        ("Temporary Password", temp_password, True),
+        ("Instructor Portal", target_login_url, False)
+    ], border_color="#006666")
+
+    html_body = build_base_email_html(
+        title="Instructor Portal Login Credentials",
+        recipient_name=instructor_name,
+        badge_label="Instructor Account Ready",
+        body_html='''
         <p>Assalamu Alaikum wa Rahmatullah,</p>
-        <p>Your official instructor account at <strong>Alarabia Fi Buyutikum</strong> is ready. You can now access your teaching dashboard, assigned student dossiers, and class schedules.</p>
-        
-        <div class="box">
-          <p><strong>Username:</strong> <span class="cred">{username}</span></p>
-          <p><strong>Registered Email:</strong> <span class="cred">{instructor_email}</span></p>
-          <p><strong>Temporary Password:</strong> <span class="cred">{temp_password}</span></p>
-        </div>
-
-        <div style="text-align: center; margin: 24px 0;">
-          <a href="{target_login_url}" class="btn">Log In to Instructor Portal</a>
-        </div>
-
-        <p style="font-size: 13px; color: #94a3b8;">
-          * For security reasons, please change your password immediately upon your first login.
-        </p>
-
-        <div class="footer">
-          Alarabia Fi Buyutikum Administration<br>
-          Official Email: alarabiafi@gmail.com | Phone: +92 331 89675343
-        </div>
-      </div>
-    </body>
-    </html>
-    """
+        <p>Your official instructor account at <strong>Emam</strong> has been provisioned. You can now access your teaching dashboard, assigned student dossiers, and class schedules.</p>
+        <p>Your portal login credentials are provided below:</p>
+        ''',
+        highlight_box_html=box,
+        button_label="Log In to Instructor Portal",
+        button_url=target_login_url,
+        sub_note_html='''
+        <strong>Important Security Instructions:</strong><br/>
+        1. Access the Instructor Portal at the link above.<br/>
+        2. Log in with your Username (or Email) and Temporary Password.<br/>
+        3. For security, please update your password immediately upon your first login.
+        '''
+    )
 
     return send_email(instructor_email, subject, body, html_body)

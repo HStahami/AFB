@@ -21,7 +21,7 @@ html_content = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Alarabia Fi Buyutikum LMS - Executive & Non-Technical Platform Guide</title>
+<title>Emam LMS - Executive & Non-Technical Platform Guide</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Amiri:wght@400;700&display=swap');
 
@@ -36,7 +36,7 @@ html_content = f"""<!DOCTYPE html>
       font-weight: 600;
     }}
     @bottom-left {{
-      content: "Alarabia Fi Buyutikum LMS — Complete Platform Guide (Executive Edition)";
+      content: "Emam LMS — Complete Platform Guide (Executive Edition)";
       font-size: 8pt;
       color: #64748b;
       font-family: 'Plus Jakarta Sans', sans-serif;
@@ -650,7 +650,7 @@ html_content = f"""<!DOCTYPE html>
     <div class="cover-logo-wrapper">
       {'<img class="cover-logo" src="data:image/jpeg;base64,' + logo_b64 + '" alt="AFB Logo"/>' if logo_b64 else ''}
       <div>
-        <div class="cover-brand">Alarabia Fi Buyutikum</div>
+        <div class="cover-brand">Emam</div>
         <div class="cover-tagline">Integrated Academic & Virtual Learning Management System</div>
       </div>
     </div>
@@ -1181,7 +1181,7 @@ html_content = f"""<!DOCTYPE html>
   <div class="callout" style="margin-top: 18px; background: #f0fdfa; border: 1px solid #99f6e4; border-left: 4px solid #0d9488; padding: 12px 16px; border-radius: 8px;">
     <div style="font-weight: 800; color: #0f766e; font-size: 9.8pt; margin-bottom: 4px;">🎯 Bottom-Line Verdict for Academy Stakeholders</div>
     <p style="margin: 0; font-size: 9pt; color: #134e4a;">
-      Alarabia Fi Buyutikum LMS takes away the daily headache of running an online institute. It provides school owners and academic directors with complete control, guarantees student safety, empowers teachers with specialized Arabic tools, and gives students an engaging, stress-free virtual learning experience.
+      Emam LMS takes away the daily headache of running an online institute. It provides school owners and academic directors with complete control, guarantees student safety, empowers teachers with specialized Arabic tools, and gives students an engaging, stress-free virtual learning experience.
     </p>
   </div>
 </div>
@@ -1219,7 +1219,7 @@ else:
     print("Chrome executable not found.")
 
 # Write Markdown version as well
-md_content = """# Alarabia Fi Buyutikum (AFB) LMS
+md_content = """# Emam (AFB) LMS
 ## The Complete Digital Academy & E-Learning Platform
 ### Executive & Non-Technical Guide
 

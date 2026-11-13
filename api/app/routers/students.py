@@ -5,9 +5,11 @@ from fastapi import APIRouter, HTTPException, Depends, status, Query, Body
 from app.database import get_db
 from app.models import StudentProfileUpdate
 from app.core.dependencies import get_current_user, require_admin, verify_student_access
-from app.services.email_service import send_email
+from app.services.email_service import send_email, send_class_assignment_email
 from app.services.notification_service import create_notification
 from app.services.reporting_service import get_student_progress_summary
+from app.core.security import hash_password
+from app.services.credential_service import generate_secure_temporary_password, send_student_credentials
 
 router = APIRouter(prefix="/api/students", tags=["Students"])
 
@@ -417,22 +419,15 @@ async def assign_slot_instructor(
                 related_entity_id=student_id
             )
 
-        # Send assignment email
-        subject = "Your Class Details - Alarabia Fi Buyutikum"
-        body = f"""Dear {doc['first_name']} {doc['last_name']},
-
-Great news! Your class details have been finalized.
-
-Student ID: {doc.get('student_code', 'N/A')}
-Your Slot: {slot}
-Your Instructor: {instructor}
-
-Please make sure you are available at the scheduled time. Your instructor will contact you shortly with further details.
-
-JazakAllah Khair,
-Alarabia Fi Buyutikum Team
-"""
-        send_email(doc['email'], subject, body)
+        # Send assignment email using branded institute template
+        student_name = f"{doc.get('first_name', '')} {doc.get('last_name', '')}".strip() or "Student"
+        send_class_assignment_email(
+            student_name=student_name,
+            student_email=doc['email'],
+            student_code=doc.get('student_code', 'N/A'),
+            slot=slot,
+            instructor=instructor
+        )
         return {"message": "Slot and instructor assigned, enrollment updated, email sent to student."}
     except HTTPException:
         raise
@@ -552,7 +547,7 @@ async def graduate_enrolled_student(
 
     final_grade = payload.get("final_grade") or "Mumtaz / A+ (Distinction)"
     final_score = payload.get("final_score")
-    grad_course = payload.get("course") or student.get("course") or student.get("preferred_course") or "Alarabia Arabic Program"
+    grad_course = payload.get("course") or student.get("course") or student.get("preferred_course") or "Emam Program"
     grad_remarks = payload.get("graduation_remarks") or payload.get("remarks") or ""
 
     update_doc = {
@@ -1071,7 +1066,7 @@ async def get_student_courses(current_user: dict = Depends(get_current_user)):
     if not courses and (student.get("slot") or student.get("instructor")):
         module = await db.modules.find_one()
         instructor = await db.instructors.find_one({"name": student.get("instructor")}) if student.get("instructor") else None
-        leg_title = module.get("title", "Alarabia Arabic Program") if module else "Alarabia Arabic Program"
+        leg_title = module.get("title", "Emam Program") if module else "Emam Program"
         courses.append({
             "enrollment_id": "legacy",
             "module_title": leg_title,
@@ -1269,3 +1264,84 @@ async def admin_update_student(
 
     updated_doc = await db.students.find_one({"_id": student_oid})
     return _clean_doc(updated_doc)
+
+
+@router.post("/{student_id}/resend-credentials", summary="Resend credentials to student (Admin Only)")
+async def resend_student_credentials_api(
+    student_id: str,
+    admin_user: dict = Depends(require_admin)
+):
+    """
+    Regenerates a secure temporary password and emails credentials to the student.
+    Ensures student can regain access to their portal anytime.
+    """
+    db = get_db()
+    try:
+        existing = await db.students.find_one({"_id": ObjectId(student_id)})
+        if not existing:
+            raise HTTPException(status_code=404, detail="Student record not found")
+
+        email = existing.get("email")
+        if not email:
+            raise HTTPException(status_code=400, detail="Student does not have a configured email address.")
+
+        email_clean = email.strip().lower()
+        temp_password = generate_secure_temporary_password(10)
+        pwd_hash = hash_password(temp_password)
+
+        user_id = existing.get("user_id")
+        user = None
+        if user_id:
+            user = await db.users.find_one({"_id": user_id})
+        if not user:
+            user = await db.users.find_one({"email": email_clean})
+
+        student_code = existing.get("student_code") or "EMAM-2026-0000"
+        if user:
+            await db.users.update_one(
+                {"_id": user["_id"]},
+                {"$set": {
+                    "password_hash": pwd_hash,
+                    "first_login": True,
+                    "status": "active",
+                    "updated_at": datetime.now(timezone.utc)
+                }}
+            )
+        else:
+            res_user = await db.users.insert_one({
+                "username": student_code,
+                "email": email_clean,
+                "password_hash": pwd_hash,
+                "role": "student",
+                "status": "active",
+                "first_login": True,
+                "profile_completed": False,
+                "student_code": student_code,
+                "created_at": datetime.now(timezone.utc),
+                "updated_at": datetime.now(timezone.utc)
+            })
+            await db.students.update_one(
+                {"_id": existing["_id"]},
+                {"$set": {"user_id": res_user.inserted_id}}
+            )
+
+        student_name = f"{existing.get('first_name', '')} {existing.get('last_name', '')}".strip() or "Student"
+        sent = send_student_credentials(
+            student_name=student_name,
+            student_email=email_clean,
+            student_code=student_code,
+            temp_password=temp_password
+        )
+
+        return {
+            "message": "Student credentials regenerated and emailed successfully.",
+            "email": email_clean,
+            "student_code": student_code,
+            "email_sent": sent
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"ERROR resending student credentials: {e}")
+        raise HTTPException(status_code=500, detail="Could not resend student credentials.")
+

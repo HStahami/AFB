@@ -48,11 +48,11 @@ class Settings(BaseSettings):
 
     # Institute Fee Payment Instructions Configuration
     FEE_BANK_NAME: str = os.getenv("FEE_BANK_NAME", "Meezan Bank")
-    FEE_ACCOUNT_TITLE: str = os.getenv("FEE_ACCOUNT_TITLE", "Alarabia Fi Buyutikum")
+    FEE_ACCOUNT_TITLE: str = os.getenv("FEE_ACCOUNT_TITLE", "Emam")
     FEE_ACCOUNT_NUMBER: str = os.getenv("FEE_ACCOUNT_NUMBER", "01020108924018")
     FEE_IBAN: str = os.getenv("FEE_IBAN", "PK64MEZN0001020108924018")
     FEE_RAAST_ID: str = os.getenv("FEE_RAAST_ID", "+92 331 89675343")
-    FEE_EASYPAISA_JAZZCASH: str = os.getenv("FEE_EASYPAISA_JAZZCASH", "+92 331 89675343 (Alarabia Fi Buyutikum)")
+    FEE_EASYPAISA_JAZZCASH: str = os.getenv("FEE_EASYPAISA_JAZZCASH", "+92 331 89675343 (Emam)")
     FEE_VERIFICATION_WHATSAPP: str = os.getenv("FEE_VERIFICATION_WHATSAPP", "+92 331 89675343")
     FEE_VERIFICATION_EMAIL: str = os.getenv("FEE_VERIFICATION_EMAIL", "alarabiafi@gmail.com")
 

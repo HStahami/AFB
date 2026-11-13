@@ -1,4 +1,4 @@
-# Alarabia Fi Buyutikum (AFB) LMS
+# Emam (AFB) LMS
 ## The Complete Digital Academy & E-Learning Platform
 ### Executive & Non-Technical Guide
 

@@ -64,7 +64,7 @@ export function StudentLogin() {
         }}
       >
         <Link to="/" style={{ display: 'inline-block', marginBottom: '1.25rem' }}>
-          <img src="/afb1.jpeg" alt="AFB Logo" style={{ height: 48, width: 64, borderRadius: 6 }} />
+          <img src="/emam_logo.png" alt="Emam Logo" style={{ height: 54, width: 54, objectFit: 'contain' }} />
         </Link>
 
         <h1 style={{ fontSize: '1.6rem', fontWeight: 700, color: '#fff', marginBottom: '0.35rem' }}>
@@ -101,7 +101,7 @@ export function StudentLogin() {
               id="student-login-identifier"
               type="text"
               required
-              placeholder="e.g. AFB-2026-0001 or email@example.com"
+              placeholder="e.g. EMAM-2026-0001 or email@example.com"
               value={identifier}
               onChange={(e) => setIdentifier(e.target.value)}
               style={{

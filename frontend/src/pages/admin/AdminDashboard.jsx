@@ -306,6 +306,12 @@ export function AdminDashboard({ onLogout }) {
   });
   const [isSubmittingDropout, setIsSubmittingDropout] = useState(false);
 
+  // Admission Cancellation Modal State
+  const [cancelingAdmission, setCancelingAdmission] = useState(null);
+  const [cancelReasonPreset, setCancelReasonPreset] = useState('Fee payment receipt not verified within stipulated deadline');
+  const [cancelCustomReason, setCancelCustomReason] = useState('');
+  const [isSubmittingCancel, setIsSubmittingCancel] = useState(false);
+
   const isStudentGraduated = (s) => ['Graduated', 'graduated'].includes(s?.status);
   const isStudentDropout = (s) => ['Cancelled', 'cancelled', 'Dropout', 'dropout'].includes(s?.status);
   const isStudentActive = (s) => !isStudentGraduated(s) && !isStudentDropout(s);
@@ -747,14 +753,43 @@ export function AdminDashboard({ onLogout }) {
     } catch { alert("Failed to approve"); }
   };
 
-  const handleCancel = async (id) => {
+  const handleOpenCancelModal = (adm) => {
+    setCancelingAdmission(adm);
+    setCancelReasonPreset('Fee payment receipt not verified within stipulated deadline');
+    setCancelCustomReason('');
+  };
+
+  const handleConfirmCancelAdmission = async (e) => {
+    e.preventDefault();
+    if (!cancelingAdmission) return;
+    setIsSubmittingCancel(true);
     try {
-      const res = await fetch(`${API_BASE}/admissions/${id}/cancel`, { method: 'PATCH', headers });
-      if (!res.ok) throw new Error();
-      alert("Admission Canceled.");
+      const finalReason = cancelReasonPreset === 'Other / Custom Reason'
+        ? (cancelCustomReason.trim() || 'Administrative review / Unverified records')
+        : (cancelCustomReason.trim() ? `${cancelReasonPreset} (${cancelCustomReason.trim()})` : cancelReasonPreset);
+
+      const res = await fetch(`${API_BASE}/admissions/${cancelingAdmission._id}/cancel`, {
+        method: 'PATCH',
+        headers: {
+          ...headers,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ reason: finalReason })
+      });
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.detail || 'Failed to cancel admission');
+      }
+      alert(`Admission for ${cancelingAdmission.first_name} ${cancelingAdmission.last_name || ''} has been canceled and notification email sent.`);
+      setCancelingAdmission(null);
       await fetchAdmissions();
       await fetchStats();
-    } catch { alert("Failed to cancel"); }
+    } catch (err) {
+      console.error(err);
+      alert(err.message || 'Failed to cancel admission');
+    } finally {
+      setIsSubmittingCancel(false);
+    }
   };
 
   const handleOpenGraduateModal = (std) => {
@@ -2412,6 +2447,11 @@ export function AdminDashboard({ onLogout }) {
                             }}>
                               {adm.status}
                             </span>
+                            {isCanceled && adm.cancellation_reason && (
+                              <span style={{ fontSize: '0.72rem', color: '#fca5a5', maxWidth: '220px', lineHeight: 1.25 }} title={adm.cancellation_reason}>
+                                Reason: {adm.cancellation_reason}
+                              </span>
+                            )}
                             {feeSent && (
                               <span style={{ fontSize: '0.72rem', color: '#38bdf8', display: 'flex', alignItems: 'center', gap: '3px' }}>
                                 Fee Instructions Sent
@@ -2450,9 +2490,10 @@ export function AdminDashboard({ onLogout }) {
                                   Resend Fee Info
                                 </button>
                                 <button
-                                  onClick={() => handleCancel(adm._id)}
+                                  onClick={() => handleOpenCancelModal(adm)}
                                   className="glass-panel"
                                   style={{ padding: '6px 10px', fontSize: '0.82rem', color: '#e74c3c', border: '1px solid rgba(231, 76, 60, 0.4)', cursor: 'pointer' }}
+                                  title="Cancel admission application and email reason to applicant"
                                 >
                                   Cancel
                                 </button>
@@ -5454,7 +5495,7 @@ export function AdminDashboard({ onLogout }) {
                   id="admin_new_email"
                   type="email"
                   required
-                  placeholder="e.g. jameel@alarabia.edu"
+                  placeholder="e.g. jameel@emam.edu"
                   value={newAdminEmail}
                   onChange={(e) => setNewAdminEmail(e.target.value)}
                   style={inputStyle}
@@ -5716,6 +5757,112 @@ export function AdminDashboard({ onLogout }) {
                   style={{ padding: '8px 20px', fontSize: '0.85rem', cursor: isSubmittingDropout ? 'not-allowed' : 'pointer', background: '#e74c3c', color: '#fff', border: 'none' }}
                 >
                   {isSubmittingDropout ? 'Processing...' : 'Confirm Dropout'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Cancel Admission Modal with Reason Dispatch */}
+      {cancelingAdmission && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(3, 14, 15, 0.88)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 220, padding: '1rem' }}>
+          <div style={{ padding: '2rem', maxWidth: '520px', width: '100%', maxHeight: '90vh', overflowY: 'auto', borderRadius: '16px', backgroundColor: '#092528', border: '1px solid rgba(231, 76, 60, 0.45)', boxShadow: '0 25px 60px rgba(0, 0, 0, 0.95)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+              <h3 style={{ color: '#ff6b6b', margin: 0, fontSize: '1.25rem', fontWeight: 'bold' }}>Cancel Admission Application</h3>
+              <button
+                type="button"
+                onClick={() => setCancelingAdmission(null)}
+                style={{ background: 'transparent', border: 'none', color: '#94a3b8', fontSize: '1.2rem', cursor: 'pointer', padding: '4px 8px' }}
+              >
+                ✕
+              </button>
+            </div>
+
+            <p style={{ color: '#cbd5e1', fontSize: '0.88rem', marginBottom: '1.25rem', lineHeight: '1.5' }}>
+              Please specify the cancellation reason. This reason will be recorded in the system and <strong>emailed directly to the applicant</strong>.
+            </p>
+
+            <div style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', padding: '12px 16px', marginBottom: '1.25rem', fontSize: '0.85rem' }}>
+              <div style={{ color: '#fff', fontWeight: '600' }}>
+                {cancelingAdmission.first_name} {cancelingAdmission.last_name || ''}
+              </div>
+              <div style={{ color: '#94a3b8', fontSize: '0.8rem', marginTop: '3px' }}>
+                Email: {cancelingAdmission.email} | Course: {cancelingAdmission.course || 'Modern Standard Arabic'}
+              </div>
+              <div style={{ color: 'var(--color-primary)', fontSize: '0.78rem', marginTop: '2px', fontFamily: 'monospace' }}>
+                Form ID: #{cancelingAdmission._id}
+              </div>
+            </div>
+
+            <form onSubmit={handleConfirmCancelAdmission} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div>
+                <label htmlFor="admin_cancel_preset" style={{ display: 'block', color: 'var(--color-primary)', marginBottom: '0.4rem', fontSize: '0.85rem', fontWeight: '600' }}>
+                  Select Cancellation Reason *
+                </label>
+                <select
+                  id="admin_cancel_preset"
+                  value={cancelReasonPreset}
+                  onChange={e => setCancelReasonPreset(e.target.value)}
+                  style={{ ...inputStyle, width: '100%', background: '#071d20', color: '#fff' }}
+                >
+                  <option value="Fee payment receipt not verified within stipulated deadline">Fee payment receipt not verified within stipulated deadline</option>
+                  <option value="Batch / slot capacity for the selected timings is full">Batch / slot capacity for the selected timings is full</option>
+                  <option value="Incomplete registration details or invalid contact info">Incomplete registration details or invalid contact info</option>
+                  <option value="Cancellation requested by applicant">Cancellation requested by applicant</option>
+                  <option value="Academic prerequisites not met">Academic prerequisites not met</option>
+                  <option value="Other / Custom Reason">Other / Custom Reason (Specify below)</option>
+                </select>
+              </div>
+
+              <div>
+                <label htmlFor="admin_cancel_custom" style={{ display: 'block', color: 'var(--color-primary)', marginBottom: '0.4rem', fontSize: '0.85rem', fontWeight: '600' }}>
+                  Additional Remarks / Custom Explanation {cancelReasonPreset === 'Other / Custom Reason' ? '*' : '(Optional)'}
+                </label>
+                <textarea
+                  id="admin_cancel_custom"
+                  rows={3}
+                  required={cancelReasonPreset === 'Other / Custom Reason'}
+                  value={cancelCustomReason}
+                  onChange={e => setCancelCustomReason(e.target.value)}
+                  style={{ ...inputStyle, width: '100%', resize: 'vertical' }}
+                  placeholder="e.g. Fees not received after reminders, please re-apply for next batch..."
+                />
+              </div>
+
+              <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', marginTop: '0.5rem' }}>
+                <button
+                  type="button"
+                  onClick={() => setCancelingAdmission(null)}
+                  disabled={isSubmittingCancel}
+                  style={{
+                    padding: '9px 18px',
+                    borderRadius: '8px',
+                    background: 'rgba(255, 255, 255, 0.08)',
+                    border: '1px solid rgba(255, 255, 255, 0.15)',
+                    color: '#cbd5e1',
+                    fontSize: '0.88rem',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Keep Application
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmittingCancel}
+                  style={{
+                    padding: '9px 20px',
+                    borderRadius: '8px',
+                    background: '#dc2626',
+                    border: 'none',
+                    color: '#ffffff',
+                    fontWeight: 'bold',
+                    fontSize: '0.88rem',
+                    cursor: isSubmittingCancel ? 'not-allowed' : 'pointer',
+                    opacity: isSubmittingCancel ? 0.7 : 1
+                  }}
+                >
+                  {isSubmittingCancel ? 'Canceling & Sending Email...' : 'Confirm & Send Cancellation Email'}
                 </button>
               </div>
             </form>

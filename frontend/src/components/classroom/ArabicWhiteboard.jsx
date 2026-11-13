@@ -146,7 +146,7 @@ export function ArabicWhiteboard({ slotName = "Classroom" }) {
     if (!canvas) return;
     const dataUrl = canvas.toDataURL('image/png');
     const link = document.createElement('a');
-    link.download = `Alarabia_Whiteboard_${Date.now()}.png`;
+    link.download = `Emam_Whiteboard_${Date.now()}.png`;
     link.href = dataUrl;
     link.click();
     setCopied(true);
@@ -355,7 +355,7 @@ export function ArabicWhiteboard({ slotName = "Classroom" }) {
           pointerEvents: 'none',
           userSelect: 'none'
         }}>
-          Alarabia Digital Canvas • {slotName}
+          Emam Digital Canvas • {slotName}
         </div>
       </div>
     </div>

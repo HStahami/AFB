@@ -18,7 +18,7 @@ export function JitsiClassroom({
   const [rejoinKey, setRejoinKey] = useState(0);
 
   // Clean and sanitize room name to safe ASCII string
-  const cleanRoomName = (roomName || 'AFB_Live_Classroom')
+  const cleanRoomName = (roomName || 'Emam_Live_Classroom')
     .replace(/[^a-zA-Z0-9_-]/g, '_')
     .replace(/_+/g, '_');
 
@@ -230,7 +230,7 @@ export function JitsiClassroom({
           </div>
           <div style={{ textAlign: 'center' }}>
             <h4 style={{ margin: '0 0 4px 0', color: '#fff', fontSize: '1.1rem' }}>
-              Connecting to Alarabia Virtual Classroom...
+              Connecting to Emam Virtual Classroom...
             </h4>
             <p style={{ margin: 0, color: '#94a3b8', fontSize: '0.85rem' }}>
               Setting up audio, video, whiteboard & tools.

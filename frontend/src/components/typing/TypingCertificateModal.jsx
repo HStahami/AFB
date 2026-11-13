@@ -6,7 +6,7 @@ export default function TypingCertificateModal({ isOpen, onClose, certificate })
 
   const {
     student_name = 'اسم الطالب / الطالبة',
-    student_code = 'AFB-2026-0842',
+    student_code = 'EMAM-2026-0842',
     certificate_id = 'CERT-AR-948210',
     avg_accuracy = '98.5%',
     avg_wpm = '52 كلمة في الدقيقة',
@@ -37,7 +37,7 @@ export default function TypingCertificateModal({ isOpen, onClose, certificate })
                 </span>
               </h3>
               <p className="text-xs text-gray-400 mt-0.5">
-                Official credential issued by Alarabia Fi Buyutikum and Emam Platform
+                Official credential issued by Emam Platform
               </p>
             </div>
           </div>
@@ -82,13 +82,13 @@ export default function TypingCertificateModal({ isOpen, onClose, certificate })
 
             {/* Subtle Watermark on Left */}
             <img
-              src="/afb_kufic_logo.png"
+              src="/emam_logo.png"
               alt=""
               className="absolute left-6 top-1/2 -translate-y-1/2 w-72 pointer-events-none filter drop-shadow-md"
               style={{ opacity: 0.035, pointerEvents: 'none' }}
             />
 
-            {/* 1. TOP HEADER (Emam on Left, Title Center, AFB on Right) */}
+            {/* 1. TOP HEADER (Emam on Left, Title Center, Emam on Right) */}
             <div className="relative z-10 w-full flex items-start justify-between" style={{ direction: 'ltr' }}>
               {/* Emam Logo on Left */}
               <div className="w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center pt-1">
@@ -109,11 +109,11 @@ export default function TypingCertificateModal({ isOpen, onClose, certificate })
                 </p>
               </div>
 
-              {/* AFB Logo on Right */}
+              {/* Emam Logo on Right */}
               <div className="w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center pt-1">
                 <img
-                  src="/afb_kufic_logo.png"
-                  alt="AFB"
+                  src="/emam_logo.png"
+                  alt="Emam"
                   className="w-full h-full object-contain filter drop-shadow-md"
                 />
               </div>
@@ -122,7 +122,7 @@ export default function TypingCertificateModal({ isOpen, onClose, certificate })
             {/* 2. BODY CONTENT */}
             <div className="relative z-10 w-full my-auto text-center py-1">
               <p className="text-xs sm:text-sm lg:text-base text-[#b6e4e8] font-semibold mb-2">
-                تشهد مؤسستا العربية في بيوتكم وإمام بأن:
+                تشهد منصة إمام بأن:
               </p>
 
               {/* Student Name */}

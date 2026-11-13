@@ -120,10 +120,10 @@ async def init_database(db):
         current_year = datetime.now(timezone.utc).year
         counter = 1
         async for s in db.students.find({"student_code": {"$exists": False}}).sort("approved_at", 1):
-            code = f"AFB-{current_year}-{counter:04d}"
+            code = f"EMAM-{current_year}-{counter:04d}"
             while await db.students.find_one({"student_code": code}):
                 counter += 1
-                code = f"AFB-{current_year}-{counter:04d}"
+                code = f"EMAM-{current_year}-{counter:04d}"
             await db.students.update_one({"_id": s["_id"]}, {"$set": {"student_code": code}})
             counter += 1
     except Exception as e:

@@ -17,8 +17,8 @@ export function Navbar() {
     <nav style={{ padding: '1rem 1.5rem', display: 'flex', flexDirection: 'column', position: 'relative' }} className="navbar-glass">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
         <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
-          <img src="/afb1.jpeg" alt="AFB Logo" style={{ height: 35, width: 50 }} />
-          <h1 style={{ fontSize: isMobile ? '1.1rem' : '1.5rem', fontWeight: '700', whiteSpace: 'nowrap' }} className="gradient-text">Alarabia Fi Buyutikum</h1>
+          <img src="/emam_logo.png" alt="Emam Logo" style={{ height: 40, width: 40, objectFit: 'contain' }} />
+          <h1 style={{ fontSize: isMobile ? '1.1rem' : '1.5rem', fontWeight: '700', whiteSpace: 'nowrap' }} className="gradient-text">Emam</h1>
         </Link>
 
         {isMobile && (

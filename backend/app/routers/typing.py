@@ -346,7 +346,7 @@ async def get_student_certificate(current_user: dict = Depends(get_current_user)
     student_code = (
         (student_doc and student_doc.get("student_code")) or
         current_user.get("student_code") or
-        f"AFB-2026-{user_id[-4:].upper()}"
+        f"EMAM-2026-{user_id[-4:].upper()}"
     )
 
     return {
@@ -361,7 +361,7 @@ async def get_student_certificate(current_user: dict = Depends(get_current_user)
             "total_time": _format_arabic_time(total_time),
             "issue_date": issue_date,
             "is_verified": True,
-            "issuing_bodies": ["مؤسسة العربية في بيوتكم", "مؤسسة إمام"]
+            "issuing_bodies": ["Emam Platform"]
         }
     }
 
@@ -402,7 +402,7 @@ async def verify_certificate_public(certificate_id: str):
 
     student_code = (
         (student_doc and student_doc.get("student_code")) or
-        f"AFB-2026-{(user_id or '0000')[-4:].upper()}"
+        f"EMAM-2026-{(user_id or '0000')[-4:].upper()}"
     )
 
     dt = progress.get("certificate_issued_at") or datetime.now(timezone.utc)
@@ -420,6 +420,6 @@ async def verify_certificate_public(certificate_id: str):
             "total_time": _format_arabic_time(progress.get("total_practice_seconds", 0)),
             "issue_date": _format_arabic_date(dt),
             "status": "معتمد وموثق رسمياً",
-            "issuing_bodies": ["مؤسسة العربية في بيوتكم", "مؤسسة إمام"]
+            "issuing_bodies": ["Emam Platform"]
         }
     }

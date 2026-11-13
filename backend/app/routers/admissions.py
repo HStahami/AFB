@@ -2,13 +2,14 @@ from bson import ObjectId
 from datetime import timezone, datetime
 from fastapi import APIRouter, HTTPException, Depends, status
 from app.database import get_db
-from app.models import AdmissionCreate, FeeStatusUpdate
+from app.models import AdmissionCreate, FeeStatusUpdate, AdmissionCancelRequest
 from app.core.dependencies import require_admin
 from app.core.security import hash_password
 from app.services.email_service import (
     send_admission_alert,
     send_email,
     send_fee_instructions_email,
+    send_admission_cancellation_email,
     contains_emoji,
     sanitize_text
 )
@@ -212,16 +213,16 @@ async def approve_admission(form_id: str, admin_user: dict = Depends(require_adm
                 "is_new": False
             }
 
-        # 2. Generate Unique Sequential Student Code (AFB-YYYY-XXXX)
+        # 2. Generate Unique Sequential Student Code (EMAM-YYYY-XXXX)
         current_year = datetime.now(timezone.utc).year
         total_count = await db.students.count_documents({}) + 1
-        student_code = f"AFB-{current_year}-{total_count:04d}"
+        student_code = f"EMAM-{current_year}-{total_count:04d}"
         while (
             await db.students.find_one({"student_code": student_code})
             or await db.users.find_one({"student_code": student_code})
         ):
             total_count += 1
-            student_code = f"AFB-{current_year}-{total_count:04d}"
+            student_code = f"EMAM-{current_year}-{total_count:04d}"
 
         # 3. Generate Temporary Password & Hash (Plaintext NEVER stored in DB)
         temp_password = generate_secure_temporary_password(10)
@@ -297,7 +298,7 @@ async def approve_admission(form_id: str, admin_user: dict = Depends(require_adm
         await create_notification(
             db=db,
             recipient_user_id=user_id,
-            title="Welcome to Alarabia Fi Buyutikum!",
+            title="Welcome to Emam!",
             message=f"Your admission is confirmed with Student ID {student_code}. Please change your password and complete your profile.",
             notification_type="system",
             related_entity_type="admission",
@@ -317,16 +318,50 @@ async def approve_admission(form_id: str, admin_user: dict = Depends(require_adm
 
 
 @router.patch("/{form_id}/cancel", summary="Cancel a student admission (Admin Only)")
-async def cancel_admission(form_id: str, admin_user: dict = Depends(require_admin)):
+async def cancel_admission(
+    form_id: str,
+    data: Optional[AdmissionCancelRequest] = None,
+    admin_user: dict = Depends(require_admin)
+):
     db = get_db()
     try:
+        doc = await db.admissions.find_one({"_id": ObjectId(form_id)})
+        if not doc:
+            raise HTTPException(status_code=404, detail="Form not found")
+
+        reason = (data.reason.strip() if data and data.reason and data.reason.strip() else "Administrative review / Fee verification pending")
+        admin_name = admin_user.get("username", "admin")
+
         result = await db.admissions.update_one(
             {"_id": ObjectId(form_id)},
-            {"$set": {"status": "Canceled"}}
+            {"$set": {
+                "status": "Canceled",
+                "cancellation_reason": reason,
+                "canceled_by": admin_name,
+                "canceled_at": datetime.now(timezone.utc)
+            }}
         )
-        if result.matched_count == 0:
-            raise HTTPException(status_code=404, detail="Form not found")
-        return {"message": "Admission canceled."}
+
+        student_name = f"{doc.get('first_name', '')} {doc.get('last_name', '')}".strip() or "Applicant"
+        student_email = doc.get("email")
+        course_name = doc.get("course_name") or "Modern Standard Arabic"
+
+        if student_email:
+            try:
+                send_admission_cancellation_email(
+                    student_name=student_name,
+                    student_email=student_email,
+                    form_id=form_id,
+                    course_name=course_name,
+                    reason=reason
+                )
+            except Exception as mail_err:
+                print(f"[ADMISSION CANCEL EMAIL ERROR]: {mail_err}")
+
+        return {
+            "message": "Admission canceled and notification email sent to applicant.",
+            "cancellation_reason": reason
+        }
     except HTTPException:
         raise
     except Exception as e:

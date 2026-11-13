@@ -93,7 +93,7 @@ export function InstructorLogin() {
             <input
               id="inst_login_username"
               type="text"
-              placeholder="e.g. instructor@alarabia.edu"
+              placeholder="e.g. instructor@emam.edu"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               required

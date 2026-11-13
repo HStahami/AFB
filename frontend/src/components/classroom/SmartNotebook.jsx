@@ -115,7 +115,7 @@ export function SmartNotebook({ slotId, slotName, initialNoteId = null, isInstru
 
   const handleDownload = () => {
     const element = document.createElement('a');
-    const file = new Blob([`${title}\n\n${content}\n\n---\nAlarabia Fi Buyutikum - Smart Classroom Notes`], { type: 'text/plain;charset=utf-8' });
+    const file = new Blob([`${title}\n\n${content}\n\n---\nEmam - Smart Classroom Notes`], { type: 'text/plain;charset=utf-8' });
     element.href = URL.createObjectURL(file);
     element.download = `${title.replace(/[^a-zA-Z0-9_-]/g, '_')}.txt`;
     document.body.appendChild(element);
@@ -166,10 +166,10 @@ export function SmartNotebook({ slotId, slotName, initialNoteId = null, isInstru
           </div>
           <div>
             <h3 style={{ margin: 0, fontSize: '0.95rem', color: '#fff', fontWeight: 600 }}>
-              {activeView === 'notes' ? 'Smart Class Notebook' : 'Alarabia Digital Whiteboard'}
+              {activeView === 'notes' ? 'Smart Class Notebook' : 'Emam Digital Whiteboard'}
             </h3>
             <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
-              {activeView === 'notes' ? 'دفتر الملاحظات (Auto-Saved)' : 'اللوحة الرقمية التفاعلية'}
+              {activeView === 'notes' ? 'Digital Notebook (Auto-Saved)' : 'Interactive Digital Canvas'}
             </span>
           </div>
         </div>

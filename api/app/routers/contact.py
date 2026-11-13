@@ -3,6 +3,10 @@ from fastapi import APIRouter, HTTPException, Depends
 from app.database import get_db
 from app.models import ContactCreate
 from app.core.dependencies import require_admin
+from app.services.email_service import (
+    send_contact_inquiry_alert,
+    send_contact_acknowledgment_email
+)
 
 router = APIRouter(prefix="/api/contact", tags=["Contact"])
 
@@ -21,6 +25,30 @@ async def submit_contact(data: ContactCreate):
             await db.contact_messages.insert_one(document)
     except Exception as e:
         print(f"ERROR: Could not save contact message to DB. Error: {e}")
+
+    # Send institute alerts and visitor auto-reply
+    sender_name = f"{data.first_name} {data.last_name}".strip()
+    sender_email = str(data.email).strip().lower()
+    message_text = data.message.strip()
+    inquiry_subject = "General Website Inquiry"
+
+    try:
+        # 1. Admin Alert Email
+        send_contact_inquiry_alert(
+            sender_name=sender_name,
+            sender_email=sender_email,
+            sender_phone="",
+            inquiry_subject=inquiry_subject,
+            message_text=message_text
+        )
+        # 2. Courtesy Acknowledgment to Visitor
+        send_contact_acknowledgment_email(
+            sender_name=sender_name,
+            sender_email=sender_email,
+            inquiry_subject=inquiry_subject
+        )
+    except Exception as email_err:
+        print(f"[CONTACT EMAIL ERROR]: Failed to dispatch contact emails: {email_err}")
 
     return {"message": "Your message has been sent successfully!"}
 

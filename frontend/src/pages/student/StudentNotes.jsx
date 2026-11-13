@@ -73,7 +73,7 @@ export function StudentNotes() {
 
   const handleDownload = (note) => {
     const element = document.createElement('a');
-    const file = new Blob([`${note.title}\n\n${note.content}\n\n---\nAlarabia Fi Buyutikum Archive`], { type: 'text/plain;charset=utf-8' });
+    const file = new Blob([`${note.title}\n\n${note.content}\n\n---\nEmam Archive`], { type: 'text/plain;charset=utf-8' });
     element.href = URL.createObjectURL(file);
     element.download = `${(note.title || 'Class_Note').replace(/[^a-zA-Z0-9_-]/g, '_')}.txt`;
     document.body.appendChild(element);

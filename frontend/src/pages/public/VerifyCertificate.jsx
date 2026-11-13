@@ -84,7 +84,7 @@ export function VerifyCertificate() {
             Verify Arabic Touch-Typing Certificate
           </h1>
           <p className="text-sm sm:text-base text-gray-300 max-w-2xl mx-auto leading-relaxed">
-            Instant credential verification for academic and employment institutions. Authenticate official Arabic Touch-Typing Mastery certificates issued by Alarabia Fi Buyutikum and Emam Platform.
+            Instant credential verification for academic and employment institutions. Authenticate official Arabic Touch-Typing Mastery certificates issued by Emam Platform.
           </p>
         </div>
 
@@ -255,7 +255,7 @@ export function VerifyCertificate() {
                   <div>
                     <span className="text-gray-400">Issuing Authority:</span>
                     <p className="font-bold text-white mt-0.5">
-                      Alarabia Fi Buyutikum & Emam Platform
+                      Emam Platform
                     </p>
                   </div>
                 </div>

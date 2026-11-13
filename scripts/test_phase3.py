@@ -16,7 +16,7 @@ from app.core.init_db import init_database
 
 async def run_phase3_tests():
     print("\n=======================================================")
-    print("RUNNING ALARABIA FI BUYUTIKUM — PHASE 3 TEST SUITE")
+    print("RUNNING EMAM — PHASE 3 TEST SUITE")
     print("=======================================================\n")
 
     await connect_to_mongo()

@@ -90,9 +90,9 @@ export function StudentLayout({ children }) {
           </button>
 
           <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-            <img src="/afb1.jpeg" alt="AFB Logo" style={{ height: 32, width: 42, borderRadius: 4 }} />
+            <img src="/emam_logo.png" alt="Emam Logo" style={{ height: 32, width: 32, objectFit: 'contain' }} />
             <span style={{ fontSize: '1.15rem', fontWeight: '700' }} className="gradient-text">
-              Alarabia LMS
+              Emam LMS
             </span>
           </Link>
 
@@ -327,7 +327,7 @@ export function StudentLayout({ children }) {
 
         <div style={{ borderTop: '1px solid rgba(255, 255, 255, 0.08)', paddingTop: '1rem', marginTop: '1rem' }}>
           <div style={{ fontSize: '0.75rem', color: '#8892b0', textAlign: 'center' }}>
-            Alarabia LMS Student Portal
+            Emam LMS Student Portal
           </div>
         </div>
       </aside>
@@ -351,7 +351,7 @@ export function StudentLayout({ children }) {
             {/* Drawer Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '1rem', borderBottom: '1px solid rgba(255, 255, 255, 0.08)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <img src="/afb1.jpeg" alt="AFB Logo" style={{ height: 26, width: 34, borderRadius: 3 }} />
+                <img src="/emam_logo.png" alt="Emam Logo" style={{ height: 26, width: 26, objectFit: 'contain' }} />
                 <span style={{ fontWeight: 700, color: 'var(--color-primary)', fontSize: '1rem' }}>Student Menu</span>
               </div>
               <button

@@ -77,9 +77,10 @@ export const admissionsApi = {
     if (!res.ok) throw new Error("Failed to approve admission");
     return res.json();
   },
-  cancel: async (id) => {
+  cancel: async (id, reason = "") => {
     const res = await apiClient(`/admissions/${id}/cancel`, {
       method: "PATCH",
+      body: JSON.stringify({ reason }),
     });
     if (!res.ok) throw new Error("Failed to cancel admission");
     return res.json();

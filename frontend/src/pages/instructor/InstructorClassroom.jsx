@@ -120,7 +120,7 @@ export function InstructorClassroom() {
   }, [requestedSlotId, autoStartRequested]);
 
   const slotKey = selectedSlot?.slot_id || 'general';
-  const roomName = `AFB_Class_${slotKey}`;
+  const roomName = `Emam_Class_${slotKey}`;
   const displayName = `Instructor ${user?.full_name || user?.name || user?.username || ''}`.trim();
   const slotTitle = selectedSlot ? `${selectedSlot.days || 'Class'} ${selectedSlot.time ? `— ${selectedSlot.time}` : ''}` : 'Live Class';
 

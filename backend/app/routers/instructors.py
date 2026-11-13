@@ -270,7 +270,7 @@ async def get_my_students(current_user: dict = Depends(get_current_user)):
         students.append({
             "id": str(s_id),
             "_id": str(s_id),
-            "student_code": s.get("student_code", f"AFB-{str(s_id)[-4:].upper()}"),
+            "student_code": s.get("student_code", f"EMAM-{str(s_id)[-4:].upper()}"),
             "first_name": s.get("first_name", ""),
             "last_name": s.get("last_name", ""),
             "name": f"{s.get('first_name', '')} {s.get('last_name', '')}".strip() or s.get("name", "Student"),

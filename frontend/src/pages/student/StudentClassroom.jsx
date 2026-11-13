@@ -37,7 +37,7 @@ export function StudentClassroom() {
 
   // Derive unique, consistent room name for this enrolled slot
   const slotKey = slot?._id || slot?.id || student?.slot_id || 'general';
-  const roomName = `AFB_Class_${slotKey}`;
+  const roomName = `Emam_Class_${slotKey}`;
   const displayName = student?.name || `${student?.first_name || ''} ${student?.last_name || ''}`.trim() || user?.username || 'Student';
   const slotLabel = slot ? `${slot.days || ''} ${slot.time ? `— ${slot.time}` : ''}`.trim() : (student?.slot || 'Class Session');
 
@@ -96,7 +96,7 @@ export function StudentClassroom() {
 
     const REQUIRED_SECONDS = 30 * 60; // 30 minutes = 1800s
     const todayKey = new Date().toISOString().split('T')[0];
-    const sessionStorageKey = `afb_live_join_${slotKey}_${todayKey}`;
+    const sessionStorageKey = `emam_live_join_${slotKey}_${todayKey}`;
 
     let joinTime = sessionStorage.getItem(sessionStorageKey);
     if (!joinTime) {
@@ -220,7 +220,7 @@ export function StudentClassroom() {
               )}
             </div>
             <h1 style={{ fontSize: '1.35rem', color: '#fff', margin: '4px 0 0 0', fontWeight: 700 }}>
-              Alarabia Virtual Smart Classroom
+              Emam Virtual Smart Classroom
             </h1>
           </div>
         </div>
