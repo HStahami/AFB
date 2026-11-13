@@ -1,8 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, Star, ChevronLeft, ChevronRight, User, Users, CheckCircle2 } from 'lucide-react';
-import { modulesApi, instructorsApi } from '../../api';
+import {
+  ArrowRight,
+  Star,
+  ChevronLeft,
+  ChevronRight,
+  User,
+  Users,
+  CheckCircle2,
+  Search,
+  Sparkles,
+  Layers,
+  Briefcase,
+  BookOpen,
+  Building2,
+  ShieldCheck,
+  Award,
+  X,
+  Check
+} from 'lucide-react';
+import { modulesApi, instructorsApi, contactApi } from '../../api';
 import { getAvatarUrl } from '../../api/client';
 
 export function Home() {
@@ -13,6 +31,23 @@ export function Home() {
   const [instructors, setInstructors] = useState([]);
   const [loadingInstructors, setLoadingInstructors] = useState(true);
   const [instructorsError, setInstructorsError] = useState(null);
+
+  // Smart Search & Ecosystem State
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchCategory, setSearchCategory] = useState('all');
+  const [activePillar, setActivePillar] = useState('lms');
+
+  // Enterprise ERP Demo Modal State
+  const [erpModalOpen, setErpModalOpen] = useState(false);
+  const [erpForm, setErpForm] = useState({
+    name: '',
+    organization: '',
+    email: '',
+    phone: '',
+    requirements: ''
+  });
+  const [erpSubmitting, setErpSubmitting] = useState(false);
+  const [erpSubmitted, setErpSubmitted] = useState(false);
 
   useEffect(() => {
     const fetchModules = async () => {
@@ -46,6 +81,112 @@ export function Home() {
     void fetchModules();
     void fetchInstructors();
   }, []);
+
+  const searchCategories = [
+    { id: 'all', label: 'All Ecosystem' },
+    { id: 'languages', label: 'Language Tracks' },
+    { id: 'trainers', label: '1-on-1 Trainers' },
+    { id: 'software', label: 'Software & Tools' },
+    { id: 'erp', label: 'Enterprise ERP' },
+  ];
+
+  const getSearchPlaceholder = (cat) => {
+    switch (cat) {
+      case 'languages': return 'Search Arabic levels, syntax courses, Quranic tracks...';
+      case 'trainers': return 'Find certified instructors, language coaches, specialists...';
+      case 'software': return 'Explore Touch-Typing Lab, Smart Notebook, digital certificates...';
+      case 'erp': return 'Inquire about student records, automated fees, institutional LMS...';
+      default: return 'Search courses, certified trainers, software tools, or ERP solutions...';
+    }
+  };
+
+  const handleErpSubmit = async (e) => {
+    e.preventDefault();
+    if (!erpForm.name || !erpForm.email) {
+      alert('Please provide your name and email address.');
+      return;
+    }
+    setErpSubmitting(true);
+    try {
+      await contactApi.submit({
+        first_name: erpForm.name.split(' ')[0] || erpForm.name,
+        last_name: erpForm.name.split(' ').slice(1).join(' ') || (erpForm.organization ? `(${erpForm.organization})` : 'Client'),
+        email: erpForm.email,
+        phone: erpForm.phone || '+44 0000 000000',
+        subject: `Enterprise ERP & Software Demo Request — ${erpForm.organization || 'Corporate Client'}`,
+        message: `Organization: ${erpForm.organization || 'N/A'}\nContact Phone: ${erpForm.phone || 'N/A'}\nRequirements & Inquiry:\n${erpForm.requirements || 'Requested an enterprise ERP & software walkthrough.'}`
+      });
+      setErpSubmitted(true);
+    } catch (err) {
+      console.error(err);
+      alert('Failed to send demo request. Please try again or reach out directly via contact page.');
+    } finally {
+      setErpSubmitting(false);
+    }
+  };
+
+  const ecosystemPillars = [
+    {
+      id: 'lms',
+      icon: BookOpen,
+      title: 'Language & Technical LMS',
+      tagline: 'Interactive Learning Loops & Automated Progression',
+      desc: 'Next-generation learning management built with bite-sized adaptive lessons, progressive touch-typing lab, and real-time skill assessments.',
+      highlights: [
+        'Structured A1 to B2 progressive curriculum',
+        '200-level Touch-Typing Lab with real-time WPM tracking',
+        'Smart interactive digital whiteboard & auto-saved notes',
+        'Instant cryptographically verified digital certificates'
+      ],
+      ctaText: 'Explore Learning Modules',
+      ctaLink: '#courses'
+    },
+    {
+      id: 'trainers',
+      icon: Users,
+      title: 'Trainer & Consultant Network',
+      tagline: 'Preply-Style 1-on-1 Mentorship & Corporate Advisory',
+      desc: 'Direct access to certified linguistic scholars and professional software instructors for personalized 1-on-1 private tuition and corporate workshops.',
+      highlights: [
+        'Dedicated 1-on-1 private instructor attention',
+        'Flexible weekday and weekend scheduling slots',
+        'Tailored conversation practice & executive coaching',
+        'Verified academic bios and proven student outcomes'
+      ],
+      ctaText: 'Meet Certified Faculty',
+      ctaLink: '#instructors'
+    },
+    {
+      id: 'erp',
+      icon: Layers,
+      title: 'Proprietary Enterprise ERP',
+      tagline: 'Modular Institutional Management & Automation',
+      desc: 'Comprehensive operational software backbone powering schools, academies, and training centers with automated admissions, fee reconciliation, and attendance.',
+      highlights: [
+        'Automated applicant pipeline & sequential student codes',
+        'Real-time fee verification & receipt auditing',
+        'Role-Based RBAC portals (Admin, Instructor, Student)',
+        'Attendance tracking, reporting, and gradebook engine'
+      ],
+      ctaText: 'Request ERP Demo',
+      action: () => setErpModalOpen(true)
+    },
+    {
+      id: 'b2b',
+      icon: Briefcase,
+      title: 'Corporate Workforce Upskilling',
+      tagline: 'B2B Multi-Seat Licensing & Team Transformation',
+      desc: 'Enterprise solutions enabling organizations to upskill entire teams with custom technical tracks, corporate seat management, and executive performance analytics.',
+      highlights: [
+        'Multi-seat volume licensing for organizations',
+        'Executive workforce analytics & skill matrices',
+        'Tailored industry-specific vocabulary & tool tracks',
+        'Dedicated corporate account manager & priority support'
+      ],
+      ctaText: 'Inquire for Enterprise',
+      action: () => setErpModalOpen(true)
+    }
+  ];
 
   const reviews = [
     { id: 1, student: 'Yusuf K.', text: 'The methodology is incredible. I learned more in 3 months than I did in 2 years.', rating: 5 },
@@ -99,61 +240,486 @@ export function Home() {
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-      {/* Hero Section */}
-      <section style={{ minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '2rem', position: 'relative' }}>
+      {/* ======================================================== */}
+      {/* 1. ENTERPRISE HERO SECTION                               */}
+      {/* ======================================================== */}
+      <section style={{ minHeight: '85vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '3.5rem 1.5rem 2.5rem', position: 'relative', overflow: 'hidden' }}>
+        {/* Ambient Radial Glows (Burgundy & Gold) */}
         <motion.div
           animate={{
             scale: [1, 1.15, 1],
-            opacity: [0.25, 0.45, 0.25],
+            opacity: [0.2, 0.4, 0.2],
             x: [0, 20, 0],
             y: [0, -15, 0]
           }}
-          transition={{ duration: 9, repeat: Infinity, ease: 'easeInOut' }}
-          style={{ position: 'absolute', top: '10%', left: '5%', width: '300px', height: '300px', background: 'var(--color-glow)', borderRadius: '50%', filter: 'blur(100px)', zIndex: 0 }}
+          transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
+          style={{ position: 'absolute', top: '5%', left: '8%', width: '380px', height: '380px', background: 'var(--color-glow)', borderRadius: '50%', filter: 'blur(120px)', zIndex: 0 }}
         />
         <motion.div
           animate={{
-            scale: [1, 1.2, 1],
-            opacity: [0.3, 0.5, 0.3],
-            x: [0, -20, 0],
-            y: [0, 20, 0]
+            scale: [1, 1.25, 1],
+            opacity: [0.25, 0.45, 0.25],
+            x: [0, -25, 0],
+            y: [0, 25, 0]
           }}
-          transition={{ duration: 11, repeat: Infinity, ease: 'easeInOut' }}
-          style={{ position: 'absolute', bottom: '10%', right: '5%', width: '400px', height: '400px', background: 'var(--color-accent)', borderRadius: '50%', filter: 'blur(120px)', zIndex: 0 }}
+          transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut' }}
+          style={{ position: 'absolute', bottom: '5%', right: '8%', width: '450px', height: '450px', background: 'rgba(105, 14, 31, 0.45)', borderRadius: '50%', filter: 'blur(140px)', zIndex: 0 }}
         />
 
-        <div style={{ position: 'relative', zIndex: 1, maxWidth: '800px', width: '100%' }}>
-          <motion.h2
+        <div style={{ position: 'relative', zIndex: 1, maxWidth: '980px', width: '100%', margin: '0 auto' }}>
+          {/* Top Authority Pill Badge */}
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.6rem', padding: '8px 20px', borderRadius: '30px', background: 'rgba(241, 163, 42, 0.1)', border: '1px solid rgba(241, 163, 42, 0.28)', color: 'var(--color-primary)', fontSize: '0.85rem', fontWeight: '600', letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: '1.6rem' }}
+          >
+            <Sparkles size={16} color="var(--color-primary)" />
+            <span>Emam Ecosystem • UK Accredited Learning & Enterprise Software</span>
+          </motion.div>
+
+          {/* Main Headline */}
+          <motion.h1
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            style={{ fontSize: 'clamp(2.5rem, 5vw + 1rem, 4.5rem)', fontWeight: '800', lineHeight: '1.1', marginBottom: '1.5rem' }}
+            transition={{ duration: 0.8, delay: 0.1 }}
+            style={{ fontSize: 'clamp(2.3rem, 4.6vw + 0.8rem, 4.2rem)', fontWeight: '800', lineHeight: '1.15', marginBottom: '1.4rem', color: 'var(--color-white)', letterSpacing: '-0.5px' }}
           >
-            Master Arabic from the <br /> <span className="gradient-text glow-text">Comfort of Your Home</span>
-          </motion.h2>
+            Master Global Languages, Software & Workforce Skills.
+            <br />
+            <span className="gradient-text glow-text">All in One Unified Platform</span>
+          </motion.h1>
+
+          {/* Subtitle */}
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            style={{ fontSize: 'clamp(1rem, 2vw + 0.5rem, 1.25rem)', color: '#e0e0e0', marginBottom: '2.5rem' }}
+            transition={{ duration: 0.8, delay: 0.25 }}
+            style={{ fontSize: 'clamp(1.05rem, 1.8vw + 0.4rem, 1.25rem)', color: '#f0ceb3', maxWidth: '820px', margin: '0 auto 2.2rem auto', lineHeight: '1.65' }}
           >
-            Join a next-generation learning platform designed to make Arabic accessible, engaging, and deeply fulfilling.
+            Accredited language mastery, technical software certification tracks, 1-on-1 certified trainer bookings, and in-house modular ERP/LMS solutions built for ambitious learners and enterprise organizations.
           </motion.p>
 
+          {/* Smart Unified Search Bar */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8, delay: 0.4 }}
-            style={{ display: 'flex', gap: '1.5rem', justifyContent: 'center' }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.35 }}
+            className="glass-panel"
+            style={{ maxWidth: '780px', margin: '0 auto 2.4rem auto', padding: '0.85rem 1rem', borderRadius: '22px', border: '1px solid rgba(241, 163, 42, 0.28)', boxShadow: '0 12px 36px rgba(0,0,0,0.45)', textAlign: 'left' }}
           >
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.98 }}>
-              <Link to="/admission" className="btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '16px 40px', fontSize: '1.1rem', textDecoration: 'none' }}>
-                Get Started <ArrowRight size={20} />
+            {/* Search Category Tabs */}
+            <div style={{ display: 'flex', gap: '0.45rem', overflowX: 'auto', paddingBottom: '0.5rem', marginBottom: '0.5rem' }}>
+              {searchCategories.map((cat) => (
+                <button
+                  key={cat.id}
+                  onClick={() => setSearchCategory(cat.id)}
+                  style={{
+                    padding: '6px 14px',
+                    borderRadius: '16px',
+                    fontSize: '0.82rem',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    border: 'none',
+                    background: searchCategory === cat.id ? 'var(--color-primary)' : 'rgba(255,255,255,0.06)',
+                    color: searchCategory === cat.id ? '#2c050d' : '#f0ceb3',
+                    transition: 'all 0.2s ease',
+                    whiteSpace: 'nowrap',
+                    fontFamily: 'var(--font-sans)'
+                  }}
+                >
+                  {cat.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Search Input & Action Button */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <Search size={20} color="var(--color-primary)" style={{ flexShrink: 0 }} />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder={getSearchPlaceholder(searchCategory)}
+                style={{
+                  flex: 1,
+                  background: 'transparent',
+                  border: 'none',
+                  color: '#fff',
+                  fontSize: '0.98rem',
+                  outline: 'none',
+                  fontFamily: 'var(--font-sans)',
+                  padding: '4px 0'
+                }}
+              />
+              <Link
+                to={searchCategory === 'erp' ? '#enterprise-erp' : '/admission'}
+                className="btn-primary"
+                style={{
+                  padding: '10px 24px',
+                  fontSize: '0.92rem',
+                  borderRadius: '20px',
+                  textDecoration: 'none',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.4rem',
+                  whiteSpace: 'nowrap'
+                }}
+              >
+                Search <ArrowRight size={16} />
               </Link>
-            </motion.div>
+            </div>
+          </motion.div>
+
+          {/* Dual Action CTAs */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.8, delay: 0.45 }}
+            style={{ display: 'flex', gap: '1.25rem', justifyContent: 'center', flexWrap: 'wrap', marginBottom: '3.5rem' }}
+          >
+            <Link
+              to="/admission"
+              className="btn-primary"
+              style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '16px 36px', fontSize: '1.05rem', textDecoration: 'none' }}
+            >
+              Explore Courses & Programs <ArrowRight size={18} />
+            </Link>
+
+            <button
+              onClick={() => {
+                setErpSubmitted(false);
+                setErpModalOpen(true);
+              }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.6rem',
+                padding: '16px 32px',
+                fontSize: '1.05rem',
+                borderRadius: '30px',
+                background: 'rgba(105, 14, 31, 0.45)',
+                border: '1px solid rgba(241, 163, 42, 0.35)',
+                color: 'var(--color-primary)',
+                fontWeight: '600',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                fontFamily: 'var(--font-sans)'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgba(241, 163, 42, 0.15)';
+                e.currentTarget.style.borderColor = 'var(--color-primary)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'rgba(105, 14, 31, 0.45)';
+                e.currentTarget.style.borderColor = 'rgba(241, 163, 42, 0.35)';
+              }}
+            >
+              <Building2 size={18} /> Request ERP Demo
+            </button>
+          </motion.div>
+
+          {/* Metrics Trust Bar (4 Key Proof Points) */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.55 }}
+            style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.25rem', width: '100%' }}
+          >
+            <div className="glass-panel" style={{ padding: '1.25rem 1rem', textAlign: 'center', borderRadius: '16px' }}>
+              <div style={{ fontSize: '1.8rem', fontWeight: '800', color: 'var(--color-primary)', marginBottom: '0.2rem' }}>200+</div>
+              <div style={{ fontSize: '0.88rem', color: '#f0ceb3', fontWeight: '500' }}>Progressive Interactive Levels</div>
+            </div>
+
+            <div className="glass-panel" style={{ padding: '1.25rem 1rem', textAlign: 'center', borderRadius: '16px' }}>
+              <div style={{ fontSize: '1.8rem', fontWeight: '800', color: 'var(--color-primary)', marginBottom: '0.2rem' }}>1-on-1</div>
+              <div style={{ fontSize: '0.88rem', color: '#f0ceb3', fontWeight: '500' }}>Certified Private Mentors</div>
+            </div>
+
+            <div className="glass-panel" style={{ padding: '1.25rem 1rem', textAlign: 'center', borderRadius: '16px' }}>
+              <div style={{ fontSize: '1.8rem', fontWeight: '800', color: 'var(--color-primary)', marginBottom: '0.2rem' }}>100%</div>
+              <div style={{ fontSize: '0.88rem', color: '#f0ceb3', fontWeight: '500' }}>Verifiable Digital Certificates</div>
+            </div>
+
+            <div className="glass-panel" style={{ padding: '1.25rem 1rem', textAlign: 'center', borderRadius: '16px' }}>
+              <div style={{ fontSize: '1.8rem', fontWeight: '800', color: 'var(--color-primary)', marginBottom: '0.2rem' }}>Enterprise</div>
+              <div style={{ fontSize: '0.88rem', color: '#f0ceb3', fontWeight: '500' }}>In-House Modular ERP & LMS</div>
+            </div>
           </motion.div>
         </div>
       </section>
+
+      {/* ======================================================== */}
+      {/* 2. EMAM ECOSYSTEM 360 (Salesforce-Inspired Interactive)  */}
+      {/* ======================================================== */}
+      <section id="ecosystem" style={{ padding: '5.5rem 1.5rem', maxWidth: '1200px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-50px' }}
+          transition={{ duration: 0.6 }}
+          style={{ textAlign: 'center', marginBottom: '3.5rem' }}
+        >
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', padding: '6px 16px', borderRadius: '20px', background: 'rgba(241, 163, 42, 0.1)', border: '1px solid rgba(241, 163, 42, 0.25)', color: 'var(--color-primary)', fontSize: '0.8rem', fontWeight: '600', letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: '0.85rem' }}>
+            <Layers size={14} color="var(--color-primary)" />
+            <span>Unified Platform Ecosystem</span>
+          </div>
+          <h2 style={{ fontSize: 'clamp(2rem, 3.5vw, 3rem)', fontWeight: '800', marginBottom: '1rem' }} className="gradient-text">
+            The Emam 360° Ecosystem
+          </h2>
+          <p style={{ color: '#f0ceb3', maxWidth: '720px', margin: '0 auto', fontSize: '1.05rem', lineHeight: '1.6' }}>
+            Connecting learners, professional trainers, enterprise clients, and institutional management within a unified, high-trust technological architecture.
+          </p>
+        </motion.div>
+
+        {/* 4 Pillars Interactive Grid */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(270px, 1fr))', gap: '1.5rem', marginBottom: '2.5rem' }}>
+          {ecosystemPillars.map((pillar) => {
+            const IconComponent = pillar.icon;
+            const isSelected = activePillar === pillar.id;
+            return (
+              <motion.div
+                key={pillar.id}
+                whileHover={{ y: -6 }}
+                onClick={() => setActivePillar(pillar.id)}
+                className="glass-panel"
+                style={{
+                  padding: '2rem 1.5rem',
+                  borderRadius: '20px',
+                  cursor: 'pointer',
+                  border: isSelected ? '2px solid var(--color-primary)' : '1px solid rgba(241, 163, 42, 0.18)',
+                  background: isSelected ? 'rgba(105, 14, 31, 0.45)' : 'rgba(105, 14, 31, 0.18)',
+                  boxShadow: isSelected ? '0 12px 30px rgba(241, 163, 42, 0.2)' : 'none',
+                  transition: 'all 0.3s ease',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between'
+                }}
+              >
+                <div>
+                  <div style={{ width: '52px', height: '52px', borderRadius: '14px', background: isSelected ? 'var(--color-primary)' : 'rgba(241, 163, 42, 0.12)', border: '1px solid rgba(241, 163, 42, 0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: isSelected ? '#2c050d' : 'var(--color-primary)', marginBottom: '1.25rem', transition: 'all 0.3s ease' }}>
+                    <IconComponent size={26} />
+                  </div>
+                  <h3 style={{ fontSize: '1.25rem', fontWeight: '700', color: 'var(--color-white)', marginBottom: '0.4rem' }}>
+                    {pillar.title}
+                  </h3>
+                  <p style={{ color: 'var(--color-primary)', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.85rem' }}>
+                    {pillar.tagline}
+                  </p>
+                  <p style={{ color: '#e0d0c8', fontSize: '0.9rem', lineHeight: '1.55', marginBottom: '1.2rem' }}>
+                    {pillar.desc}
+                  </p>
+                </div>
+
+                <div style={{ borderTop: '1px solid rgba(241, 163, 42, 0.15)', paddingTop: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: isSelected ? 'var(--color-primary)' : '#f0ceb3', fontSize: '0.85rem', fontWeight: '600' }}>
+                  <span>{isSelected ? 'Currently Viewing' : 'Click to Inspect'}</span>
+                  <ArrowRight size={16} />
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
+
+        {/* Selected Pillar Detailed Showcase Box */}
+        {(() => {
+          const selected = ecosystemPillars.find((p) => p.id === activePillar) || ecosystemPillars[0];
+          const SelectedIcon = selected.icon;
+          return (
+            <motion.div
+              key={selected.id}
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.35 }}
+              className="glass-panel"
+              style={{
+                padding: '2.5rem',
+                borderRadius: '24px',
+                border: '1px solid rgba(241, 163, 42, 0.3)',
+                background: 'linear-gradient(135deg, rgba(105, 14, 31, 0.55), rgba(44, 5, 13, 0.85))'
+              }}
+            >
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '2rem', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ flex: '1', minWidth: '280px' }}>
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', color: 'var(--color-primary)', fontWeight: '700', fontSize: '0.85rem', textTransform: 'uppercase', marginBottom: '0.6rem' }}>
+                    <SelectedIcon size={18} />
+                    <span>Deep Architecture Spotlight</span>
+                  </div>
+                  <h3 style={{ fontSize: '1.8rem', fontWeight: '800', color: 'var(--color-white)', marginBottom: '0.5rem' }}>
+                    {selected.title}
+                  </h3>
+                  <p style={{ color: '#f0ceb3', fontSize: '1.05rem', marginBottom: '1.5rem', lineHeight: '1.6' }}>
+                    {selected.desc}
+                  </p>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '0.85rem' }}>
+                    {selected.highlights.map((h, i) => (
+                      <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.65rem', color: '#fdfdfd', fontSize: '0.92rem' }}>
+                        <CheckCircle2 size={18} color="var(--color-primary)" style={{ flexShrink: 0, marginTop: '2px' }} />
+                        <span>{h}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', alignItems: 'flex-end', justifyContent: 'center' }}>
+                  {selected.ctaLink ? (
+                    <a
+                      href={selected.ctaLink}
+                      className="btn-primary"
+                      style={{ padding: '14px 28px', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.95rem' }}
+                    >
+                      {selected.ctaText} <ArrowRight size={16} />
+                    </a>
+                  ) : (
+                    <button
+                      onClick={selected.action}
+                      className="btn-primary"
+                      style={{ padding: '14px 28px', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.95rem' }}
+                    >
+                      {selected.ctaText} <ArrowRight size={16} />
+                    </button>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          );
+        })()}
+      </section>
+
+      {/* ======================================================== */}
+      {/* ERP DEMO REQUEST MODAL                                   */}
+      {/* ======================================================== */}
+      <AnimatePresence>
+        {erpModalOpen && (
+          <div style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', background: 'rgba(0, 0, 0, 0.8)', backdropFilter: 'blur(8px)' }}>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="glass-panel"
+              style={{
+                width: '100%',
+                maxWidth: '560px',
+                borderRadius: '24px',
+                border: '1px solid rgba(241, 163, 42, 0.35)',
+                background: 'linear-gradient(135deg, rgba(105, 14, 31, 0.96), rgba(44, 5, 13, 0.98))',
+                padding: '2.5rem',
+                position: 'relative',
+                boxShadow: '0 20px 60px rgba(0, 0, 0, 0.8)'
+              }}
+            >
+              {/* Close Button */}
+              <button
+                onClick={() => setErpModalOpen(false)}
+                style={{ position: 'absolute', top: '1.25rem', right: '1.25rem', background: 'rgba(255, 255, 255, 0.1)', border: 'none', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', cursor: 'pointer' }}
+              >
+                <X size={18} />
+              </button>
+
+              {erpSubmitted ? (
+                <div style={{ textAlign: 'center', padding: '2rem 1rem' }}>
+                  <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'rgba(46, 204, 113, 0.15)', border: '1px solid #2ecc71', color: '#2ecc71', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem auto' }}>
+                    <Check size={32} />
+                  </div>
+                  <h3 style={{ fontSize: '1.6rem', color: '#fff', fontWeight: '700', marginBottom: '0.75rem' }}>Demo Request Received</h3>
+                  <p style={{ color: '#f0ceb3', fontSize: '0.98rem', lineHeight: '1.6', marginBottom: '2rem' }}>
+                    Thank you! Our enterprise solutions team has received your request and will reach out with a custom walkthrough and ERP proposal shortly.
+                  </p>
+                  <button
+                    onClick={() => setErpModalOpen(false)}
+                    className="btn-primary"
+                    style={{ padding: '12px 32px' }}
+                  >
+                    Done
+                  </button>
+                </div>
+              ) : (
+                <form onSubmit={handleErpSubmit}>
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', color: 'var(--color-primary)', fontSize: '0.8rem', fontWeight: '700', textTransform: 'uppercase', marginBottom: '0.5rem' }}>
+                    <Building2 size={16} />
+                    <span>Enterprise Software & ERP Solutions</span>
+                  </div>
+                  <h3 style={{ fontSize: '1.6rem', color: 'var(--color-white)', fontWeight: '800', marginBottom: '0.5rem' }}>
+                    Request Live ERP Walkthrough
+                  </h3>
+                  <p style={{ color: '#f0ceb3', fontSize: '0.9rem', marginBottom: '1.8rem', lineHeight: '1.5' }}>
+                    Discover how Emam's modular institutional ERP, admissions engine, and LMS can streamline your organization.
+                  </p>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '1.5rem' }}>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.85rem', color: '#f0ceb3', fontWeight: '600', marginBottom: '0.35rem' }}>Full Name *</label>
+                      <input
+                        type="text"
+                        required
+                        value={erpForm.name}
+                        onChange={(e) => setErpForm({ ...erpForm, name: e.target.value })}
+                        placeholder="e.g. Dr. Haris Mahmood"
+                        style={{ width: '100%', padding: '11px 14px', borderRadius: '10px', background: 'rgba(0, 0, 0, 0.3)', border: '1px solid rgba(241, 163, 42, 0.25)', color: '#fff', outline: 'none', boxSizing: 'border-box' }}
+                      />
+                    </div>
+
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.85rem', color: '#f0ceb3', fontWeight: '600', marginBottom: '0.35rem' }}>Organization / Institution Name</label>
+                      <input
+                        type="text"
+                        value={erpForm.organization}
+                        onChange={(e) => setErpForm({ ...erpForm, organization: e.target.value })}
+                        placeholder="e.g. Cambridge Academy / Oxford Global"
+                        style={{ width: '100%', padding: '11px 14px', borderRadius: '10px', background: 'rgba(0, 0, 0, 0.3)', border: '1px solid rgba(241, 163, 42, 0.25)', color: '#fff', outline: 'none', boxSizing: 'border-box' }}
+                      />
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '0.85rem', color: '#f0ceb3', fontWeight: '600', marginBottom: '0.35rem' }}>Work Email *</label>
+                        <input
+                          type="email"
+                          required
+                          value={erpForm.email}
+                          onChange={(e) => setErpForm({ ...erpForm, email: e.target.value })}
+                          placeholder="name@institution.com"
+                          style={{ width: '100%', padding: '11px 14px', borderRadius: '10px', background: 'rgba(0, 0, 0, 0.3)', border: '1px solid rgba(241, 163, 42, 0.25)', color: '#fff', outline: 'none', boxSizing: 'border-box' }}
+                        />
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '0.85rem', color: '#f0ceb3', fontWeight: '600', marginBottom: '0.35rem' }}>WhatsApp / Phone</label>
+                        <input
+                          type="text"
+                          value={erpForm.phone}
+                          onChange={(e) => setErpForm({ ...erpForm, phone: e.target.value })}
+                          placeholder="+44 20 7946 0991"
+                          style={{ width: '100%', padding: '11px 14px', borderRadius: '10px', background: 'rgba(0, 0, 0, 0.3)', border: '1px solid rgba(241, 163, 42, 0.25)', color: '#fff', outline: 'none', boxSizing: 'border-box' }}
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.85rem', color: '#f0ceb3', fontWeight: '600', marginBottom: '0.35rem' }}>Estimated Students / Requirements</label>
+                      <textarea
+                        rows={3}
+                        value={erpForm.requirements}
+                        onChange={(e) => setErpForm({ ...erpForm, requirements: e.target.value })}
+                        placeholder="Tell us about your team size, expected student volume, or custom module requirements..."
+                        style={{ width: '100%', padding: '11px 14px', borderRadius: '10px', background: 'rgba(0, 0, 0, 0.3)', border: '1px solid rgba(241, 163, 42, 0.25)', color: '#fff', outline: 'none', boxSizing: 'border-box', resize: 'vertical' }}
+                      />
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={erpSubmitting}
+                    className="btn-primary"
+                    style={{ width: '100%', padding: '14px', fontSize: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', opacity: erpSubmitting ? 0.7 : 1 }}
+                  >
+                    {erpSubmitting ? 'Submitting Request...' : 'Submit Demo Request'} <ArrowRight size={18} />
+                  </button>
+                </form>
+              )}
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       {/* Class Types Section */}
       <section style={{ padding: '5rem 2rem 2rem 2rem', maxWidth: '1200px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
