@@ -310,7 +310,7 @@ export function Home() {
       {/* ======================================================== */}
       {/* 1. ENTERPRISE HERO SECTION                               */}
       {/* ======================================================== */}
-      <section style={{ minHeight: '88vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '4rem 1.5rem 3rem', position: 'relative', overflow: 'hidden' }}>
+      <section style={{ minHeight: 'calc(100vh - 5.5rem)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '1.25rem 1.5rem 2.25rem', position: 'relative', overflow: 'hidden' }}>
         {/* Ambient Radial Glows (Burgundy & Gold) */}
         <motion.div
           animate={{
@@ -336,33 +336,33 @@ export function Home() {
         <div style={{ position: 'relative', zIndex: 1, maxWidth: '1000px', width: '100%', margin: '0 auto' }}>
           {/* Top Authority Pill Badge */}
           <motion.div
-            initial={{ opacity: 0, y: -20 }}
+            initial={{ opacity: 0, y: -15 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.6rem', padding: '8px 22px', borderRadius: '30px', background: 'rgba(241, 163, 42, 0.1)', border: '1px solid rgba(241, 163, 42, 0.28)', color: 'var(--color-primary)', fontSize: '0.85rem', fontWeight: '600', letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: '1.6rem' }}
+            transition={{ duration: 0.5 }}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', padding: '6px 18px', borderRadius: '30px', background: 'rgba(241, 163, 42, 0.1)', border: '1px solid rgba(241, 163, 42, 0.28)', color: 'var(--color-primary)', fontSize: '0.8rem', fontWeight: '600', letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: '0.9rem' }}
           >
-            <Sparkles size={16} color="var(--color-primary)" />
+            <Sparkles size={15} color="var(--color-primary)" />
             <span>Emam Platform • Enterprise Arabic Education SaaS</span>
           </motion.div>
 
           {/* Main Headline */}
           <motion.h1
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.1 }}
-            style={{ fontSize: 'clamp(2.3rem, 4.8vw + 0.8rem, 4.3rem)', fontWeight: '800', lineHeight: '1.15', marginBottom: '1.4rem', color: 'var(--color-white)', letterSpacing: '-0.5px' }}
+            transition={{ duration: 0.7, delay: 0.1 }}
+            style={{ fontSize: 'clamp(1.9rem, 3.2vw + 0.4rem, 3.2rem)', fontWeight: '800', lineHeight: '1.18', marginBottom: '1rem', color: 'var(--color-white)', letterSpacing: '-0.5px' }}
           >
-            The Cloud Learning & Institutional Management Platform
+            The Cloud Learning &amp;
             <br />
-            <span className="gradient-text glow-text">for Arabic Language Education</span>
+            <span className="gradient-text glow-text">Institutional Management Platform</span>
           </motion.h1>
 
           {/* Subtitle */}
           <motion.p
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.25 }}
-            style={{ fontSize: 'clamp(1.05rem, 1.8vw + 0.35rem, 1.25rem)', color: '#f0ceb3', maxWidth: '840px', margin: '0 auto 2.5rem auto', lineHeight: '1.65' }}
+            transition={{ duration: 0.7, delay: 0.2 }}
+            style={{ fontSize: 'clamp(0.92rem, 1.1vw + 0.15rem, 1.05rem)', color: '#f0ceb3', maxWidth: '760px', margin: '0 auto 1.6rem auto', lineHeight: '1.55' }}
           >
             A unified multi-tenant SaaS engineered for ambitious students, professional Arabic tutors, and language academies. Delivering CEFR-aligned curriculum, 200-level typing certification, virtual smart classrooms, and institutional management.
           </motion.p>
@@ -371,15 +371,15 @@ export function Home() {
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8, delay: 0.4 }}
-            style={{ display: 'flex', gap: '1.25rem', justifyContent: 'center', flexWrap: 'wrap', marginBottom: '3.8rem' }}
+            transition={{ duration: 0.7, delay: 0.35 }}
+            style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap', marginBottom: '2rem' }}
           >
             <a
               href="#pricing"
               className="btn-primary"
-              style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '16px 36px', fontSize: '1.05rem', textDecoration: 'none' }}
+              style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '13px 28px', fontSize: '0.98rem', textDecoration: 'none' }}
             >
-              Explore Pricing & Plans <ArrowRight size={18} />
+              Explore Pricing &amp; Plans <ArrowRight size={17} />
             </a>
 
             <button
@@ -390,9 +390,9 @@ export function Home() {
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '0.6rem',
-                padding: '16px 32px',
-                fontSize: '1.05rem',
+                gap: '0.5rem',
+                padding: '13px 26px',
+                fontSize: '0.98rem',
                 borderRadius: '30px',
                 background: 'rgba(105, 14, 31, 0.45)',
                 border: '1px solid rgba(241, 163, 42, 0.35)',
@@ -411,35 +411,35 @@ export function Home() {
                 e.currentTarget.style.borderColor = 'rgba(241, 163, 42, 0.35)';
               }}
             >
-              <Building2 size={18} /> Request Institute Onboarding
+              <Building2 size={17} /> Request Institute Onboarding
             </button>
           </motion.div>
 
           {/* Metrics Trust Bar (4 Proof Points) */}
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.55 }}
-            style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '1.25rem', width: '100%' }}
+            transition={{ duration: 0.7, delay: 0.45 }}
+            style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: '1rem', width: '100%', maxWidth: '940px', margin: '0 auto' }}
           >
-            <div className="glass-panel" style={{ padding: '1.5rem 1rem', textAlign: 'center', borderRadius: '16px' }}>
-              <div style={{ fontSize: '1.85rem', fontWeight: '800', color: 'var(--color-primary)', marginBottom: '0.25rem' }}>A1 – B2</div>
-              <div style={{ fontSize: '0.9rem', color: '#f0ceb3', fontWeight: '500' }}>CEFR Aligned Arabic Curriculum</div>
+            <div className="glass-panel" style={{ padding: '0.9rem 0.75rem', textAlign: 'center', borderRadius: '14px' }}>
+              <div style={{ fontSize: '1.55rem', fontWeight: '800', color: 'var(--color-primary)', marginBottom: '0.2rem' }}>A1 – B2</div>
+              <div style={{ fontSize: '0.82rem', color: '#f0ceb3', fontWeight: '500' }}>CEFR Aligned Arabic Curriculum</div>
             </div>
 
-            <div className="glass-panel" style={{ padding: '1.5rem 1rem', textAlign: 'center', borderRadius: '16px' }}>
-              <div style={{ fontSize: '1.85rem', fontWeight: '800', color: 'var(--color-primary)', marginBottom: '0.25rem' }}>200 Levels</div>
-              <div style={{ fontSize: '0.9rem', color: '#f0ceb3', fontWeight: '500' }}>Progressive Touch-Typing Lab</div>
+            <div className="glass-panel" style={{ padding: '0.9rem 0.75rem', textAlign: 'center', borderRadius: '14px' }}>
+              <div style={{ fontSize: '1.55rem', fontWeight: '800', color: 'var(--color-primary)', marginBottom: '0.2rem' }}>200 Levels</div>
+              <div style={{ fontSize: '0.82rem', color: '#f0ceb3', fontWeight: '500' }}>Progressive Touch-Typing Lab</div>
             </div>
 
-            <div className="glass-panel" style={{ padding: '1.5rem 1rem', textAlign: 'center', borderRadius: '16px' }}>
-              <div style={{ fontSize: '1.85rem', fontWeight: '800', color: 'var(--color-primary)', marginBottom: '0.25rem' }}>1-on-1 & Cohort</div>
-              <div style={{ fontSize: '0.9rem', color: '#f0ceb3', fontWeight: '500' }}>Virtual Smart Classroom Studio</div>
+            <div className="glass-panel" style={{ padding: '0.9rem 0.75rem', textAlign: 'center', borderRadius: '14px' }}>
+              <div style={{ fontSize: '1.55rem', fontWeight: '800', color: 'var(--color-primary)', marginBottom: '0.2rem' }}>1-on-1 &amp; Cohort</div>
+              <div style={{ fontSize: '0.82rem', color: '#f0ceb3', fontWeight: '500' }}>Virtual Smart Classroom Studio</div>
             </div>
 
-            <div className="glass-panel" style={{ padding: '1.5rem 1rem', textAlign: 'center', borderRadius: '16px' }}>
-              <div style={{ fontSize: '1.85rem', fontWeight: '800', color: 'var(--color-primary)', marginBottom: '0.25rem' }}>Multi-Tenant</div>
-              <div style={{ fontSize: '0.9rem', color: '#f0ceb3', fontWeight: '500' }}>Dedicated Institutional Spaces</div>
+            <div className="glass-panel" style={{ padding: '0.9rem 0.75rem', textAlign: 'center', borderRadius: '14px' }}>
+              <div style={{ fontSize: '1.55rem', fontWeight: '800', color: 'var(--color-primary)', marginBottom: '0.2rem' }}>Multi-Tenant</div>
+              <div style={{ fontSize: '0.82rem', color: '#f0ceb3', fontWeight: '500' }}>Dedicated Institutional Spaces</div>
             </div>
           </motion.div>
         </div>

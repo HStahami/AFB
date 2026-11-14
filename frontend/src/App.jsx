@@ -121,7 +121,7 @@ function AppLayout() {
           flex: 1,
           display: 'flex',
           flexDirection: 'column',
-          paddingTop: isInstructorRoute || isStudentRoute ? '0' : isAdminRoute ? '2rem' : '8rem',
+          paddingTop: isInstructorRoute || isStudentRoute ? '0' : isAdminRoute ? '2rem' : '5.5rem',
           paddingLeft: isInstructorRoute || isStudentRoute ? '0' : isAdminRoute ? '2rem' : '0',
           paddingRight: isInstructorRoute || isStudentRoute ? '0' : isAdminRoute ? '2rem' : '0',
         }}
