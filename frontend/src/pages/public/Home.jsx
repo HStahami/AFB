@@ -1,29 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  ArrowRight,
-  Star,
-  ChevronLeft,
-  ChevronRight,
-  User,
-  Users,
-  CheckCircle2,
-  Sparkles,
-  Layers,
-  Briefcase,
-  BookOpen,
-  Building2,
-  ShieldCheck,
-  Award,
-  X,
-  Check,
-  HelpCircle,
-  Clock,
-  Calendar,
-  Monitor,
-  GraduationCap
-} from 'lucide-react';
 import { modulesApi, instructorsApi, contactApi } from '../../api';
 import { getAvatarUrl } from '../../api/client';
 
@@ -144,7 +121,6 @@ export function Home() {
     {
       id: 'student',
       label: 'For Students',
-      icon: GraduationCap,
       title: 'Accelerated Arabic Learning & Certification',
       subtitle: 'Complete student workspace engineered for syntax, morphology, and keyboard mastery.',
       points: [
@@ -160,7 +136,6 @@ export function Home() {
     {
       id: 'instructor',
       label: 'For Instructors',
-      icon: User,
       title: 'Dedicated Virtual Teaching Studio',
       subtitle: 'Professional workspace for Arabic tutors, language coaches, and linguistic scholars.',
       points: [
@@ -176,7 +151,6 @@ export function Home() {
     {
       id: 'institute',
       label: 'For Institutes & Academies',
-      icon: Building2,
       title: 'Multi-Tenant Institutional SaaS Environment',
       subtitle: 'Isolated institutional tenant space provisioned and governed by Emam Super Admin.',
       points: [
@@ -334,23 +308,12 @@ export function Home() {
         />
 
         <div style={{ position: 'relative', zIndex: 1, maxWidth: '1000px', width: '100%', margin: '0 auto' }}>
-          {/* Top Authority Pill Badge */}
-          <motion.div
-            initial={{ opacity: 0, y: -15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', padding: '6px 18px', borderRadius: '30px', background: 'rgba(241, 163, 42, 0.1)', border: '1px solid rgba(241, 163, 42, 0.28)', color: 'var(--color-primary)', fontSize: '0.8rem', fontWeight: '600', letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: '0.9rem' }}
-          >
-            <Sparkles size={15} color="var(--color-primary)" />
-            <span>Emam Platform • Enterprise Arabic Education SaaS</span>
-          </motion.div>
-
           {/* Main Headline */}
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.1 }}
-            style={{ fontSize: 'clamp(1.9rem, 3.2vw + 0.4rem, 3.2rem)', fontWeight: '800', lineHeight: '1.18', marginBottom: '1rem', color: 'var(--color-white)', letterSpacing: '-0.5px' }}
+            style={{ fontSize: 'clamp(2.1rem, 3.4vw + 0.4rem, 3.4rem)', fontWeight: '800', lineHeight: '1.2', marginBottom: '1.1rem', color: 'var(--color-white)', letterSpacing: '-0.5px' }}
           >
             The Cloud Learning &amp;
             <br />
@@ -362,7 +325,7 @@ export function Home() {
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.2 }}
-            style={{ fontSize: 'clamp(0.92rem, 1.1vw + 0.15rem, 1.05rem)', color: '#f0ceb3', maxWidth: '760px', margin: '0 auto 1.6rem auto', lineHeight: '1.55' }}
+            style={{ fontSize: 'clamp(0.95rem, 1.1vw + 0.15rem, 1.08rem)', color: '#f0ceb3', maxWidth: '760px', margin: '0 auto 1.8rem auto', lineHeight: '1.6' }}
           >
             A unified multi-tenant SaaS engineered for ambitious students, professional Arabic tutors, and language academies. Delivering CEFR-aligned curriculum, 200-level typing certification, virtual smart classrooms, and institutional management.
           </motion.p>
@@ -377,9 +340,9 @@ export function Home() {
             <a
               href="#pricing"
               className="btn-primary"
-              style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '13px 28px', fontSize: '0.98rem', textDecoration: 'none' }}
+              style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '13px 28px', fontSize: '0.98rem', textDecoration: 'none' }}
             >
-              Explore Pricing &amp; Plans <ArrowRight size={17} />
+              Explore Pricing &amp; Plans
             </a>
 
             <button
@@ -388,9 +351,9 @@ export function Home() {
                 setInstituteModalOpen(true);
               }}
               style={{
-                display: 'flex',
+                display: 'inline-flex',
                 alignItems: 'center',
-                gap: '0.5rem',
+                justifyContent: 'center',
                 padding: '13px 26px',
                 fontSize: '0.98rem',
                 borderRadius: '30px',
@@ -411,7 +374,7 @@ export function Home() {
                 e.currentTarget.style.borderColor = 'rgba(241, 163, 42, 0.35)';
               }}
             >
-              <Building2 size={17} /> Request Institute Onboarding
+              Request Institute Onboarding
             </button>
           </motion.div>
 
@@ -454,12 +417,8 @@ export function Home() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-50px' }}
           transition={{ duration: 0.6 }}
-          style={{ textAlign: 'center', marginBottom: '3.5rem' }}
+          style={{ textAlign: 'center', marginBottom: '3rem' }}
         >
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', padding: '6px 16px', borderRadius: '20px', background: 'rgba(241, 163, 42, 0.1)', border: '1px solid rgba(241, 163, 42, 0.25)', color: 'var(--color-primary)', fontSize: '0.8rem', fontWeight: '600', letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: '0.85rem' }}>
-            <Layers size={14} color="var(--color-primary)" />
-            <span>Integrated Platform Architecture</span>
-          </div>
           <h2 style={{ fontSize: 'clamp(2rem, 3.5vw, 2.9rem)', fontWeight: '800', marginBottom: '1rem' }} className="gradient-text">
             Engineered for Three Distinct Stakeholders
           </h2>
@@ -471,16 +430,15 @@ export function Home() {
         {/* Tab Selection */}
         <div style={{ display: 'flex', justifyContent: 'center', gap: '0.75rem', marginBottom: '2.5rem', flexWrap: 'wrap' }}>
           {audiencePillars.map((p) => {
-            const Icon = p.icon;
             const active = activeAudience === p.id;
             return (
               <button
                 key={p.id}
                 onClick={() => setActiveAudience(p.id)}
                 style={{
-                  display: 'flex',
+                  display: 'inline-flex',
                   alignItems: 'center',
-                  gap: '0.6rem',
+                  justifyContent: 'center',
                   padding: '12px 24px',
                   borderRadius: '30px',
                   border: active ? '1px solid var(--color-primary)' : '1px solid rgba(241, 163, 42, 0.2)',
@@ -493,7 +451,6 @@ export function Home() {
                   fontFamily: 'var(--font-sans)'
                 }}
               >
-                <Icon size={18} />
                 <span>{p.label}</span>
               </button>
             );
@@ -503,7 +460,6 @@ export function Home() {
         {/* Audience Content Display */}
         {(() => {
           const current = audiencePillars.find((p) => p.id === activeAudience) || audiencePillars[0];
-          const CurrentIcon = current.icon;
           return (
             <motion.div
               key={current.id}
@@ -520,9 +476,8 @@ export function Home() {
             >
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '2.5rem', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div style={{ flex: '1', minWidth: '300px' }}>
-                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', color: 'var(--color-primary)', fontWeight: '700', fontSize: '0.85rem', textTransform: 'uppercase', marginBottom: '0.6rem' }}>
-                    <CurrentIcon size={18} />
-                    <span>Workspace Specification</span>
+                  <div style={{ color: 'var(--color-primary)', fontWeight: '700', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '0.6rem' }}>
+                    Workspace Specification
                   </div>
                   <h3 style={{ fontSize: 'clamp(1.6rem, 2.5vw, 2.2rem)', fontWeight: '800', color: 'var(--color-white)', marginBottom: '0.6rem' }}>
                     {current.title}
@@ -533,8 +488,8 @@ export function Home() {
 
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '0.9rem' }}>
                     {current.points.map((pt, i) => (
-                      <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.65rem', color: '#fdfdfd', fontSize: '0.94rem' }}>
-                        <CheckCircle2 size={18} color="var(--color-primary)" style={{ flexShrink: 0, marginTop: '3px' }} />
+                      <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', color: '#fdfdfd', fontSize: '0.94rem', lineHeight: '1.5' }}>
+                        <span style={{ color: 'var(--color-primary)', fontWeight: '700', flexShrink: 0 }}>—</span>
                         <span>{pt}</span>
                       </div>
                     ))}
@@ -549,17 +504,17 @@ export function Home() {
                         setInstituteModalOpen(true);
                       }}
                       className="btn-primary"
-                      style={{ padding: '14px 30px', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.95rem' }}
+                      style={{ padding: '14px 30px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.95rem' }}
                     >
-                      {current.actionLabel} <ArrowRight size={16} />
+                      {current.actionLabel}
                     </button>
                   ) : (
                     <Link
                       to={current.actionLink}
                       className="btn-primary"
-                      style={{ padding: '14px 30px', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.95rem' }}
+                      style={{ padding: '14px 30px', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.95rem' }}
                     >
-                      {current.actionLabel} <ArrowRight size={16} />
+                      {current.actionLabel}
                     </Link>
                   )}
                 </div>
@@ -596,13 +551,8 @@ export function Home() {
             style={{ padding: '2.5rem', borderRadius: '20px', border: '1px solid rgba(241, 163, 42, 0.22)', background: 'rgba(105, 14, 31, 0.22)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}
           >
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
-                <div style={{ width: '56px', height: '56px', borderRadius: '14px', background: 'rgba(241, 163, 42, 0.12)', border: '1px solid rgba(241, 163, 42, 0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-primary)' }}>
-                  <User size={28} />
-                </div>
-                <span style={{ fontSize: '0.8rem', fontWeight: '600', padding: '6px 14px', borderRadius: '20px', background: 'rgba(241, 163, 42, 0.1)', color: 'var(--color-primary)', border: '1px solid rgba(241, 163, 42, 0.25)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                  Weekday Format
-                </span>
+              <div style={{ color: 'var(--color-primary)', fontSize: '0.82rem', fontWeight: '700', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '0.8rem' }}>
+                Weekday Format
               </div>
 
               <h3 style={{ fontSize: '1.6rem', fontWeight: '700', color: 'var(--color-white)', marginBottom: '0.4rem' }}>
@@ -616,16 +566,16 @@ export function Home() {
               </p>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: '#fdfdfd', fontSize: '0.95rem' }}>
-                  <CheckCircle2 size={18} color="var(--color-primary)" style={{ flexShrink: 0 }} />
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', color: '#fdfdfd', fontSize: '0.95rem', lineHeight: '1.5' }}>
+                  <span style={{ color: 'var(--color-primary)', fontWeight: '700', flexShrink: 0 }}>—</span>
                   <span>100% individual mentor engagement</span>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: '#fdfdfd', fontSize: '0.95rem' }}>
-                  <CheckCircle2 size={18} color="var(--color-primary)" style={{ flexShrink: 0 }} />
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', color: '#fdfdfd', fontSize: '0.95rem', lineHeight: '1.5' }}>
+                  <span style={{ color: 'var(--color-primary)', fontWeight: '700', flexShrink: 0 }}>—</span>
                   <span>Customizable weekly time slots</span>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: '#fdfdfd', fontSize: '0.95rem' }}>
-                  <CheckCircle2 size={18} color="var(--color-primary)" style={{ flexShrink: 0 }} />
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', color: '#fdfdfd', fontSize: '0.95rem', lineHeight: '1.5' }}>
+                  <span style={{ color: 'var(--color-primary)', fontWeight: '700', flexShrink: 0 }}>—</span>
                   <span>Rapid correction and spoken fluency drills</span>
                 </div>
               </div>
@@ -639,17 +589,12 @@ export function Home() {
             style={{ padding: '2.5rem', borderRadius: '20px', border: '1px solid rgba(241, 163, 42, 0.22)', background: 'rgba(105, 14, 31, 0.22)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}
           >
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
-                <div style={{ width: '56px', height: '56px', borderRadius: '14px', background: 'rgba(241, 163, 42, 0.12)', border: '1px solid rgba(241, 163, 42, 0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-primary)' }}>
-                  <Users size={28} />
-                </div>
-                <span style={{ fontSize: '0.8rem', fontWeight: '600', padding: '6px 14px', borderRadius: '20px', background: 'rgba(241, 163, 42, 0.1)', color: 'var(--color-primary)', border: '1px solid rgba(241, 163, 42, 0.25)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                  Weekend Format
-                </span>
+              <div style={{ color: 'var(--color-primary)', fontSize: '0.82rem', fontWeight: '700', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '0.8rem' }}>
+                Weekend Format
               </div>
 
               <h3 style={{ fontSize: '1.6rem', fontWeight: '700', color: 'var(--color-white)', marginBottom: '0.4rem' }}>
-                Saturday & Sunday
+                Saturday &amp; Sunday
               </h3>
               <p style={{ fontSize: '1.15rem', color: 'var(--color-primary)', fontWeight: '600', marginBottom: '1.2rem' }}>
                 Collaborative Cohorts + 1 on 1
@@ -659,16 +604,16 @@ export function Home() {
               </p>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: '#fdfdfd', fontSize: '0.95rem' }}>
-                  <CheckCircle2 size={18} color="var(--color-primary)" style={{ flexShrink: 0 }} />
-                  <span>Interactive peer discussions & group exercises</span>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', color: '#fdfdfd', fontSize: '0.95rem', lineHeight: '1.5' }}>
+                  <span style={{ color: 'var(--color-primary)', fontWeight: '700', flexShrink: 0 }}>—</span>
+                  <span>Interactive peer discussions &amp; group exercises</span>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: '#fdfdfd', fontSize: '0.95rem' }}>
-                  <CheckCircle2 size={18} color="var(--color-primary)" style={{ flexShrink: 0 }} />
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', color: '#fdfdfd', fontSize: '0.95rem', lineHeight: '1.5' }}>
+                  <span style={{ color: 'var(--color-primary)', fontWeight: '700', flexShrink: 0 }}>—</span>
                   <span>Flexible weekend consultation hours</span>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: '#fdfdfd', fontSize: '0.95rem' }}>
-                  <CheckCircle2 size={18} color="var(--color-primary)" style={{ flexShrink: 0 }} />
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', color: '#fdfdfd', fontSize: '0.95rem', lineHeight: '1.5' }}>
+                  <span style={{ color: 'var(--color-primary)', fontWeight: '700', flexShrink: 0 }}>—</span>
                   <span>Ideal for professionals balancing full-time work</span>
                 </div>
               </div>
@@ -688,10 +633,6 @@ export function Home() {
           transition={{ duration: 0.6 }}
           style={{ textAlign: 'center', marginBottom: '3.5rem' }}
         >
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', padding: '6px 16px', borderRadius: '20px', background: 'rgba(241, 163, 42, 0.1)', border: '1px solid rgba(241, 163, 42, 0.25)', color: 'var(--color-primary)', fontSize: '0.8rem', fontWeight: '600', letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: '0.85rem' }}>
-            <BookOpen size={14} color="var(--color-primary)" />
-            <span>Structured Academic Tracks</span>
-          </div>
           <h2 style={{ fontSize: 'clamp(2rem, 3.5vw, 2.75rem)', fontWeight: '800', marginBottom: '1rem' }} className="gradient-text">
             Arabic Language Curriculum Levels
           </h2>
@@ -741,9 +682,9 @@ export function Home() {
                   </p>
                   <Link
                     to="/admission"
-                    style={{ color: 'var(--color-primary)', fontSize: '0.88rem', fontWeight: '700', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.35rem' }}
+                    style={{ color: 'var(--color-primary)', fontSize: '0.88rem', fontWeight: '700', textDecoration: 'none' }}
                   >
-                    Apply for Level <ArrowRight size={14} />
+                    Apply for Level
                   </Link>
                 </motion.div>
               );
@@ -763,10 +704,6 @@ export function Home() {
           transition={{ duration: 0.6 }}
           style={{ textAlign: 'center', marginBottom: '3.5rem' }}
         >
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', padding: '6px 16px', borderRadius: '20px', background: 'rgba(241, 163, 42, 0.1)', border: '1px solid rgba(241, 163, 42, 0.25)', color: 'var(--color-primary)', fontSize: '0.8rem', fontWeight: '600', letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: '0.85rem' }}>
-            <Users size={14} color="var(--color-primary)" />
-            <span>Certified Teaching Faculty</span>
-          </div>
           <h2 style={{ fontSize: 'clamp(2rem, 3.5vw, 2.75rem)', fontWeight: '800', marginBottom: '1rem' }} className="gradient-text">
             Learn from Verified Arabic Instructors
           </h2>
@@ -791,7 +728,7 @@ export function Home() {
               className="glass-panel"
               style={{ position: 'absolute', left: '0', top: '50%', transform: 'translateY(-50%)', zIndex: 10, width: '40px', height: '40px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: startIndex === 0 ? 'not-allowed' : 'pointer', border: '1px solid var(--color-primary)', background: 'var(--color-bg-dark)', opacity: startIndex === 0 ? 0.3 : 1 }}
             >
-              <ChevronLeft color="var(--color-primary)" />
+              <span style={{ color: 'var(--color-primary)', fontSize: '1.4rem', fontWeight: '700', lineHeight: '1' }}>&larr;</span>
             </motion.button>
 
             <div style={{ display: 'grid', gridTemplateColumns: `repeat(${itemsToShow}, 1fr)`, gap: '2rem', paddingBottom: '2rem' }}>
@@ -836,7 +773,7 @@ export function Home() {
               className="glass-panel"
               style={{ position: 'absolute', right: '0', top: '50%', transform: 'translateY(-50%)', zIndex: 10, width: '40px', height: '40px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: startIndex >= Math.max(0, instructors.length - itemsToShow) ? 'not-allowed' : 'pointer', border: '1px solid var(--color-primary)', background: 'var(--color-bg-dark)', opacity: startIndex >= Math.max(0, instructors.length - itemsToShow) ? 0.3 : 1 }}
             >
-              <ChevronRight color="var(--color-primary)" />
+              <span style={{ color: 'var(--color-primary)', fontSize: '1.4rem', fontWeight: '700', lineHeight: '1' }}>&rarr;</span>
             </motion.button>
           </div>
         )}
@@ -853,10 +790,6 @@ export function Home() {
           transition={{ duration: 0.6 }}
           style={{ textAlign: 'center', marginBottom: '3rem' }}
         >
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', padding: '6px 16px', borderRadius: '20px', background: 'rgba(241, 163, 42, 0.1)', border: '1px solid rgba(241, 163, 42, 0.25)', color: 'var(--color-primary)', fontSize: '0.8rem', fontWeight: '600', letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: '0.85rem' }}>
-            <Award size={14} color="var(--color-primary)" />
-            <span>Transparent SaaS Licensing</span>
-          </div>
           <h2 style={{ fontSize: 'clamp(2.1rem, 3.8vw, 3rem)', fontWeight: '800', marginBottom: '1rem' }} className="gradient-text">
             Subscription Plans for Every Stage
           </h2>
@@ -924,11 +857,9 @@ export function Home() {
                 }}
               >
                 <div>
-                  {/* Top Badge */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-                    <span style={{ fontSize: '0.8rem', fontWeight: '700', padding: '5px 12px', borderRadius: '14px', background: tier.isPopular ? 'var(--color-primary)' : 'rgba(241, 163, 42, 0.12)', color: tier.isPopular ? '#2c050d' : 'var(--color-primary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                      {tier.badge}
-                    </span>
+                  {/* Top Identifier */}
+                  <div style={{ fontSize: '0.82rem', fontWeight: '700', color: tier.isPopular ? 'var(--color-primary)' : '#f0ceb3', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '1.25rem' }}>
+                    {tier.badge}
                   </div>
 
                   <h3 style={{ fontSize: '1.75rem', fontWeight: '800', color: 'var(--color-white)', marginBottom: '0.5rem' }}>
@@ -951,8 +882,8 @@ export function Home() {
                   {/* Features List */}
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem', marginBottom: '2.25rem' }}>
                     {tier.features.map((feat, idx) => (
-                      <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', fontSize: '0.93rem', color: '#fdfdfd' }}>
-                        <Check size={18} color="var(--color-primary)" style={{ flexShrink: 0, marginTop: '2px' }} />
+                      <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', fontSize: '0.93rem', color: '#fdfdfd', lineHeight: '1.5' }}>
+                        <span style={{ color: 'var(--color-primary)', fontWeight: '700', flexShrink: 0 }}>—</span>
                         <span>{feat}</span>
                       </div>
                     ))}
@@ -969,9 +900,9 @@ export function Home() {
                         setInstituteModalOpen(true);
                       }}
                       className="btn-primary"
-                      style={{ width: '100%', padding: '14px', fontSize: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
+                      style={{ width: '100%', padding: '14px', fontSize: '1rem', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
                     >
-                      {tier.ctaText} <ArrowRight size={18} />
+                      {tier.ctaText}
                     </button>
                   ) : (
                     <Link
@@ -981,10 +912,9 @@ export function Home() {
                         width: '100%',
                         padding: '14px',
                         fontSize: '1rem',
-                        display: 'flex',
+                        display: 'inline-flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        gap: '0.5rem',
                         borderRadius: '30px',
                         textDecoration: 'none',
                         background: tier.isPopular ? undefined : 'rgba(241, 163, 42, 0.1)',
@@ -994,7 +924,7 @@ export function Home() {
                         boxSizing: 'border-box'
                       }}
                     >
-                      {tier.ctaText} <ArrowRight size={18} />
+                      {tier.ctaText}
                     </Link>
                   )}
                 </div>
@@ -1019,9 +949,8 @@ export function Home() {
         >
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2.5rem', alignItems: 'center' }}>
             <div>
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', color: 'var(--color-primary)', fontSize: '0.82rem', fontWeight: '700', textTransform: 'uppercase', marginBottom: '0.75rem' }}>
-                <ShieldCheck size={18} />
-                <span>Super Admin Governed • Complete Data Isolation</span>
+              <div style={{ color: 'var(--color-primary)', fontSize: '0.82rem', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '0.75rem' }}>
+                Super Admin Governed • Complete Data Isolation
               </div>
               <h2 style={{ fontSize: 'clamp(1.8rem, 3vw, 2.6rem)', fontWeight: '800', color: 'var(--color-white)', marginBottom: '1rem', lineHeight: '1.2' }}>
                 How Emam Multi-Tenant Architecture Protects Your Academy
@@ -1032,7 +961,7 @@ export function Home() {
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
-                  <CheckCircle2 size={20} color="var(--color-primary)" style={{ flexShrink: 0, marginTop: '2px' }} />
+                  <span style={{ color: 'var(--color-primary)', fontWeight: '800', fontSize: '1.1rem', flexShrink: 0, lineHeight: '1.2' }}>—</span>
                   <div>
                     <strong style={{ color: '#fff', fontSize: '1rem' }}>Isolated Student Lifecycle</strong>
                     <p style={{ color: '#e0d0c8', fontSize: '0.88rem', margin: '2px 0 0 0' }}>Sequential student IDs (EMAM-YYYY-XXXX), private enrollment records, and dedicated admission forms.</p>
@@ -1040,15 +969,15 @@ export function Home() {
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
-                  <CheckCircle2 size={20} color="var(--color-primary)" style={{ flexShrink: 0, marginTop: '2px' }} />
+                  <span style={{ color: 'var(--color-primary)', fontWeight: '800', fontSize: '1.1rem', flexShrink: 0, lineHeight: '1.2' }}>—</span>
                   <div>
-                    <strong style={{ color: '#fff', fontSize: '1rem' }}>Financial & Fee Verification Engine</strong>
+                    <strong style={{ color: '#fff', fontSize: '1rem' }}>Financial &amp; Fee Verification Engine</strong>
                     <p style={{ color: '#e0d0c8', fontSize: '0.88rem', margin: '2px 0 0 0' }}>Institutional bank account reconciliation, proof verification, and automated email receipts.</p>
                   </div>
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
-                  <CheckCircle2 size={20} color="var(--color-primary)" style={{ flexShrink: 0, marginTop: '2px' }} />
+                  <span style={{ color: 'var(--color-primary)', fontWeight: '800', fontSize: '1.1rem', flexShrink: 0, lineHeight: '1.2' }}>—</span>
                   <div>
                     <strong style={{ color: '#fff', fontSize: '1rem' }}>Centralized Super Admin Oversight</strong>
                     <p style={{ color: '#e0d0c8', fontSize: '0.88rem', margin: '2px 0 0 0' }}>Emam guarantees 99.9% platform availability, server security hardening, and regular feature updates.</p>
@@ -1057,9 +986,8 @@ export function Home() {
               </div>
             </div>
 
-            <div style={{ textAlign: 'center', padding: '2rem', borderRadius: '20px', background: 'rgba(0, 0, 0, 0.35)', border: '1px solid rgba(241, 163, 42, 0.2)' }}>
-              <Building2 size={48} color="var(--color-primary)" style={{ margin: '0 auto 1.25rem auto' }} />
-              <h3 style={{ fontSize: '1.5rem', color: '#fff', fontWeight: '700', marginBottom: '0.5rem' }}>
+            <div style={{ textAlign: 'center', padding: '2.5rem 2rem', borderRadius: '20px', background: 'rgba(0, 0, 0, 0.35)', border: '1px solid rgba(241, 163, 42, 0.2)' }}>
+              <h3 style={{ fontSize: '1.5rem', color: '#fff', fontWeight: '700', marginBottom: '0.6rem' }}>
                 Deploy Emam for Your Academy
               </h3>
               <p style={{ color: '#f0ceb3', fontSize: '0.92rem', lineHeight: '1.55', marginBottom: '1.75rem' }}>
@@ -1172,10 +1100,8 @@ export function Home() {
               className="glass-panel"
               style={{ padding: '2.25rem 1.75rem', border: '1px solid rgba(241, 163, 42, 0.2)', background: 'rgba(105, 14, 31, 0.22)', display: 'flex', flexDirection: 'column', gap: '1rem', borderRadius: '18px' }}
             >
-              <div style={{ display: 'flex', gap: '0.25rem' }}>
-                {[...Array(review.rating)].map((_, i) => (
-                  <Star key={i} size={16} fill="var(--color-primary)" color="var(--color-primary)" />
-                ))}
+              <div style={{ color: 'var(--color-primary)', fontSize: '1rem', letterSpacing: '3px' }}>
+                ★★★★★
               </div>
               <p style={{ color: '#fdfdfd', fontStyle: 'italic', flexGrow: 1, fontSize: '0.94rem', lineHeight: '1.6' }}>
                 "{review.text}"
@@ -1218,9 +1144,9 @@ export function Home() {
             <Link
               to="/admission"
               className="btn-primary"
-              style={{ padding: '16px 36px', fontSize: '1.05rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+              style={{ padding: '16px 36px', fontSize: '1.05rem', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
             >
-              Enroll as a Student <ArrowRight size={18} />
+              Enroll as a Student
             </Link>
 
             <button
@@ -1229,9 +1155,9 @@ export function Home() {
                 setInstituteModalOpen(true);
               }}
               style={{
-                display: 'flex',
+                display: 'inline-flex',
                 alignItems: 'center',
-                gap: '0.6rem',
+                justifyContent: 'center',
                 padding: '16px 32px',
                 fontSize: '1.05rem',
                 borderRadius: '30px',
@@ -1244,7 +1170,7 @@ export function Home() {
                 fontFamily: 'var(--font-sans)'
               }}
             >
-              <Building2 size={18} /> Request Institute Tenant
+              Request Institute Tenant
             </button>
           </div>
         </div>
@@ -1277,13 +1203,13 @@ export function Home() {
                 onClick={() => setInstituteModalOpen(false)}
                 style={{ position: 'absolute', top: '1.25rem', right: '1.25rem', background: 'rgba(255, 255, 255, 0.1)', border: 'none', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', cursor: 'pointer' }}
               >
-                <X size={18} />
+                <span style={{ fontSize: '1.4rem', lineHeight: '1' }}>&times;</span>
               </button>
 
               {instituteSubmitted ? (
                 <div style={{ textAlign: 'center', padding: '2rem 1rem' }}>
                   <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'rgba(46, 204, 113, 0.15)', border: '1px solid #2ecc71', color: '#2ecc71', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem auto' }}>
-                    <Check size={32} />
+                    <span style={{ fontSize: '1.8rem', fontWeight: '800', color: '#2ecc71' }}>✓</span>
                   </div>
                   <h3 style={{ fontSize: '1.6rem', color: '#fff', fontWeight: '700', marginBottom: '0.75rem' }}>
                     Institutional Request Received
@@ -1301,9 +1227,8 @@ export function Home() {
                 </div>
               ) : (
                 <form onSubmit={handleInstituteSubmit}>
-                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', color: 'var(--color-primary)', fontSize: '0.8rem', fontWeight: '700', textTransform: 'uppercase', marginBottom: '0.5rem' }}>
-                    <Building2 size={16} />
-                    <span>Multi-Tenant Institutional Provisioning</span>
+                  <div style={{ color: 'var(--color-primary)', fontSize: '0.8rem', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '0.5rem' }}>
+                    Multi-Tenant Institutional Provisioning
                   </div>
                   <h3 style={{ fontSize: '1.6rem', color: 'var(--color-white)', fontWeight: '800', marginBottom: '0.4rem' }}>
                     Request Dedicated Institute Space
@@ -1361,7 +1286,7 @@ export function Home() {
                     </div>
 
                     <div>
-                      <label style={{ display: 'block', fontSize: '0.85rem', color: '#f0ceb3', fontWeight: '600', marginBottom: '0.35rem' }}>Estimated Student Volume & Requirements</label>
+                      <label style={{ display: 'block', fontSize: '0.85rem', color: '#f0ceb3', fontWeight: '600', marginBottom: '0.35rem' }}>Estimated Student Volume &amp; Requirements</label>
                       <textarea
                         rows={3}
                         value={instituteForm.requirements}
@@ -1376,9 +1301,9 @@ export function Home() {
                     type="submit"
                     disabled={instituteSubmitting}
                     className="btn-primary"
-                    style={{ width: '100%', padding: '14px', fontSize: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', opacity: instituteSubmitting ? 0.7 : 1 }}
+                    style={{ width: '100%', padding: '14px', fontSize: '1rem', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', opacity: instituteSubmitting ? 0.7 : 1 }}
                   >
-                    {instituteSubmitting ? 'Submitting Request...' : 'Submit Institutional Request'} <ArrowRight size={18} />
+                    {instituteSubmitting ? 'Submitting Request...' : 'Submit Institutional Request'}
                   </button>
                 </form>
               )}
